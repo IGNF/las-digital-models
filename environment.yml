@@ -1,0 +1,19 @@
+name: mnt
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - gdal
+  - geojson
+  - shapely
+  - laspy
+  - pandas
+  - opencv
+  - numpy
+  - cgal
+  - python-pdal
+  - scipy
+  - rasterio
+  - pip
+  - pip:
+    - startinpy
