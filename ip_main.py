@@ -26,20 +26,17 @@
           - CGAL-CDT (experimental, not ready yet)
           - PDAL-IDW
           - IDWquad
-    6:  output format, one of:
-          - ASC
-          - [default] GeoTIFF
-    7:  IDW radius (for PDAL-IDW) //
+    6:  IDW radius (for PDAL-IDW) //
         // STARTING IDW radius/number of neighbours to query (for IDWquad)
-    8:  IDW power (for PDAL-IDW and IDWquad)
-    9:  IDW fallback kernel width (for PDAL-IDW) //
+    7:  IDW power (for PDAL-IDW and IDWquad)
+    8:  IDW fallback kernel width (for PDAL-IDW) //
         // MINIMUM number of points per quadrant (for IDWquad)
-    10: radius/number of neighbours INCREMENT value (for IDWquad)
-    11: IDWquad method, one of:
+    9: radius/number of neighbours INCREMENT value (for IDWquad)
+    10: IDWquad method, one of:
           - radial
           - k-nearest
-    12: IDWquad tolerance (epsilon)
-    13: IDWquad maximum number of iteration before declaring no-data
+    11: IDWquad tolerance (epsilon)
+    12: IDWquad maximum number of iteration before declaring no-data
 
 All IDW parameters are optional, but it is assumed the user will fine-
 tune them, hence the defaults are not listed.
@@ -52,7 +49,7 @@ from sys import argv
 from ip_processing import start_pool
 
 def main():
-    if 2 <= len(argv) <= 13: start_pool(*argv[1:])
+    if 2 <= len(argv) <= 12: start_pool(*argv[1:])
     else: print("Error: Incorrect number of arguments passed. Returning.")
     
 if __name__ == '__main__':

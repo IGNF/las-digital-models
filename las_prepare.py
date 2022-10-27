@@ -27,12 +27,6 @@ def las_prepare(size, fpath):
         res(list): resolution in coordinates
         origin(list): coordinate location of the relative origin (bottom left)
     """
-    #in_file = File(fpath, mode = "r")
-    # with open(target_folder + "config_preprocess.json", 'r') as file_in:
-    #     preconfig = file_in.read()
-    # config = ('[\n\t"' + fpath + '",\n' + preconfig +
-    #             ',\n\t\t"type": "' + "writes.las" +
-    #             ',\n\t\t"filename": "' + fpath[:-4] + '_ground.las"\n\t}\n]')
     Fileoutput = "_".join([fpath[:-4], 'ground.las'])
     information = {}
     information = {

@@ -4,9 +4,7 @@
 
 ## In repo:
 
-* `Vertical_difference` folder _(Khaled & Manos's working folder for quantitative interpolation evaluation)_
 * `README.md` _(this readme file)_
-* `gdal_attempt.py` _(a half-baked test program for direct interpolation via GDAL)_
 * `ip_main.py` _(main file for interpolation)_
 * `ip_processing.py` _(interpolation code)_
 * `las_prepare.py` _(reads LAS file and establishes raster dimensions, part of main program)_
@@ -14,18 +12,6 @@
 The testing environment so far includes multiprocessing pool-based implementations of ground filtering/pre-processing via PDAL, TIN-linear and Laplace interpolation via startin, 
 constrained Delaunay-based (CDT) TIN-linear and natural neighbour (NN) interpolation via CGAL, radial IDW via GDAL/PDAL and quadrant-based IDW via scipy cKDTree and our own code.
 It also includes these post-processing modules so far: flattening the areas of polygons in the raster, and patching in missing pixels.
-
-**NEW STUFF**
-
-* Second release of proper hydro-flattening. It now produces much nicer results, but is a bit slower.
-* GeoTIFF raster export now uses `float32`.
-* WFS services can also be used as the basis for polygon-based flattening.
-* Fixed some bugs. You can now actually add multiple WFS services, as the layer name is now also configurable.
-
-## Current tasks
-
-Finished all planned tasks of the project. All remaining development concerns the scaling team.
-Only bug fixes and potential small changes to the new hydro-flattening algorithm to be expected.
 
 
 ## Primary entry point ( interpolation + post-processing)
@@ -39,9 +25,6 @@ A key to the CMD call signature of `ip_main.py`:
 3. integer to set the post-processing mode, currently these ones are available:
 	* **0** _(default, does not run post-processing)_
 	* **1** _(runs missing pixel value patching only)_
-	* **2** _(runs basic flattening only)_
-	* **3** _(runs both patching and basic flattening)_
-	* **4** _(runs patching, basic flattening, and the **river hydro-flattening algorithm**)_
 4. pixel size (in metres) for interpolation _(the default value is 1)_
 5. interpolation method, one of:
 	* startin-TINlinear
@@ -49,22 +32,19 @@ A key to the CMD call signature of `ip_main.py`:
 	* CGAL-NN
 	* PDAL-IDW
 	* IDWquad
-6. output format, one of:
-	* ASC
-	* GeoTIFF _(default)_
-7. IDW argument 0
+6. IDW argument 0
 	* _If using PDAL-IDW:_ IDW interpolation radius in metres
 	* _If using IDWquad:_ The _starting_ radius/number of neighbours _k_ to query
-8. IDW argument 1: IDW interpolation power (exponent) in metres _(both for PDAL-IDW and IDWquad)_
-9. IDW argument 2:
+7. IDW argument 1: IDW interpolation power (exponent) in metres _(both for PDAL-IDW and IDWquad)_
+8. IDW argument 2:
 	* _If using PDAL-IDW:_ interpolation fallback window size
 	* _If using IDWquad:_ minimum number of points to find per quadrant
-10. IDW argument 3: query radius/number of neighbours _k_ to query, increment step value _(only for IDWquad)_
-11. IDW argument 4: IDWquad method, one of:
+9. IDW argument 3: query radius/number of neighbours _k_ to query, increment step value _(only for IDWquad)_
+10. IDW argument 4: IDWquad method, one of:
 	* radial _(for iterative radius increments)_
 	* k-nearest _(for iterative increments of how many neighbours to query)_
-12. IDW argument 5: IDWquad KD-tree query tolerance value _eps_
-13. IDW argument 6: IDWquad maximum number of iterations before declaring no-data and proceeding to next pixel
+11. IDW argument 5: IDWquad KD-tree query tolerance value _eps_
+12. IDW argument 6: IDWquad maximum number of iterations before declaring no-data and proceeding to next pixel
 
 An example call in the Windows Anaconda Prompt would be:
 
@@ -183,22 +163,3 @@ We recommend this as future work to the client.
 On the other hand, the algorithm is robust in the sense that it can handle really weird rivers shapes (such as offshoots, i.e. dock channels and
 hydro-power plants without any issues in most places.
 
-## Future work in this repo
-
-_Development has now ended in this repo. Only bug fixes and small changes to be expected._
-
-The current version of this implementation runs as many processes in parallel as there are input files, hence using all processor cores when there are at least as many files as there are cores in
-the given system. This multiprocessing implementation is based on Python built-in multiprocessing pools. A queue-based implementation would probably work better, but this is something for the scaling group to look at. _No final decision yet._
-
-We should probably also experiment around with the `filters.pmf` method that is provided by PDAL. The example parametrisation uses `filters.smrf`. You can start experimenting with this simply by changing the JSON parametrisation, the code does not need to be edited.
-There's further guidance in `gf_main.py` on what's what in `config.json`. _(Completed.)_
-
-I actually managed to implement an program that uses the GDAL interface directly (see the file `GDAL_attempt.py`) which is ready to read OGR vector files (for example ESRI shapefiles) and interpolate them
-using GDAL's Python bindings. This would give access to the full IDW functionality of GDAL, but there is a problem: I implemented this because I though we could simply set the PDAL ground filtering implementation
-to export into OGR files rather than LAS files and then simply use those as input for GDAL (GDAL is not compatible with LAS files). However, it turns out that there is a bug in the OGR writer of PDAL. It crashes
-Python randomly while exporting. I can run the same code 10 times in a loop and 3-4 out of 10 attempts it will export correctly, but in the other cases it will crash. Unfortunately this makes it useless to us.
-I have been trying to get this to work in Python 3.8, which could potentially be the source of the issues. I'll try to experiment with other combinations of Python and PDAL versions in the future.
-_Now that I also implemented quadrant-based IDW, perhaps we might not need this after all?_
-
-A further idea would be to implement no-data mask layers for the GeoTIFF exporter. This would make them easier to visualise, as the no-data pixels would be masked out by the no-data
-layer, rather than simply being marked as no-data by the fixed value -9999. _Not being worked on at the moment._

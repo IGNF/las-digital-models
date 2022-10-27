@@ -10,10 +10,32 @@ import numpy as np
 from las_prepare import las_prepare
 
 
+def give_name_resolution_raster(size):
+    """
+    Give a resolution from raster
+
+    Args:
+        size (int): raster cell size
+
+    Return:
+        _size(str): resolution from raster for output's name
+    """
+    if float(size) == 1.0:
+        _size = str('_1M')
+    elif float(size) == 0.5:
+        _size = str('_50CM')
+    elif float(size) == 5.0:
+        _size = str('_5M')
+    else:
+        _size = str('')
+
+    return _size
+
 def execute_startin(pts, res, origin, size, method):
     """Takes the grid parameters and the ground points. Interpolates
     either using the TIN-linear or the Laplace method. Uses a
-    -9999 no-data value. Fully based on the startin package.
+    -9999 no-data value. 
+    Fully based on the startin package (https://startinpy.readthedocs.io/en/latest/api.html)
     Args:
         pts : ground points
         res(list): resolution in coordinates
@@ -22,27 +44,36 @@ def execute_startin(pts, res, origin, size, method):
         method(str): spatial interpolation, deterministic metho (TIN or Laplace)
     
     Returns:
-        ras
-        tin
+        ras(list): Z interpolation
     """
-    import startin
-    tin = startin.DT(); tin.insert(pts)
-    ras = np.zeros([res[1], res[0]])
+    import startinpy
+    import numpy as np
+
+    # # Startin 
+    tin = startinpy.DT(); tin.insert(pts) # # Insert each points in the array of points (a 2D array)
+    ras = np.zeros([res[1], res[0]]) # # returns a new array of given shape and type, filled with zeros
+    # # Interpolate method
     if method == 'startin-TINlinear':
         def interpolant(x, y): return tin.interpolate_tin_linear(x, y)
     elif method == 'startin-Laplace':
         def interpolant(x, y): return tin.interpolate_laplace(x, y)
+    else:
+        print('error')
     yi = 0
     for y in np.arange(origin[1], origin[1] + res[1] * size, size):
         xi = 0
         for x in np.arange(origin[0], origin[0] + res[0] * size, size):
-            tri = tin.locate(x, y)
-            if tri != [] and 0 not in tri:
-                ras[yi, xi] = interpolant(x, y)
-            else: ras[yi, xi] = -9999
+            ch = tin.is_inside_convex_hull(x, y) # check is the point [x, y] located inside  the convex hull of the DT
+            if ch == False:
+                ras[yi, xi] = -9999 # no-data value
+            else:
+                tri = tin.locate(x, y) # locate the triangle containing the point [x,y]. An error is thrown if it is outside the convex hull
+                if tri != [] and 0 not in tri:
+                    ras[yi, xi] = interpolant(x, y)
+                else: ras[yi, xi] = -9999 # no-data value
             xi += 1
         yi += 1
-    return ras, tin
+    return ras
 
 def execute_cgal(pts, res, origin, size):
     """Performs CGAL-NN on the input points.
@@ -54,15 +85,25 @@ def execute_cgal(pts, res, origin, size):
     performs interpolation using CGAL natural_neighbor_coordinate_2
     by finding the attributes (Z coordinates) via the dictionary
     that was created from the deduplicated points.
+    Args:
+        pts : ground points
+        res(list): resolution in coordinates
+        origin(list): coordinate location of the relative origin (bottom left)
+        size (int): raster cell size
+    
+    Returns:
+        ras(list): Z interpolation
     """
     from CGAL.CGAL_Kernel import Point_2
     from CGAL.CGAL_Triangulation_2 import Delaunay_triangulation_2
     from CGAL.CGAL_Interpolation import natural_neighbor_coordinates_2
+
     s_idx = np.lexsort(pts.T); s_data = pts[s_idx,:]
     mask = np.append([True], np.any(np.diff(s_data[:,:2], axis = 0), 1))
     deduped = s_data[mask]
     cpts = list(map(lambda x: Point_2(*x), deduped[:,:2].tolist()))
     zs = dict(zip([tuple(x) for x in deduped[:,:2]], deduped[:,2]))
+
     tin = Delaunay_triangulation_2()
     for pt in cpts: tin.insert(pt)
     ras = np.zeros([res[1], res[0]])
@@ -83,38 +124,54 @@ def execute_cgal(pts, res, origin, size):
         yi += 1
     return ras
 
-def execute_pdal(target_folder, fpath, size, fmt, rad, pwr, wnd):
+def execute_pdal(fpath, size, rad, pwr, wnd):
     """Sets up a PDAL pipeline that reads a ground filtered LAS
     file, and writes it via GDAL. The GDAL writer has interpolation
     options, exposing the radius, power and a fallback kernel width
     to be configured. More about these in the readme on GitHub.
+    Args:
+        fpath(str): target folder 
+        size (float): raster cell size
+        rad(float): radius [default:5]
+        pwr(float): exponent of distance when computing IDW. CLose points have higher significance than far points. [default:2]
+        wnd(float): the maximum distance from donor cell to a target cell when applying the fallback interpolation method. [default:0]
     """
     import pdal
     import json
-    if fmt == "GeoTIFF":
-        with open(target_folder + 
-                      "config_preprocess.json", 'r') as file_in:
-                preconfig = file_in.read()
-        # # NOSRS = Don’t read the SRS VLRs. 
-        # # The data will not be assigned an SRS. 
-        # # This option is for use only in special cases where processing the SRS could cause performance issues. [Default: false]
-        config = ('[\n\t{\n\t\t"type": "readers.las"' 
-                      ',\n\t\t"filename": "' + fpath + '"'
-                      ',\n\t\t"override_srs": "EPSG:2154"' +
-                      ',\n\t\t"nosrs": ' + '"true"\n\t},' +
-                      '\n\t' + preconfig +
-                      '\n\t{\n\t\t"output_type": "idw"' +
-                      ',\n\t\t"resolution": ' + str(size) +
-                      ',\n\t\t"radius": ' + str(rad) +
-                      ',\n\t\t"power": ' + str(pwr) +
-                      ',\n\t\t"window_size": ' + str(wnd) +
-                      ',\n\t\t"data_type": "float32"' +
-                      ',\n\t\t"filename": "' + fpath[:-4] +
-                      '_IDW.tif"\n\t}\n]')
-        print(config)
-        pipeline = pdal.Pipeline(config)
-        pipeline.execute()
-    elif fmt == "ASC": print("ASC format for PDAL-IDW is not supported.")
+
+    # # Return size for output's name
+    _size = give_name_resolution_raster(size)
+
+    Fileoutput = "_".join([fpath[:-4], "_".join([_size,'IDW.tif'])])
+    information = {}
+    information = {
+        "pipeline": [
+            {
+                "type":"readers.las",
+                "filename":fpath,
+                "override_srs": "EPSG:2154",
+                "nosrs": True
+            },
+            {
+                "type":"filters.range",
+                "limits":"Classification[2:2]"
+            },
+            {
+                "output_type": "idw",
+                "resolution": str(size),
+                "radius": str(rad),
+                "power": str(pwr),
+                "window_size": str(wnd),    
+                "data_type": "float32",
+                "filename": Fileoutput
+            }
+        ]
+    }
+    # # "NOSRS" = Don’t read the SRS VLRs. The data will not be assigned an SRS. 
+    # # This option is for use only in special cases where processing the SRS could cause performance issues. [Default: false]
+    ground = json.dumps(information, sort_keys=True, indent=4)
+    pipeline = pdal.Pipeline(ground)
+    pipeline.execute()
 
 def execute_idwquad(pts, res, origin, size,
                     start_rk, pwr, minp, incr_rk, method, tolerance, maxiter):
@@ -163,23 +220,6 @@ def execute_idwquad(pts, res, origin, size,
         yi += 1
     return ras
 
-def write_asc(res, origin, size, raster, fpath):
-    """Writes the interpolated TIN-linear and Laplace rasters
-    to disk using the ASC format. The header is based on the
-    pre-computed raster parameters.
-    """
-    with open(fpath, "w") as file_out:
-        file_out.write("NCOLS " + str(res[0]) + "\n")
-        file_out.write("NROWS " + str(res[1]) + "\n")
-        file_out.write("XLLCORNER " + str(origin[0]) + "\n")
-        file_out.write("YLLCORNER " + str(origin[1]) + "\n")
-        file_out.write("CELLSIZE " + str(size) + "\n")
-        file_out.write("NODATA_VALUE " + str(-9999) + "\n")
-        for yi in range(res[1] - 1, -1, -1):
-            for xi in range(res[0]):
-                file_out.write(str(raster[yi, xi]) + " ")
-            file_out.write("\n")
-
 def write_geotiff(raster, origin, size, fpath):
     """Writes the interpolated TIN-linear and Laplace rasters
     to disk using the GeoTIFF format. The header is based on
@@ -200,6 +240,7 @@ def write_geotiff(raster, origin, size, fpath):
                            transform = transform
                            ) as out_file:
             out_file.write(raster.astype(rasterio.float32), 1)
+            print(fpath)
 
 def patch(raster, res, origin, size, min_n):
     """Patches in missing pixel values by applying a median
@@ -232,32 +273,29 @@ def ip_worker(mp):
     desired interpolation method/export format.
     """
     postprocess = mp[0]
-    size, fpath = mp[1], (mp[2] + mp[3])[:-3] + mp[13]
-    target_folder, fname, method, fmt = mp[2], mp[3], mp[4], mp[5]
-    idw0_polyfpath, idw1, idw2, idw3 = mp[6], mp[7], mp[8], mp[9] 
-    idw4, idw5, idw6 = mp[10], mp[11], mp[12]
+    size, fpath = mp[1], (mp[2] + mp[3])[:-3] + mp[12]
+    fname, method = mp[3], mp[4]
+    idw0_polyfpath, idw1, idw2, idw3 = mp[5], mp[6], mp[7], mp[8] 
+    idw4, idw5, idw6 = mp[9], mp[10], mp[11]
     print("PID {} starting to work on {}".format(os.getpid(), fname))
     start = time()
     gnd_coords, res, origin = las_prepare(size, fpath)
-    print(gnd_coords)
-    print(res)
-    print(origin)
     if method == 'PDAL-IDW':
-        execute_pdal(target_folder, fpath, size, fmt,
+        execute_pdal(fpath, size,
                      idw0_polyfpath, idw1, idw2)
         end = time()
         print("PID {} finished interpolation and export.".format(os.getpid()),
           "Time elapsed: {} sec.".format(round(end - start, 2)))
         return
-    # if method == 'startin-TINlinear' or method == 'startin-Laplace':
-    #     ras, tin = execute_startin(gnd_coords, res, origin, size, method)
-    # elif method == 'CGAL-NN':
-    #     ras = execute_cgal(gnd_coords, res, origin, size)
-    # elif method == 'IDWquad':
-    #     ras = execute_idwquad(gnd_coords, res, origin, size,
-    #                           idw0_polyfpath, idw1, idw2, idw3,
-    #                           idw4, idw5, idw6)
-    # end = time()
+    if method == 'startin-TINlinear' or method == 'startin-Laplace':
+        ras = execute_startin(gnd_coords, res, origin, size, method)
+    elif method == 'CGAL-NN':
+        ras = execute_cgal(gnd_coords, res, origin, size)
+    elif method == 'IDWquad':
+        ras = execute_idwquad(gnd_coords, res, origin, size,
+                              idw0_polyfpath, idw1, idw2, idw3,
+                              idw4, idw5, idw6)
+    end = time()
     # print("PID {} finished interpolating.".format(os.getpid()),
     #       "Time spent interpolating: {} sec.".format(round(end - start, 2)))
     # if postprocess > 0:
@@ -268,26 +306,21 @@ def ip_worker(mp):
     #     print("PID {} finished post-processing.".format(os.getpid()),
     #           "Time spent post-processing: {} sec.".format(
     #               round(end - start, 2)))
-    # start = time()
-    # if method == 'startin-TINlinear' and fmt == 'GeoTIFF':
-    #     write_geotiff(ras, origin, size, fpath[:-4] + '_TINlinear.tif')
-    # if method == 'startin-Laplace' and fmt == 'GeoTIFF':
-    #     write_geotiff(ras, origin, size, fpath[:-4] + '_Laplace.tif')
-    # if method == 'CGAL-NN' and fmt == 'GeoTIFF':
-    #     write_geotiff(ras, origin, size, fpath[:-4] + '_NN.tif')
-    # if method == 'IDWquad' and fmt == 'GeoTIFF':
-    #     write_geotiff(ras, origin, size, fpath[:-4] + '_IDWquad.tif')
-    # if method == 'startin-TINlinear' and fmt == 'ASC':
-    #     write_asc(res, origin, size, ras, fpath[:-4] + '_TINlinear.asc')
-    # if method == 'startin-Laplace' and fmt == 'ASC':
-    #     write_asc(res, origin, size, ras, fpath[:-4] + '_Laplace.asc')
-    # if method == 'CGAL-NN' and fmt == 'ASC':
-    #     write_asc(res, origin, size, ras, fpath[:-4] + '_NN.asc')
-    # if method == 'IDWquad' and fmt == 'ASC':
-    #     write_asc(res, origin, size, ras, fpath[:-4] + '_IDWquad.asc')
-    # end = time()
-    # print("PID {} finished exporting.".format(os.getpid()),
-    #       "Time spent exporting: {} sec.".format(round(end - start, 2)))
+    # # Return size for output's name
+    _size = give_name_resolution_raster(size)
+    # # Write raster
+    start = time()
+    if method == 'startin-TINlinear':
+        write_geotiff(ras, origin, size, fpath[:-4] + _size + '_TINlinear.tif')
+    if method == 'startin-Laplace':
+        write_geotiff(ras, origin, size, fpath[:-4] + '_Laplace.tif')
+    if method == 'CGAL-NN':
+        write_geotiff(ras, origin, size, fpath[:-4] + '_NN.tif')
+    if method == 'IDWquad':
+        write_geotiff(ras, origin, size, fpath[:-4] + '_IDWquad.tif')
+    end = time()
+    print("PID {} finished exporting.".format(os.getpid()),
+          "Time spent exporting: {} sec.".format(round(end - start, 2)))
 
 def listPointclouds(folder, filetype):
     """ Return list of pointclouds in the folder 'data'
@@ -311,8 +344,8 @@ def listPointclouds(folder, filetype):
     return li
 
 def start_pool(target_folder, filetype = 'las', postprocess = 0,
-               size = 1, method = 'startin-Laplace', fmt = 'GeoTIFF',
-               idw0_polyfpath = 5, idw1 = 2, idw2 = 0, idw3 = 2,
+               size = 1, method = 'startin-Laplace', idw0_polyfpath = 5, 
+               idw1 = 2, idw2 = 0, idw3 = 2,
                idw4 = 'radial', idw5 = 0.2, idw6 = 3):
     """Assembles and executes the multiprocessing pool.
     The interpolation variants/export formats are handled
@@ -332,7 +365,7 @@ def start_pool(target_folder, filetype = 'las', postprocess = 0,
     pre_map, processno = [], len(fnames)
     for i in range(processno):
         pre_map.append([int(postprocess), float(size),
-                            target_folder, fnames[i].strip('\n'), method, fmt,
+                            target_folder, fnames[i].strip('\n'), method,
                             idw0_polyfpath, float(idw1), float(idw2),
                             float(idw3), idw4, float(idw5), float(idw6), filetype])
     p = Pool(processes = processno)
