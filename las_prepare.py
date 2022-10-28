@@ -28,28 +28,29 @@ def las_prepare(size, fpath):
         origin(list): coordinate location of the relative origin (bottom left)
     """
     Fileoutput = "_".join([fpath[:-4], 'ground.las'])
-    information = {}
-    information = {
-       "pipeline": [
-            {
-                "type":"readers.las",
-                "filename":fpath,
-                "override_srs": "EPSG:2154",
-                "nosrs": True
-            },
-            {
-                "type":"filters.range",
-                "limits":"Classification[2:2]"
-            },
-            {
-                "type": "writers.las",
-                "filename": Fileoutput
-            }
-        ]
-    }
-    # ground = json.dumps(information, sort_keys=True, indent=4)
-    # pipeline = pdal.Pipeline(ground)
-    # pipeline.execute()
+    if not os.path.exists(Fileoutput):
+        information = {}
+        information = {
+        "pipeline": [
+                {
+                    "type":"readers.las",
+                    "filename":fpath,
+                    "override_srs": "EPSG:2154",
+                    "nosrs": True
+                },
+                {
+                    "type":"filters.range",
+                    "limits":"Classification[2:2]"
+                },
+                {
+                    "type": "writers.las",
+                    "filename": Fileoutput
+                }
+            ]
+        }
+        ground = json.dumps(information, sort_keys=True, indent=4)
+        pipeline = pdal.Pipeline(ground)
+        pipeline.execute()
     in_file = laspy.read((fpath[:-4] + '_ground.las'))
     header = in_file.header
     in_np = np.vstack((in_file.raw_classification,
