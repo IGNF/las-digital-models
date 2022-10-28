@@ -62,8 +62,8 @@ For using pre-processing and both post-processing modes (and defaults for everyt
 
 If you are using an Anaconda virtual environment for PDAL/CGAL, you should first activate the environment in Anaconda prompt and _then_ run the relevant script
 from the same prompt. So, for example:
-1. Create conda environment : `conda env create -n [environment_name] -f environment.yml`
-2. Activate conda environment : `conda activate [environment_name]`
+1. Create conda environment : `conda env create -n dtm -f environment.yml`
+2. Activate conda environment : `conda activate dtm`
 2. Lauch the script : `python [file_path_to_main] [argument_1] [argument_2] [...]`
 
 Relative file paths won't work in virtual environments, so make sure you specify the target folder using a full (absolute) file path.
