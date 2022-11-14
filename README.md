@@ -11,7 +11,14 @@
 
 The testing environment so far includes multiprocessing pool-based implementations TIN-linear and Laplace interpolation via startin, constrained Delaunay-based (CDT) TIN-linear and natural neighbour (NN) interpolation via CGAL, radial IDW via GDAL/PDAL and quadrant-based IDW via scipy cKDTree and our own code.
 
-## Primary entry point ( interpolation + post-processing)
+## Primary (filter ground pointcloud)
+You are advised to run `gf_main.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+
+A key to the CMD call signature of `gf_main.py`:
+1. target folder file path
+2. extension from LIDAR : LAS / LAZ ?
+
+## Secondary entry point ( interpolation + post-processing)
 
 You are advised to run `ip_main.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
 

@@ -272,16 +272,16 @@ def ip_worker(mp):
     Runs slightly different workflows depending on the
     desired interpolation method/export format.
     """
-    postprocess = mp[0]
-    size, fpath = mp[1], (mp[2] + mp[3])[:-3] + mp[12]
-    fname, method = mp[3], mp[4]
-    idw0_polyfpath, idw1, idw2, idw3 = mp[5], mp[6], mp[7], mp[8] 
-    idw4, idw5, idw6 = mp[9], mp[10], mp[11]
+    src, target_folder, postprocess = mp[0], mp[3], mp[1]
+    size, fpath = mp[2], ("DTM/".join([mp[0], mp[4][:-4]]))
+    fname, method = mp[4], mp[5]
+    idw0_polyfpath, idw1, idw2, idw3 = mp[6], mp[7], mp[8], mp[9] 
+    idw4, idw5, idw6 = mp[10], mp[11], mp[12]
     print("PID {} starting to work on {}".format(os.getpid(), fname))
     start = time()
-    gnd_coords, res, origin = las_prepare(size, fpath)
+    gnd_coords, res, origin = las_prepare(target_folder, src, fname, size)
     if method == 'PDAL-IDW':
-        execute_pdal(fpath, size,
+        execute_pdal("".join([target_folder, mp[4]]), size,
                      idw0_polyfpath, idw1, idw2)
         end = time()
         print("PID {} finished interpolation and export.".format(os.getpid()),
@@ -296,28 +296,25 @@ def ip_worker(mp):
                               idw0_polyfpath, idw1, idw2, idw3,
                               idw4, idw5, idw6)
     end = time()
-    # print("PID {} finished interpolating.".format(os.getpid()),
-    #       "Time spent interpolating: {} sec.".format(round(end - start, 2)))
-    # if postprocess > 0:
-    #     start = time()
-    #     if postprocess == 1:
-    #         patch(ras, res, origin, size, 0)
-    #     end = time()
-    #     print("PID {} finished post-processing.".format(os.getpid()),
-    #           "Time spent post-processing: {} sec.".format(
-    #               round(end - start, 2)))
-    # # Return size for output's name
+    print("PID {} finished interpolating.".format(os.getpid()),
+          "Time spent interpolating: {} sec.".format(round(end - start, 2)))
+    if postprocess > 0:
+        start = time
+        print("PID {} finished post-processing.".format(os.getpid()),
+              "Time spent post-processing: {} sec.".format(
+                  round(end - start, 2)))
+    # Return size for output's name
     _size = give_name_resolution_raster(size)
-    # # Write raster
+    # Write raster
     start = time()
     if method == 'startin-TINlinear':
-        write_geotiff(ras, origin, size, fpath[:-4] + _size + '_TINlinear.tif')
+        write_geotiff(ras, origin, size, fpath + _size + '_TINlinear.tif')
     if method == 'startin-Laplace':
-        write_geotiff(ras, origin, size, fpath[:-4] + '_Laplace.tif')
+        write_geotiff(ras, origin, size, fpath + _size + '_Laplace.tif')
     if method == 'CGAL-NN':
-        write_geotiff(ras, origin, size, fpath[:-4] + '_NN.tif')
+        write_geotiff(ras, origin, size, fpath + _size + '_NN.tif')
     if method == 'IDWquad':
-        write_geotiff(ras, origin, size, fpath[:-4] + '_IDWquad.tif')
+        write_geotiff(ras, origin, size, fpath + _size + '_IDWquad.tif')
     end = time()
     print("PID {} finished exporting.".format(os.getpid()),
           "Time spent exporting: {} sec.".format(round(end - start, 2)))
@@ -343,7 +340,7 @@ def listPointclouds(folder, filetype):
                 li.append(e)
     return li
 
-def start_pool(target_folder, filetype = 'las', postprocess = 0,
+def start_pool(target_folder, src, filetype = 'las', postprocess = 0,
                size = 1, method = 'startin-Laplace', idw0_polyfpath = 5, 
                idw1 = 2, idw2 = 0, idw3 = 2,
                idw4 = 'radial', idw5 = 0.2, idw6 = 3):
@@ -364,7 +361,7 @@ def start_pool(target_folder, filetype = 'las', postprocess = 0,
         print("Error: No file names were input. Returning."); return
     pre_map, processno = [], len(fnames)
     for i in range(processno):
-        pre_map.append([int(postprocess), float(size),
+        pre_map.append([src, int(postprocess), float(size),
                             target_folder, fnames[i].strip('\n'), method,
                             idw0_polyfpath, float(idw1), float(idw2),
                             float(idw3), idw4, float(idw5), float(idw6), filetype])
