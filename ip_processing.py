@@ -7,7 +7,9 @@ import os
 from time import time
 from multiprocessing import Pool, cpu_count
 import numpy as np
+from osgeo import gdal
 from las_prepare import las_prepare
+from raster_clip import clip_raster
 
 
 def give_name_resolution_raster(size):
@@ -36,6 +38,7 @@ def execute_startin(pts, res, origin, size, method):
     either using the TIN-linear or the Laplace method. Uses a
     -9999 no-data value. 
     Fully based on the startin package (https://startinpy.readthedocs.io/en/latest/api.html)
+
     Args:
         pts : ground points
         res(list): resolution in coordinates
@@ -85,6 +88,7 @@ def execute_cgal(pts, res, origin, size):
     performs interpolation using CGAL natural_neighbor_coordinate_2
     by finding the attributes (Z coordinates) via the dictionary
     that was created from the deduplicated points.
+
     Args:
         pts : ground points
         res(list): resolution in coordinates
@@ -129,6 +133,7 @@ def execute_pdal(fpath, size, rad, pwr, wnd):
     file, and writes it via GDAL. The GDAL writer has interpolation
     options, exposing the radius, power and a fallback kernel width
     to be configured. More about these in the readme on GitHub.
+
     Args:
         fpath(str): target folder 
         size (float): raster cell size
@@ -220,11 +225,20 @@ def execute_idwquad(pts, res, origin, size,
         yi += 1
     return ras
 
-def write_geotiff(raster, origin, size, fpath):
+def write_geotiff_withbuffer(raster, origin, size, fpath):
     """Writes the interpolated TIN-linear and Laplace rasters
-    to disk using the GeoTIFF format. The header is based on
+    to disk using the GeoTIFF format with buffer (100 m). The header is based on
     the raster array and a manual definition of the coordinate
     system and an identity affine transform.
+
+    Args:
+        raster(array) : Z interpolation
+        origin(list): coordinate location of the relative origin (bottom left)
+        size (float): raster cell size
+        fpath(str): target folder "_tmp"
+
+    Returns:
+        bool: If the output "DTM" in the folder "_tmp" is okay or not
     """
     import rasterio
     from rasterio.transform import Affine
@@ -240,7 +254,12 @@ def write_geotiff(raster, origin, size, fpath):
                            transform = transform
                            ) as out_file:
             out_file.write(raster.astype(rasterio.float32), 1)
-            print(fpath)
+    # Check if DTM has created
+    ds = gdal.Open(fpath)
+    if ds is None:
+        return False
+    ds = None # Close dataset
+    return True
 
 def patch(raster, res, origin, size, min_n):
     """Patches in missing pixel values by applying a median
@@ -249,6 +268,13 @@ def patch(raster, res, origin, size, min_n):
     of interpolating large areas. The last parameter should
     be an integer that specifies the minimum number of valid
     neighbour values to fill a pixel (0 <= min_n <= 8).
+
+    Args:
+        raster(array) : Z interpolation
+        res(list): resolution in coordinates
+        origin(list): coordinate location of the relative origin (bottom left)
+        size (float): raster cell size
+        min_n(float): minimum number of valid neighbour values
     """
     mp = [[-1, -1], [-1, 0], [-1, 1], [0, -1],
           [0, 1], [1, -1], [1, 0], [1, 1]]
@@ -273,7 +299,7 @@ def ip_worker(mp):
     desired interpolation method/export format.
     """
     src, target_folder, postprocess = mp[0], mp[3], mp[1]
-    size, fpath = mp[2], ("DTM/".join([mp[0], mp[4][:-4]]))
+    size, fpath = mp[2], ("_tmp/".join([mp[0], mp[4][:-4]]))
     fname, method = mp[4], mp[5]
     idw0_polyfpath, idw1, idw2, idw3 = mp[6], mp[7], mp[8], mp[9] 
     idw4, idw5, idw6 = mp[10], mp[11], mp[12]
@@ -289,6 +315,7 @@ def ip_worker(mp):
         return
     if method == 'startin-TINlinear' or method == 'startin-Laplace':
         ras = execute_startin(gnd_coords, res, origin, size, method)
+        print(ras)
     elif method == 'CGAL-NN':
         ras = execute_cgal(gnd_coords, res, origin, size)
     elif method == 'IDWquad':
@@ -308,13 +335,21 @@ def ip_worker(mp):
     # Write raster
     start = time()
     if method == 'startin-TINlinear':
-        write_geotiff(ras, origin, size, fpath + _size + '_TINlinear.tif')
+        r = write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_TINlinear.tif')
+        if r == True:
+            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_TINlinear.tif')
     if method == 'startin-Laplace':
-        write_geotiff(ras, origin, size, fpath + _size + '_Laplace.tif')
+        r = write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_Laplace.tif')
+        if r == True:
+            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_Laplace.tif')
     if method == 'CGAL-NN':
-        write_geotiff(ras, origin, size, fpath + _size + '_NN.tif')
+        r = write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_NN.tif')
+        if r ==True:
+            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_NN.tif')
     if method == 'IDWquad':
-        write_geotiff(ras, origin, size, fpath + _size + '_IDWquad.tif')
+        r = write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_IDWquad.tif')
+        if r ==True:
+            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_IDWquad.tif')
     end = time()
     print("PID {} finished exporting.".format(os.getpid()),
           "Time spent exporting: {} sec.".format(round(end - start, 2)))
