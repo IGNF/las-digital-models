@@ -62,7 +62,7 @@ def start_pool(target_folder, src, filetype = 'las'):
     pre_map, processno = [], len(fnames)
     for i in range(processno):
         pre_map.append([target_folder, src, fnames[i].strip('\n'), filetype])
-    p = Pool(processes = processno)
+    p = Pool(cores -1)
     p.map(ip_worker, pre_map)
     p.close(); p.join()
     print("\nAll workers have returned.")

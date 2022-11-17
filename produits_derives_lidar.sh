@@ -1,6 +1,5 @@
 #!/bin/bash
-source ~/anaconda3/etc/profile.d/conda.sh
-conda env create -n dtm -f environment.yml
+source get_conda.sh
 conda activate dtm
 
 # Step 1 : filter ground

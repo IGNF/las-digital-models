@@ -49,18 +49,20 @@ import os
 from sys import argv
 from ip_processing import start_pool
 
-def create_folder():
+def create_folder(dest_folder: str):
     """Create the severals folders "DTM" and "_tmp" if not exist"""
     # Create folder "DTM"
-    if os.path.isdir('./DTM') is False:
-        os.makedirs('DTM')
-    # Create folder "DTM"
-    if os.path.isdir('./_tmp') is False:
-        os.makedirs('_tmp')
+    DTM_new_dir = os.path.join(dest_folder, 'DTM')
+    if not os.path.isdir(DTM_new_dir):
+        os.makedirs(DTM_new_dir)
+    # Create folder "_tmp"
+    tmp_new_dir = os.path.join(dest_folder, '_tmp')
+    if not os.path.isdir(tmp_new_dir):
+        os.makedirs(tmp_new_dir)
 
 def main():    
     # Create the severals folder if not exists
-    create_folder()
+    create_folder(argv[2])
     if 3 <= len(argv) <= 13: start_pool(*argv[1:])
     else: print("Error: Incorrect number of arguments passed. Returning.")
     

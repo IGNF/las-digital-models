@@ -403,7 +403,7 @@ def start_pool(target_folder, src, filetype = 'las', postprocess = 0,
                             target_folder, fnames[i].strip('\n'), method,
                             idw0_polyfpath, float(idw1), float(idw2),
                             float(idw3), idw4, float(idw5), float(idw6), filetype])
-    p = Pool(processes = processno)
+    p = Pool(cores -1)
     p.map(ip_worker, pre_map)
     p.close(); p.join()
     print("\nAll workers have returned.")
