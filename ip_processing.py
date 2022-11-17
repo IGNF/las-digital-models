@@ -350,7 +350,7 @@ def ip_worker(mp):
         if check_raster(fpath + _size + '_NN.tif') == True:
             clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_NN.tif')
     if method == 'IDWquad':
-        r = write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_IDWquad.tif')
+        write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_IDWquad.tif')
         if check_raster(fpath + _size + '_IDWquad.tif') == True:
             clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_IDWquad.tif')
     if method == 'PDAL-IDW':
