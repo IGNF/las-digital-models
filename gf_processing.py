@@ -7,6 +7,7 @@ import os
 from multiprocessing import Pool, cpu_count
 from las_ground import filter_las_ground_withterra, filter_las_ground
 
+CPU_LIMIT=int(os.getenv("CPU_LIMIT", "-1"))
 
 def listPointclouds(folder, filetype):
     """ Return list of pointclouds in the folder 'data'
@@ -50,19 +51,19 @@ def start_pool(target_folder, src, filetype = 'las'):
     """
     fnames = listPointclouds(target_folder, filetype)
     cores = cpu_count()
+    print(f"Found {cores} logical cores in this PC")
+    num_threads = cores -1
+    if CPU_LIMIT > 0 and num_threads > CPU_LIMIT:
+        print(f"Limit CPU usage to {CPU_LIMIT} cores due to env var CPU_LIMIT")
+        num_threads = CPU_LIMIT
     print("\nStarting interpolation pool of processes on the {}".format(
-        cores) + " logical cores found in this PC.\n")
-    if cores < len(fnames):
-        print("Warning: more processes in pool than processor cores.\n" +
-              "Optimally, roughly as many processes as processor " +
-              "cores should be run concurrently.\nYou are starting " +
-              str(len(fnames)) + " processes on " + str(cores) + " cores.\n")
-    elif len(fnames) == 0:
+        num_threads) + " logical cores.\n")
+    if len(fnames) == 0:
         print("Error: No file names were input. Returning."); return
     pre_map, processno = [], len(fnames)
     for i in range(processno):
         pre_map.append([target_folder, src, fnames[i].strip('\n'), filetype])
-    p = Pool(cores -1)
+    p = Pool(num_threads)
     p.map(ip_worker, pre_map)
     p.close(); p.join()
     print("\nAll workers have returned.")
