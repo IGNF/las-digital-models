@@ -254,6 +254,10 @@ def write_geotiff_withbuffer(raster, origin, size, fpath):
                            transform = transform
                            ) as out_file:
             out_file.write(raster.astype(rasterio.float32), 1)
+
+def check_raster(fpath):
+    """Check if raster has created
+    """
     # Check if DTM has created
     ds = gdal.Open(fpath)
     if ds is None:
@@ -315,7 +319,6 @@ def ip_worker(mp):
         return
     if method == 'startin-TINlinear' or method == 'startin-Laplace':
         ras = execute_startin(gnd_coords, res, origin, size, method)
-        print(ras)
     elif method == 'CGAL-NN':
         ras = execute_cgal(gnd_coords, res, origin, size)
     elif method == 'IDWquad':
@@ -332,24 +335,27 @@ def ip_worker(mp):
                   round(end - start, 2)))
     # Return size for output's name
     _size = give_name_resolution_raster(size)
-    # Write raster
+    # Write raster in the folder DTM who clipping from the LIDAR tile
     start = time()
     if method == 'startin-TINlinear':
-        r = write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_TINlinear.tif')
-        if r == True:
+        write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_TINlinear.tif')
+        if check_raster(fpath + _size + '_TINlinear.tif') == True:
             clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_TINlinear.tif')
     if method == 'startin-Laplace':
-        r = write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_Laplace.tif')
-        if r == True:
+        write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_Laplace.tif')
+        if check_raster(fpath + _size + '_Laplace.tif') == True:
             clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_Laplace.tif')
     if method == 'CGAL-NN':
-        r = write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_NN.tif')
-        if r ==True:
+        write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_NN.tif')
+        if check_raster(fpath + _size + '_NN.tif') == True:
             clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_NN.tif')
     if method == 'IDWquad':
         r = write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_IDWquad.tif')
-        if r ==True:
+        if check_raster(fpath + _size + '_IDWquad.tif') == True:
             clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_IDWquad.tif')
+    if method == 'PDAL-IDW':
+        if check_raster(fpath + _size + '_IDW.tif') == True:
+            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_IDW.tif')
     end = time()
     print("PID {} finished exporting.".format(os.getpid()),
           "Time spent exporting: {} sec.".format(round(end - start, 2)))
@@ -367,12 +373,9 @@ def listPointclouds(folder, filetype):
     li = []
     f = os.listdir(folder)
     for e in f:
-        if "ground" in e:
-            pass
-        else:
-            extension = e.rpartition('.')[-1]
-            if extension in filetype:
-                li.append(e)
+        extension = e.rpartition('.')[-1]
+        if extension in filetype:
+            li.append(e)
     return li
 
 def start_pool(target_folder, src, filetype = 'las', postprocess = 0,

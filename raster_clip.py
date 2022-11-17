@@ -70,8 +70,8 @@ def clip_raster(target_folder, temp_folder, src, fname, size, _size, method):
     maxX = coordinates[2]
     maxY = coordinates[3]
     # Parameters
-    InputImage = str(fname.join([temp_folder, "".join([_size, method])]))
-    OutputImage = str(fname.join([src, "".join([_size, method])]))
+    InputImage = str(fname[:-4].join([temp_folder, "".join([_size, method])]))
+    OutputImage = str(fname[:-4].join([src, "".join([_size, method])]))
     RasterFormat = 'GTiff'
     PixelRes = float(size)
     # Open datasets
