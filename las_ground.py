@@ -76,6 +76,20 @@ def filter_las_ground(fpath, src, file):
                 "mean_k": 10,
                 "multiplier": 1
             },
+            # For avoiding the error with filters.smrf: 
+            # Some NumberOfReturns or ReturnNumber values were 0, but not all. Check that all values in the input file are >= 1.
+            {
+                "type": "filters.ferry",
+                "dimensions": "=>ReturnNumber, =>NumberOfReturns" 
+            },
+            {
+                "type": "filters.assign",
+                "assignment": "NumberOfReturns[:]=1"
+            },
+            {
+                "type": "filters.assign",
+                "assignment": "ReturnNumber[:]=1"
+            },
             {
                 "type": "filters.smrf",
                 "ignore": "Classification[7:7]",
