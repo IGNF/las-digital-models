@@ -139,7 +139,7 @@ def las_merge(src, fname):
     """
     # List files
     Listfiles = create_liste(src, fname)
-    if len(Listfiles) == 10:   
+    if len(Listfiles) > 0:
         # Merge
         information = {}
         information = {
@@ -152,7 +152,7 @@ def las_merge(src, fname):
         pipeline.execute() 
     else:
         print('List of tiles is not okay : stop the traitment')
-        sys.exit()
+        #sys.exit()
 
 def las_prepare(target_folder, src, fname, size):
     """Severals steps :
