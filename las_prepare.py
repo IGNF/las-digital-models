@@ -179,9 +179,9 @@ def las_prepare(target_folder, src, fname, size):
     # Parameters
     Fileoutput = str(fname[:-4].join(["".join([src, "_tmp/"]),'_crop.las']))
     # # STEP 1: Merge LIDAR tiles
-    # las_merge(src, fname)
+    las_merge(src, fname)
     # # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
-    # las_crop(target_folder, src, fname)
+    las_crop(target_folder, src, fname)
     # STEP 3 : Reads the LAS file and outputs the ground points as a numpy array.
     in_file = laspy.read(Fileoutput)
     header = in_file.header
