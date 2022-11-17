@@ -4,9 +4,8 @@
 # PRE-PROCESSING : filter ground pointcloud
 
 import os
-from time import time
 from multiprocessing import Pool, cpu_count
-from las_ground import las_ground
+from las_ground import filter_las_ground_withterra, filter_las_ground
 
 
 def listPointclouds(folder, filetype):
@@ -38,8 +37,10 @@ def ip_worker(mp):
     fpath = (mp[0] + mp[2])[:-3] + mp[3]
     fname = mp[2]
     src = mp[1]
-    # Filter pointcloud : keep only ground
-    las_ground(fpath, src, fname)
+    # Filter pointcloud from TerraSolid : keep only ground 
+    filter_las_ground_withterra(fpath, src, fname)
+    # Filter pointcloud  : keep only ground 
+    #filter_las_ground(fpath, src, fname)
 
 
 def start_pool(target_folder, src, filetype = 'las'):
