@@ -2,7 +2,7 @@
 # maintener : MDupays
 # version : v.0 10/10/2022
 # Merge the severals LIDAR tiles around the tile and raster preparation
-import sys
+import os
 import re
 import math
 import numpy as np
@@ -104,6 +104,23 @@ def create_coordinate(_x, _y):
     coord_more_y = check_name(str(_y + 1))
     return coord_less_x, coord_less_y, coord_more_x, coord_more_y
 
+def check_tile_ground_exist(list_las: list):
+    """ Check if grounds pointcloud exist
+    Args:
+        list_las (list): Regex who contains the list of tiles arround the LIDAR tile
+
+    Returns:
+        li(List): Return a new list of ground's pointcloud : check if files exist or not exist
+    """      
+    li = []
+    for i in list_las:
+        if not os.path.exists(i):
+            print('NOK :', i)
+            pass
+        else:
+            li.append(i)
+    return li
+
 def create_liste(src, fname):
     """Return the list of 8 tiles around the LIDAR
     Args:
@@ -115,7 +132,6 @@ def create_liste(src, fname):
     """
     # Parameters
     dirDTM = str("DTM".join([src, '/']))
-    print(dirDTM)
     Fileoutput = str(fname[:-4].join([dirDTM,'_ground.las']))
     Filemerge = str(fname[:-4].join(["".join([src, "_tmp/"]),'_merge.las']))
     # Return list 8 tiles around the tile 
@@ -126,6 +142,8 @@ def create_liste(src, fname):
     for e in f:
         e = "".join([dirDTM, e])
         li.append(e)
+    # Check the list
+    li = check_tile_ground_exist(li)
     # Appending output to list and the result
     li.extend([Fileoutput])
     li.extend([Filemerge]) 
@@ -152,7 +170,6 @@ def las_merge(src, fname):
         pipeline.execute() 
     else:
         print('List of tiles is not okay : stop the traitment')
-        #sys.exit()
 
 def las_prepare(target_folder, src, fname, size):
     """Severals steps :
