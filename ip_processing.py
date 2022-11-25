@@ -147,8 +147,7 @@ def execute_pdal(fpath, size, rad, pwr, wnd):
 
     # # Return size for output's name
     _size = give_name_resolution_raster(size)
-
-    Fileoutput = "_".join([fpath[:-4], "_".join([_size,'IDW.tif'])])
+    Fileoutput = "".join([fpath[:-9], "_".join([_size,'IDW.tif'])])
     information = {}
     information = {
         "pipeline": [
@@ -312,7 +311,7 @@ def ip_worker(mp):
     start = time()
     gnd_coords, res, origin = las_prepare(target_folder, src, fname, size)
     if method == 'PDAL-IDW':
-        execute_pdal("".join([target_folder, mp[4]]), size,
+        execute_pdal(("_tmp/".join([target_folder[:-5], "_crop".join([mp[4][:-4], ".las"])])), size,
                      idw0_polyfpath, idw1, idw2)
         end = time()
         print("PID {} finished interpolation and export.".format(os.getpid()),
