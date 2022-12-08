@@ -1,4 +1,4 @@
-name: classification_lidar
+name: produits_derives_lidar
 channels:
   - conda-forge
   - anaconda
@@ -12,20 +12,19 @@ dependencies:
   - isort # import sorting
   - flake8 # code analysis
   # --------- geo --------- #
-  - conda-forge:pdal==2.3.*
-  - conda-forge:python-pdal==3.0.*
+  #- conda-forge:pdal==2.3.*
+  #- conda-forge:python-pdal==3.0.*
   - gdal
   - laspy
   - geojson
   - shapely
   - pandas
-  - opencv
   - numpy
   - scikit-learn
   - geopandas
   - scipy
-  - cgal
   - rasterio
+  - python-pdal
   # --------- others --------- #
   - jupyterlab # better jupyter notebooks
   - pudb # debugger
