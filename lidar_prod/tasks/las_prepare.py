@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # maintener : MDupays
-# version : v.0 10/10/2022
+# version : v.1 06/12/2022
 # Merge the severals LIDAR tiles around the tile and raster preparation
 import os
 import re
@@ -9,9 +9,9 @@ import numpy as np
 import pdal
 import laspy
 import json
-from las_clip import las_crop
+from tasks.las_clip import las_crop
 
-def create_files(_file):
+def create_files(_file: str):
     """Create the name arround LIDAR tile
 
     Args:
@@ -49,7 +49,7 @@ def create_files(_file):
     # Return the severals tile's names
     return _tile_hl, _tile_ml, _tile_bl, _tile_a, _tile_b, _tile_hr, _tile_mr, _tile_br
 
-def from_list(_file):
+def from_list(_file: list):
     """ Extract list from LIDAR name
 
     Args:
@@ -121,7 +121,7 @@ def check_tile_ground_exist(list_las: list):
             li.append(i)
     return li
 
-def create_liste(src, fname):
+def create_liste(src: str, fname: str):
     """Return the list of 8 tiles around the LIDAR
     Args:
         src (str): directory of pointclouds
@@ -149,7 +149,7 @@ def create_liste(src, fname):
     li.extend([Filemerge]) 
     return li
  
-def las_merge(src, fname):
+def las_merge(src: str, fname: str):
     """Merge LIDAR tiles
     Args:
         src (str): directory of pointclouds
@@ -171,7 +171,7 @@ def las_merge(src, fname):
     else:
         print('List of tiles is not okay : stop the traitment')
 
-def las_prepare(target_folder, src, fname, size):
+def las_prepare(target_folder: str, src: str, fname: str, size: float):
     """Severals steps :
         1- Merge LIDAR tiles
         2- Crop tiles 
@@ -195,9 +195,9 @@ def las_prepare(target_folder, src, fname, size):
     """
     # Parameters
     Fileoutput = str(fname[:-4].join(["".join([src, "_tmp/"]),'_crop.las']))
-    # # STEP 1: Merge LIDAR tiles
+    # STEP 1: Merge LIDAR tiles
     las_merge(src, fname)
-    # # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
+    # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
     las_crop(target_folder, src, fname)
     # STEP 3 : Reads the LAS file and outputs the ground points as a numpy array.
     in_file = laspy.read(Fileoutput)

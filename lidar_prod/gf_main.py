@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # maintener : MDupays
-# version : v.0 10/10/2022
+# version : v.1 06/12/2022
 # MAIN FILE FOR PRE-PROCESSING  
 
 

@@ -1,11 +1,20 @@
 # -*- coding: utf-8 -*-
 # maintener : MDupays
-# version : v.0 10/10/2022
+# version : v.1 06/12/2022
 # Extract info from the tile
+import logging
+import os
+from omegaconf import OmegaConf
+from commons import commons
 import pdal
 import json
 
-def las_info(target_folder, fname):
+
+log = logging.getLogger(__name__)
+
+
+@commons.eval_time
+def las_info(target_folder: str, fname: str):
     """ Launch command "pdal_info --stats" for extracting the bounding box from the LIDAR tile
 
     Args:
@@ -25,7 +34,9 @@ def las_info(target_folder, fname):
     "pipeline": [
             {
                 "type": "readers.las",
-                "filename": FileInput
+                "filename": FileInput,
+                "override_srs": "EPSG:2154",
+                "nosrs": True
             },
             {
                 "type": "filters.info"
@@ -50,8 +61,8 @@ def las_info(target_folder, fname):
     bounds.append(_y) # insert [ymin, ymax]
     return tuple(i for i in bounds)
 
-
-def las_crop(target_folder, src, fname):
+@commons.eval_time
+def las_crop(target_folder: str, src: str, fname: str):
     """ Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
 
     Args:
@@ -61,7 +72,6 @@ def las_crop(target_folder, src, fname):
     """
     # Lauch las_info for extracting boudning box
     bounds = str(las_info(target_folder, fname))
-    print(bounds)
     # Parameters
     FileInput = str(fname[:-4].join(["".join([src, "_tmp/"]),'_merge.las']))
     FileOutput = str(fname[:-4].join(["".join([src, "_tmp/"]),'_crop.las']))
@@ -70,7 +80,9 @@ def las_crop(target_folder, src, fname):
     "pipeline": [
             {
                 "type": "readers.las",
-                "filename": FileInput
+                "filename": FileInput,
+                "override_srs": "EPSG:2154",
+                "nosrs": True
             },
             {
                 "type":"filters.crop",

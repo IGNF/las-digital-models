@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # maintener : MDupays
-# version : v.0 10/10/2022
+# version : v.1 06/12/2022
 # MAIN FILE FOR INTERPOLATION + POST-PROCESSING 
 #             PRIMARY ENTRY POINT FOR PROGRAM                  
 
@@ -63,7 +63,7 @@ def create_folder(dest_folder: str):
 def main():    
     # Create the severals folder if not exists
     create_folder(argv[2])
-    if 3 <= len(argv) <= 13: start_pool(*argv[1:])
+    if 3 <= len(argv) <= 7: start_pool(*argv[1:])
     else: print("Error: Incorrect number of arguments passed. Returning.")
     
 if __name__ == '__main__':

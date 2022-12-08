@@ -1,13 +1,16 @@
-# Interpolation
+# Filter LIDAR (keep only ground) + Interpolation
 
-**This is the Python repo of the ground interpolation**
+**This is the Python repo of the filter LIDAR, then ground interpolation**
 
 ## In repo:
 
 * `README.md` _(this readme file)_
+* `gf_main.py` _(main file for filtering LIDAR : keep only ground)_
+* `gf_processing.py` _(filter code)_
 * `ip_main.py` _(main file for interpolation)_
 * `ip_processing.py` _(interpolation code)_
-* `las_prepare.py` _(reads LAS file and establishes raster dimensions, part of main program)_
+* folder `tasks` _(severals tasks)_
+* folder `commons`
 
 The testing environment so far includes multiprocessing pool-based implementations TIN-linear and Laplace interpolation via startin, constrained Delaunay-based (CDT) TIN-linear and natural neighbour (NN) interpolation via CGAL, radial IDW via GDAL/PDAL and quadrant-based IDW via scipy cKDTree and our own code.
 
@@ -35,27 +38,14 @@ A key to the CMD call signature of `ip_main.py`:
 	* CGAL-NN
 	* PDAL-IDW
 	* IDWquad
-6. IDW argument 0
-	* _If using PDAL-IDW:_ IDW interpolation radius in metres
-	* _If using IDWquad:_ The _starting_ radius/number of neighbours _k_ to query
-7. IDW argument 1: IDW interpolation power (exponent) in metres _(both for PDAL-IDW and IDWquad)_
-8. IDW argument 2:
-	* _If using PDAL-IDW:_ interpolation fallback window size
-	* _If using IDWquad:_ minimum number of points to find per quadrant
-9. IDW argument 3: query radius/number of neighbours _k_ to query, increment step value _(only for IDWquad)_
-10. IDW argument 4: IDWquad method, one of:
-	* radial _(for iterative radius increments)_
-	* k-nearest _(for iterative increments of how many neighbours to query)_
-11. IDW argument 5: IDWquad KD-tree query tolerance value _eps_
-12. IDW argument 6: IDWquad maximum number of iterations before declaring no-data and proceeding to next pixel
 
 
 ## A word of caution
 
 If you are using an Anaconda virtual environment for PDAL/CGAL, you should first activate the environment in Anaconda prompt and _then_ run the relevant script
 from the same prompt. So, for example:
-1. Create conda environment : `conda env create -n dtm -f environment.yml`
-2. Activate conda environment : `conda activate dtm`
+1. Create conda environment : `conda env create -n lidar_prod -f environment.yml`
+2. Activate conda environment : `conda activate lidar_prod`
 2. Lauch the script : `python [file_path_to_main] [argument_1] [argument_2] [...]`
 
 Another word of caution with the outputs is that they all use a fixed no-data value of -9999. This includes the GeoTIFF exporter. To view the results correctly, you should keep in mind that while the upper bounds of the data will be determined correctly by the viewer software (e.g. QGIS), the lower bound will be -9999. 

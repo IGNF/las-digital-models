@@ -1,0 +1,38 @@
+name: classification_lidar
+channels:
+  - conda-forge
+  - anaconda
+dependencies:
+  - python==3.9.*
+  - pip
+  - omegaconf
+  # --------- linters --------- #
+  - pre-commit # hooks for applying linters on commit
+  - black # code formatting
+  - isort # import sorting
+  - flake8 # code analysis
+  # --------- geo --------- #
+  - conda-forge:pdal==2.3.*
+  - conda-forge:python-pdal==3.0.*
+  - gdal
+  - laspy
+  - geojson
+  - shapely
+  - pandas
+  - opencv
+  - numpy
+  - scikit-learn
+  - geopandas
+  - scipy
+  - cgal
+  - rasterio
+  # --------- others --------- #
+  - jupyterlab # better jupyter notebooks
+  - pudb # debugger
+  - rich==11.2.*  # rich text formatting
+  - pytest==6.2.*  # tests
+  - pytest-cov==3.0.*
+  # --------- torch --------- #
+  - pip:
+      - postgis-toolkit
+      - startinpy

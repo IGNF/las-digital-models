@@ -1,6 +1,6 @@
 #!/bin/bash
 source get_conda.sh
-conda activate dtm
+conda activate lidar_prod
 
 # Step 1 : filter ground
 python3 gf_main.py /var/data/store-lidarhd/projet-LHD/Malvina/POC/MQ/data/ /var/data/store-lidarhd/projet-LHD/Malvina/POC/MQ/ laz

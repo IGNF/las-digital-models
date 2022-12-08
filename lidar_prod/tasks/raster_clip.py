@@ -6,7 +6,7 @@ import pdal
 import numpy as np
 from osgeo import gdal
 import json
-from las_clip import las_info
+from tasks.las_clip import las_info
 
 
 def las_info(target_folder, fname):
@@ -27,7 +27,9 @@ def las_info(target_folder, fname):
     "pipeline": [
             {
                 "type": "readers.las",
-                "filename": FileInput
+                "filename": FileInput,
+                "override_srs": "EPSG:2154",
+                "nosrs": True
             },
             {
                 "type": "filters.info"

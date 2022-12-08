@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 # maintener : MDupays
-# version : v.0 10/10/2022
+# version : v.1 06/12/2022
 # PRE-PROCESSING : filter ground pointcloud
-
 import os
 from multiprocessing import Pool, cpu_count
-from las_ground import filter_las_ground_withterra, filter_las_ground
+from tasks.las_ground import filter_las_ground
 
 CPU_LIMIT=int(os.getenv("CPU_LIMIT", "-1"))
 
-def listPointclouds(folder, filetype):
+def listPointclouds(folder: str, filetype: str):
     """ Return list of pointclouds in the folder 'data'
 
     Args:
@@ -38,13 +37,11 @@ def ip_worker(mp):
     fpath = (mp[0] + mp[2])[:-3] + mp[3]
     fname = mp[2]
     src = mp[1]
-    # Filter pointcloud from TerraSolid : keep only ground 
-    filter_las_ground_withterra(fpath, src, fname)
-    # Filter pointcloud  : keep only ground 
-    #filter_las_ground(fpath, src, fname)
+    # Filter pointcloud : keep only ground and virtual points if exist
+    filter_las_ground(fpath, src, fname)
 
 
-def start_pool(target_folder, src, filetype = 'las'):
+def start_pool(target_folder: str, src: str, filetype = 'las'):
     """Assembles and executes the multiprocessing pool.
     The pre-processing are handled
     by the worker function (ip_worker(mapped)).
