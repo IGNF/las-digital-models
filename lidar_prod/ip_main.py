@@ -55,8 +55,8 @@ that was used.""")
         type=str,
         default="startin-Laplace",
         choices=["startin-TINlinear", "startin-Laplace",
-                 "CGAL-NN", "CGAL-CDT", "PDAL-IDW", "IDWquad"],
-        help="interpolation method,(CGAL-CDT is experimental, not ready yet)")
+                 "CGAL-NN", "PDAL-IDW", "IDWquad"],
+        help="interpolation method)")
     # Optional arguments for IDW
     # Not used at the moment
     # parser.add_argument(
