@@ -4,7 +4,6 @@
 # LAS READING AND FILTER ONLY GROUND
 import logging
 import os
-from omegaconf import OmegaConf
 from commons import commons
 import pdal
 import json

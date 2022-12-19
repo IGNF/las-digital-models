@@ -4,7 +4,6 @@
 # LAS INTERPOLATION
 import logging
 import os
-from omegaconf import OmegaConf
 from commons import commons
 import pdal
 import json
@@ -41,16 +40,16 @@ class deterministic_method:
     @commons.eval_time
     def execute_startin(self):
         """Takes the grid parameters and the ground points. Interpolates
-        either using the TIN-linear or the Laplace method. Uses a -9999 no-data value. 
+        either using the TIN-linear or the Laplace method. Uses a -9999 no-data value.
         Fully based on the startin package (https://startinpy.readthedocs.io/en/latest/api.html)
-    
+
         Returns:
             ras(list): Z interpolation
         """
         import startinpy
         import numpy as np
 
-        # # Startin 
+        # # Startin
         tin = startinpy.DT(); tin.insert(self.pts) # # Insert each points in the array of points (a 2D array)
         ras = np.zeros([self.res[1], self.res[0]]) # # returns a new array of given shape and type, filled with zeros
         # # Interpolate method
@@ -145,7 +144,7 @@ class deterministic_method:
         options, exposing the radius, power and a fallback kernel width
         to be configured. More about these in the readme on GitHub.
 
-        The GDAL writer creates rasters using the data specified in the dimension option (defaults to Z). 
+        The GDAL writer creates rasters using the data specified in the dimension option (defaults to Z).
         The writer creates up to six rasters based on different statistics in the output dataset.
         The order of the layers in the dataset is as follows:
             - min : Give the cell the minimum value of all points within the given radius.
@@ -154,7 +153,7 @@ class deterministic_method:
             - idw: Cells are assigned a value based on Shepard’s inverse distance weighting algorithm, considering all points within the given radius.
 
         Args:
-            fpath(str): target folder 
+            fpath(str): target folder
             method(str): Chose of the method = min / max / mean / idw
             rad(float): Radius about cell center bounding points to use to calculate a cell value. [Default: resolution * sqrt(2)]
             pwr(float): Exponent of the distance when computing IDW. Close points have higher significance than far points. [Default: 1.0]
@@ -174,7 +173,7 @@ class deterministic_method:
                     "filename":fpath,
                     "override_srs": "EPSG:2154",
                     "nosrs": True
-                    # "NOSRS" = Don’t read the SRS VLRs. The data will not be assigned an SRS. 
+                    # "NOSRS" = Don’t read the SRS VLRs. The data will not be assigned an SRS.
                 },
                 {
                     "type":"filters.range",
@@ -186,7 +185,7 @@ class deterministic_method:
                     #"radius": str(self.size * sqrt(2)),
                     "power": 2,
                     "window_size": 1,
-                    "nodata": -9999,    
+                    "nodata": -9999,
                     "data_type": "float32",
                     "filename": Fileoutput
                 }
@@ -198,8 +197,8 @@ class deterministic_method:
 
     @commons.eval_time
     def execute_idwquad(start_rk, pwr: float, minp: float, incr_rk: float, method: str, tolerance: float, maxiter: float):
-        """Creates a KD-tree representation of the tile's points and executes a quadrant-based IDW algorithm on them. 
-        Although the KD-tree is based on a C implementation, the rest is coded in pure Python (below). 
+        """Creates a KD-tree representation of the tile's points and executes a quadrant-based IDW algorithm on them.
+        Although the KD-tree is based on a C implementation, the rest is coded in pure Python (below).
         Keep in mind that because of this, this is inevitably slower than the rest of the algorithms here.
         To optimise performance, one is advised to fine-tune the parametrisation, especially tolerance and maxiter.
         More info in the GitHub readme.

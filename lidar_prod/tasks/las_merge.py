@@ -4,7 +4,6 @@
 # Merge the severals LIDAR tiles
 import logging
 import os
-from omegaconf import OmegaConf
 from commons import commons
 import pdal
 import json
@@ -28,7 +27,7 @@ def las_merge(target_folder: str, Listfiles: list):
     if not os.path.exists(Fileoutput):
         information = {}
         information = {
-        "pipeline": 
+        "pipeline":
                 Listfiles
         }
         merge_ground = json.dumps(information, sort_keys=True, indent=4)

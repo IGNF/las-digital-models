@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # maintener : MDupays
 # version : v.1 06/12/2022
-# INTERPOLATION + POST-PROCESSING SCRIPTS 
+# INTERPOLATION + POST-PROCESSING SCRIPTS
 
 import os
 from time import time
@@ -166,7 +166,7 @@ def listPointclouds(folder, filetype):
 
     Returns:
         li(List): List of pointclouds (name)
-    """      
+    """
     li = []
     f = os.listdir(folder)
     for e in f:

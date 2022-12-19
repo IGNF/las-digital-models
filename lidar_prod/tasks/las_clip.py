@@ -4,7 +4,6 @@
 # Extract info from the tile
 import logging
 import os
-from omegaconf import OmegaConf
 from commons import commons
 import pdal
 import json
@@ -50,9 +49,9 @@ def las_info(target_folder: str, fname: str):
     pipeline = pdal.Pipeline(json_info)
     pipeline.execute()
     pipeline.arrays
-    # Extract metadata 
+    # Extract metadata
     metadata = pipeline.metadata
-    # Export bound (maxy, maxy, minx and miny), then creating a buffer with 100 m 
+    # Export bound (maxy, maxy, minx and miny), then creating a buffer with 100 m
     _x.append(float((metadata['metadata']['filters.info']['bbox']['minx']) - 100)) # coordinate minX
     _x.append(float((metadata['metadata']['filters.info']['bbox']['maxx']) + 100)) # coordinate maxX
     _y.append(float((metadata['metadata']['filters.info']['bbox']['miny']) - 100)) # coordinate minY
@@ -102,4 +101,3 @@ def las_crop(target_folder: str, src: str, fname: str):
     print(json_crop)
     pipeline = pdal.Pipeline(json_crop)
     pipeline.execute()
-        

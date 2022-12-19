@@ -38,7 +38,7 @@ def create_files(_file: str):
     _tile_hl = str(_prefix + '_' + coord_less_x + '_' + coord_more_y + '_' + _suffix)
     _tile_ml = str(_prefix + '_' + coord_less_x + '_' + check_name(str(coord_y)) + '_' + _suffix)
     _tile_bl = str(_prefix + '_' + coord_less_x + '_' + coord_less_y + '_' + _suffix)
-    # On Right 
+    # On Right
     _tile_hr = str(_prefix + '_' + coord_more_x + '_' + coord_more_y + '_' + _suffix)
     _tile_mr = str(_prefix + '_' + coord_more_x + '_' + check_name(str(coord_y)) + '_' + _suffix)
     _tile_br = str(_prefix + '_' + coord_more_x + '_' + coord_less_y + '_' + _suffix)
@@ -66,14 +66,14 @@ def from_list(_file: list):
     return _Listparser
 
 def check_name(_coord):
-    """Add '0' if the coordinate X or Y who strats by '0' 
+    """Add '0' if the coordinate X or Y who strats by '0'
 
     Args:
         _coord(str): the coordinate X or Y
 
     Returns:
         new_x(str): the new coordinate X or Y
-    
+
     """
     # If the number start by "0..."
     if len(_coord) == 3:
@@ -94,7 +94,7 @@ def create_coordinate(_x, _y):
         coord_less_y(str): the new coordinate Y - 1
         coord_more_x(str): the new coordinate X + 1
         coord_more_y(str): the new coordinate Y + 1
-    
+
     """
     # Coordinate X or Y - 1
     coord_less_x = check_name(str(_x - 1))
@@ -111,7 +111,7 @@ def check_tile_ground_exist(list_las: list):
 
     Returns:
         li(List): Return a new list of ground's pointcloud : check if files exist or not exist
-    """      
+    """
     li = []
     for i in list_las:
         if not os.path.exists(i):
@@ -126,7 +126,7 @@ def create_liste(src: str, fname: str):
     Args:
         src (str): directory of pointclouds
         fname (str): name of LIDAR tile
-    
+
     Returns:
         Listfiles(li): list of tiles
     """
@@ -134,7 +134,7 @@ def create_liste(src: str, fname: str):
     dirDTM = str("DTM".join([src, '/']))
     Fileoutput = str(fname[:-4].join([dirDTM,'_ground.las']))
     Filemerge = str(fname[:-4].join(["".join([src, "_tmp/"]),'_merge.las']))
-    # Return list 8 tiles around the tile 
+    # Return list 8 tiles around the tile
     Listinput = create_files(fname)
     # List of pointcloud
     li = []
@@ -146,9 +146,9 @@ def create_liste(src: str, fname: str):
     li = check_tile_ground_exist(li)
     # Appending output to list and the result
     li.extend([Fileoutput])
-    li.extend([Filemerge]) 
+    li.extend([Filemerge])
     return li
- 
+
 def las_merge(src: str, fname: str):
     """Merge LIDAR tiles
     Args:
@@ -161,20 +161,20 @@ def las_merge(src: str, fname: str):
         # Merge
         information = {}
         information = {
-                "pipeline": 
+                "pipeline":
                         Listfiles
         }
         merge = json.dumps(information, sort_keys=True, indent=4)
         print(merge)
         pipeline = pdal.Pipeline(merge)
-        pipeline.execute() 
+        pipeline.execute()
     else:
         print('List of tiles is not okay : stop the traitment')
 
 def las_prepare(target_folder: str, src: str, fname: str, size: float):
     """Severals steps :
         1- Merge LIDAR tiles
-        2- Crop tiles 
+        2- Crop tiles
         3- Takes the filepath to an input LAS (crop) file and the desired output raster cell size. Reads the LAS file and outputs
     the ground points as a numpy array. Also establishes some
     basic raster parameters:
@@ -187,7 +187,7 @@ def las_prepare(target_folder: str, src: str, fname: str, size: float):
         src (str): directory folder for saving the outputs
         fname (str): name of LIDAR tile
         size (int): raster cell size
-    
+
     Returns:
         extents(array) : extents
         res(list): resolution in coordinates

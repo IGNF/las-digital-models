@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # maintener : MDupays
 # version : v.1 06/12/2022
-# MAIN FILE FOR PRE-PROCESSING  
+# MAIN FILE FOR PRE-PROCESSING
 
 
 """Key to CMD arguments:
@@ -27,11 +27,11 @@ def create_folder(dest_folder: str):
     if not os.path.isdir(tmp_new_dir):
         os.makedirs(tmp_new_dir)
 
-def main():    
+def main():
     # Create the severals folder if not exists
     create_folder(argv[2])
     if len(argv) <= 4: start_pool(*argv[1:])
     else: print("Error: Incorrect number of arguments passed. Returning.")
-    
+
 if __name__ == '__main__':
     main()

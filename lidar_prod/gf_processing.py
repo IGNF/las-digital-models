@@ -17,7 +17,7 @@ def listPointclouds(folder: str, filetype: str):
 
     Returns:
         li(List): List of pointclouds (name)
-    """      
+    """
     li = []
     f = os.listdir(folder)
     for e in f:

@@ -43,7 +43,7 @@ def las_info(target_folder, fname):
     pipeline = pdal.Pipeline(json_info)
     pipeline.execute()
     pipeline.arrays
-    # Extract metadata 
+    # Extract metadata
     metadata = pipeline.metadata
     # Extract maxy, maxy, minx and miny
     minx = float((metadata['metadata']['filters.info']['bbox']['minx'])) # coordinate minX

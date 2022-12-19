@@ -1,4 +1,4 @@
-# This is a setup script for the self-hosted server 
+# This is a setup script for the self-hosted server
 # used for CI/CD workflows.
 
 # Install git
@@ -22,7 +22,7 @@ sudo chmod u+rwx
 //store.ign.fr/store-lidarhd/projet-LHD      /var/data/store-lidarhd/projet-LHD    cifs    credentials=/root/.smbcredentials,uid=24636,gid=10000,iocharset=utf8   0       0
 
 # Create the file 'smbcredentials' in the folder 'root'
-sudo mdkir /root/.smbcredentials 
+sudo mdkir /root/.smbcredentials
 # Insert the informations in the file
 '
 username=MDupays

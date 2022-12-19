@@ -266,7 +266,7 @@ class OrdinaryKriging:
         else:
             raise AttributeError("solver has to be ['inv', 'numpy', 'scipy']")
         self._solver = value
-    
+
     def transform(self, *x):
         """Kriging
 
