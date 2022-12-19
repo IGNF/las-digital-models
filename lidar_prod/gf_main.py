@@ -3,18 +3,33 @@
 # version : v.1 06/12/2022
 # MAIN FILE FOR PRE-PROCESSING
 
-
-"""Key to CMD arguments:
-    1:  target folder (most likely the same as the one you used with PDAL)
-        [compulsory, no default value] (folder "data")
-    2:  Directory folder for saving the outputs
-    3:  extension (LAS / LAZ) [default : LAS]
-
-Output file will be written to the target folder "output" : combines input from ground pointcloud into a single output.
-"""
+import argparse
 import os
 from sys import argv
 from gf_processing import start_pool
+
+
+def parse_args():
+    parser = argparse.ArgumentParser("Combine input from ground pointcloud into a single output",
+        epilog="Output file will be written to {output}/output")
+    parser.add_argument(
+        "--input", "-i",
+        type=str,
+        required=True,
+        help="input folder (most likely the same as the one you used with PDAL folder 'data')")
+    parser.add_argument(
+        "--output", "-o",
+        type=str,
+        required=True,
+        help="Directory folder for saving the outputs")
+    parser.add_argument(
+        "--extension", "-e",
+        type=str.lower,
+        default="las",
+        choices=["las", "laz"],
+        help="extension")
+
+    return  parser.parse_args()
 
 def create_folder(dest_folder: str):
     """Create the severals folders "DTM" and "_tmp" if not exist"""
@@ -28,10 +43,10 @@ def create_folder(dest_folder: str):
         os.makedirs(tmp_new_dir)
 
 def main():
+    args = parse_args()
     # Create the severals folder if not exists
-    create_folder(argv[2])
-    if len(argv) <= 4: start_pool(*argv[1:])
-    else: print("Error: Incorrect number of arguments passed. Returning.")
+    create_folder(args.output)
+    start_pool(args.input, args.output, filetype=args.extension)
 
 if __name__ == '__main__':
     main()
