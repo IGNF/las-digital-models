@@ -51,6 +51,8 @@ def las_info(target_folder: str, fname: str):
     pipeline.arrays
     # Extract metadata
     metadata = pipeline.metadata
+    if type(metadata) == str:
+        metadata = json.loads(metadata)
     # Export bound (maxy, maxy, minx and miny), then creating a buffer with 100 m
     _x.append(float((metadata['metadata']['filters.info']['bbox']['minx']) - 100)) # coordinate minX
     _x.append(float((metadata['metadata']['filters.info']['bbox']['maxx']) + 100)) # coordinate maxX
