@@ -164,7 +164,8 @@ class deterministic_method:
 
         # # Return size for output's name
         _size = self.give_name_resolution_raster()
-        Fileoutput = "".join([fpath[:-9], "_".join([_size,'IDW.tif'])])
+
+        Fileoutput = f"{fpath[:-9]}{_size}_IDW.tif"
         information = {}
         information = {
             "pipeline": [
@@ -249,7 +250,9 @@ class deterministic_method:
             ras(list): Z interpolation
         """
         if self.method == 'PDAL-IDW':
-            self.execute_pdal(("_tmp/".join([target_folder[:-5], "_crop".join([fname[:-4], ".las"])])), method='idw')
+            self.execute_pdal(
+                (os.path.join(target_folder[:-5], "_tmp", f"{os.path.splitext(fname)[0]}_crop.las")),
+                method='idw')
             return
         if self.method == 'startin-TINlinear' or self.method == 'startin-Laplace':
             ras = self.execute_startin()

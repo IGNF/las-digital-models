@@ -24,7 +24,7 @@ def las_info(target_folder: str, fname: str):
         bounds(tuple) : Tuple of bounding box from the LIDAR tile with buffer (100m)
     """
     # Parameters
-    FileInput = FileInput = str("".join([target_folder, fname]))
+    FileInput = os.path.join(target_folder, fname)
     _x = []
     _y = []
     bounds= []
@@ -74,8 +74,9 @@ def las_crop(target_folder: str, src: str, fname: str):
     # Lauch las_info for extracting boudning box
     bounds = str(las_info(target_folder, fname))
     # Parameters
-    FileInput = str(fname[:-4].join(["".join([src, "_tmp/"]),'_merge.las']))
-    FileOutput = str(fname[:-4].join(["".join([src, "_tmp/"]),'_crop.las']))
+    root = os.path.splitext(fname)[0]
+    FileInput = os.path.join(src, "_tmp", f'{root}_merge.las')
+    FileOutput = os.path.join(src, "_tmp", f'{root}_crop.las')
     information = {}
     information = {
     "pipeline": [

@@ -22,8 +22,8 @@ def create_files(_file: str):
     Listinput = from_list(_file)
     # Create name of LIDAR tiles who cercle the tile
     # # Parameters
-    _prefix = str("_".join([Listinput[0], Listinput[1]]))
-    _suffix = str("_".join([Listinput[4], "_".join([Listinput[5], "ground.las"])]))
+    _prefix = f"{Listinput[0]}_{Listinput[1]}"
+    _suffix = f"{Listinput[4]}_{Listinput[5]}_ground.las"
     coord_x = int(Listinput[2])
     coord_y = int(Listinput[3])
     # # Create coordinate arround the LIDAR tile
@@ -77,7 +77,7 @@ def check_name(_coord):
     """
     # If the number start by "0..."
     if len(_coord) == 3:
-        new_coordinate = ''.join(['0', _coord])
+        new_coordinate = f"0{_coord}"
     else:
         new_coordinate = _coord
     return new_coordinate
@@ -131,16 +131,17 @@ def create_liste(src: str, fname: str):
         Listfiles(li): list of tiles
     """
     # Parameters
-    dirDTM = str("DTM".join([src, '/']))
-    Fileoutput = str(fname[:-4].join([dirDTM,'_ground.las']))
-    Filemerge = str(fname[:-4].join(["".join([src, "_tmp/"]),'_merge.las']))
+    root = os.path.splitext(fname)[0]
+    dirDTM = os.path.join(src, "DTM")
+    Fileoutput = os.path.join(dirDTM, f"{root}_ground.las")
+    Filemerge = os.path.join(src, "_tmp", f"{root}_merge.las")
     # Return list 8 tiles around the tile
     Listinput = create_files(fname)
     # List of pointcloud
     li = []
     f = Listinput # List of 8 tiles arond the data
     for e in f:
-        e = "".join([dirDTM, e])
+        e = os.path.join(dirDTM, e)
         li.append(e)
     # Check the list
     li = check_tile_ground_exist(li)
@@ -194,7 +195,7 @@ def las_prepare(target_folder: str, src: str, fname: str, size: float):
         origin(list): coordinate location of the relative origin (bottom left)
     """
     # Parameters
-    Fileoutput = str(fname[:-4].join(["".join([src, "_tmp/"]),'_crop.las']))
+    Fileoutput = os.path.join(src, "_tmp", f"{os.path.splitext(fname)[0]}_crop.las")
     # STEP 1: Merge LIDAR tiles
     las_merge(src, fname)
     # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)

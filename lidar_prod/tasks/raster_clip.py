@@ -4,6 +4,7 @@
 # Clip raster with bouding box
 import pdal
 import numpy as np
+import os
 from osgeo import gdal
 import json
 from tasks.las_clip import las_info
@@ -21,7 +22,7 @@ def las_info(target_folder, fname):
         bounds(tuple) : Tuple of bounding box from the LIDAR tile with buffer (100m)
     """
     # Parameters
-    FileInput = str("".join([target_folder, fname]))
+    FileInput = os.path.join(target_folder, fname)
     information = {}
     information = {
     "pipeline": [
@@ -54,7 +55,7 @@ def las_info(target_folder, fname):
     maxy = float((metadata['metadata']['filters.info']['bbox']['maxy'])) # coordinate maxY
     return minx, miny, maxx, maxy
 
-def clip_raster(target_folder, temp_folder, src, fname, size, _size, method):
+def clip_raster(target_folder, temp_folder, src, fname, size, _size, method_postfix):
     """ Clip the rasters with the boudnign box
 
     Args:
@@ -64,7 +65,7 @@ def clip_raster(target_folder, temp_folder, src, fname, size, _size, method):
         fname (str): name of LIDAR tile
         size (str): raster cell size
         n_size (str): resolution from raster for output's name
-        method (str): interpolation method
+        method_postfix (str): interpolation method name (for file naming)
 
     """
     # Extract the bounding box
@@ -74,8 +75,9 @@ def clip_raster(target_folder, temp_folder, src, fname, size, _size, method):
     maxX = coordinates[2]
     maxY = coordinates[3]
     # Parameters
-    InputImage = str(fname[:-4].join([temp_folder, "".join([_size, method])]))
-    OutputImage = str(fname[:-4].join([src, "".join([_size, method])]))
+    root = os.path.splitext(fname)[0]
+    InputImage = os.path.join(temp_folder, f"{root}{_size}_{method_postfix}.tif")
+    OutputImage = os.path.join(src, f"{root}{_size}_{method_postfix}.tif")
     RasterFormat = 'GTiff'
     PixelRes = float(size)
     # Open datasets

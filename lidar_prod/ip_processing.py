@@ -113,7 +113,7 @@ def ip_worker(mp):
     """
     # Parameters
     src, target_folder, postprocess = mp[0], mp[3], mp[1]
-    size, fpath = mp[2], ("_tmp/".join([mp[0], mp[4][:-4]]))
+    size, fpath = mp[2], os.path.join(mp[0], "_tmp/", os.path.splitext(mp[4])[0])
     fname, method = mp[4], mp[5]
     # Extract coordinate, resolution and coordinate location of the relative origin
     print("PID {} starting to work on {}".format(os.getpid(), fname))
@@ -134,25 +134,20 @@ def ip_worker(mp):
     _size = give_name_resolution_raster(size)
     # Write raster in the folder DTM who clipping from the LIDAR tile
     start = time()
-    if method == 'startin-TINlinear':
-        write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_TINlinear.tif')
-        if check_raster(fpath + _size + '_TINlinear.tif') == True:
-            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_TINlinear.tif')
-    if method == 'startin-Laplace':
-        write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_Laplace.tif')
-        if check_raster(fpath + _size + '_Laplace.tif') == True:
-            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_Laplace.tif')
-    if method == 'CGAL-NN':
-        write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_NN.tif')
-        if check_raster(fpath + _size + '_NN.tif') == True:
-            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_NN.tif')
-    if method == 'IDWquad':
-        write_geotiff_withbuffer(ras, origin, size, fpath + _size + '_IDWquad.tif')
-        if check_raster(fpath + _size + '_IDWquad.tif') == True:
-            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_IDWquad.tif')
-    if method == 'PDAL-IDW':
-        if check_raster(fpath + _size + '_IDW.tif') == True:
-            clip_raster(target_folder, "_tmp".join([src, "/"]), "DTM".join([src, "/"]), fname, size, _size, '_IDW.tif')
+    file_postfix = {"startin-TINlinear": "TINlinear",
+                    "startin-Laplace": "Laplace",
+                    "CGAL-NN": "NN",
+                    "IDWquad": "IDWquad",
+                    "PDAL-IDW": "IDW"
+    }
+    geotiff_path = f"{fpath}{size}_{file_postfix[method]}.tif"
+    if method in ['startin-TINlinear', 'startin-Laplace', 'CGAL-NN', 'IDWquad']:
+        write_geotiff_withbuffer(ras, origin, size, geotiff_path)
+
+    if check_raster(geotiff_path) == True:
+        clip_raster(target_folder, os.path.join(src, "_tmp"), os.path.join(src, "DTM"),
+                    fname, size, _size, file_postfix[method])
+
     end = time()
     print("PID {} finished exporting.".format(os.getpid()),
           "Time spent exporting: {} sec.".format(round(end - start, 2)))

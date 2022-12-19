@@ -20,7 +20,7 @@ def las_merge(target_folder: str, Listfiles: list):
         target_folder (str): directory of pointclouds
         Listfiles(list): List of ground pointclouds and the output file
     """
-    Fileoutput = str("output/".join([target_folder[:-5], 'merge_ground.las']))
+    Fileoutput = os.path.join(target_folder[:-5], "output", 'merge_ground.las')
     # Create folder 'output' if not exist
     if os.path.isdir('./output') is False:
         os.makedirs('output')

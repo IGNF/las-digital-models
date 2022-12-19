@@ -21,8 +21,9 @@ def filter_las_ground(fpath: str, src: str, file: str):
         src (str): directory of work who contains the code
         file (str): name of LIDAR tiles
     """
-    dst = str("DTM".join([src, '/']))
-    FileOutput = "".join([dst, "_".join([file[:-4], 'ground.las'])])
+    dst = os.path.join(src, "DTM")
+    root = os.path.splitext(file)[0]
+    FileOutput = os.path.join(dst, f"{root}_ground.las")
     information = {}
     information = {
     "pipeline": [
