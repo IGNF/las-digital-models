@@ -2,6 +2,8 @@
 # maintener : MDupays
 # version : v.1 06/12/2022
 # Merge the severals LIDAR tiles around the tile and raster preparation
+
+from commons import commons
 import os
 import re
 import math
@@ -9,7 +11,7 @@ import numpy as np
 import pdal
 import laspy
 import json
-from tasks.las_clip import las_crop, las_info
+from tasks.las_clip import las_crop
 
 
 def create_files(_file: str):
@@ -202,7 +204,7 @@ def las_prepare(input_dir: str, output_dir: str, temp_dir: str, fname: str, size
     las_merge(output_dir, ground_file, merge_file)
 
     # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
-    bounds = las_info(os.path.join(input_dir, fname), buffer_width=100)
+    bounds = commons.las_info(os.path.join(input_dir, fname), buffer_width=100)
     las_crop(merge_file, crop_file, bounds)
 
     # STEP 3 : Reads the LAS file and outputs the ground points as a numpy array.
