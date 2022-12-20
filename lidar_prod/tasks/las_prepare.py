@@ -9,23 +9,25 @@ import numpy as np
 import pdal
 import laspy
 import json
-from tasks.las_clip import las_crop
+from tasks.las_clip import las_crop, las_info
+
 
 def create_files(_file: str):
     """Create the name arround LIDAR tile
 
     Args:
-        _file(str): name of LIDAR
+        _file(str): name of LIDAR file (do not provide the full path)
     Returns:
         _Listinput(list): List of LIDAR's name
     """
-    Listinput = from_list(_file)
+    # Listinput = from_list(_file)
+    elements = _file.split("_", 4)
     # Create name of LIDAR tiles who cercle the tile
     # # Parameters
-    _prefix = f"{Listinput[0]}_{Listinput[1]}"
-    _suffix = f"{Listinput[4]}_{Listinput[5]}_ground.las"
-    coord_x = int(Listinput[2])
-    coord_y = int(Listinput[3])
+    _prefix = f"{elements[0]}_{elements[1]}"
+    _suffix = elements[-1]
+    coord_x = int(elements[2])
+    coord_y = int(elements[3])
     # # Create coordinate arround the LIDAR tile
     _result = create_coordinate(coord_x, coord_y)
     # # Coordinate X or Y - 1
@@ -49,21 +51,21 @@ def create_files(_file: str):
     # Return the severals tile's names
     return _tile_hl, _tile_ml, _tile_bl, _tile_a, _tile_b, _tile_hr, _tile_mr, _tile_br
 
-def from_list(_file: list):
-    """ Extract list from LIDAR name
+# def from_list(_file: list):
+#     """ Extract list from LIDAR name
 
-    Args:
-        _file(str): name of LIDAR
+#     Args:
+#         _file(str): name of LIDAR
 
-    Returns:
-        _Listparser(list): List of parser
-    """
-    # Regex
-    pattern = r'(?x)^(?P<type>[a-zA-Z]+)_(?P<date>[1-2][0-9]{3})_(?P<coord_x>[0-9]{4})_(?P<coord_y>[0-9]{4})_(?P<p_proj>[A-Z0-9]+)_(?P<v_proj>[A-Z0-9]+)(_[0-9]*)?\.(?P<ext>[a-zA-Z0-9]{0,3})$'
-    # list of parser
-    _parser = re.split(pattern, _file)
-    _Listparser = list(filter(None, _parser))
-    return _Listparser
+#     Returns:
+#         _Listparser(list): List of parser
+#     """
+#     # Regex
+#     pattern = r'(?x)^(?P<type>[a-zA-Z]+)_(?P<date>[1-2][0-9]{3})_(?P<coord_x>[0-9]{4})_(?P<coord_y>[0-9]{4})_(?P<p_proj>[A-Z0-9]+)_(?P<v_proj>[A-Z0-9]+)(_[0-9]*)?\.(?P<ext>[a-zA-Z0-9]{0,3})$'
+#     # list of parser
+#     _parser = re.split(pattern, _file)
+#     _Listparser = list(filter(None, _parser))
+#     return _Listparser
 
 def check_name(_coord):
     """Add '0' if the coordinate X or Y who strats by '0'
@@ -121,48 +123,45 @@ def check_tile_ground_exist(list_las: list):
             li.append(i)
     return li
 
-def create_liste(output_dir: str, temp_dir:str, fname: str):
+def create_liste(las_dir, input_file):
     """Return the list of 8 tiles around the LIDAR
     Args:
-        src (str): directory of pointclouds
-        fname (str): name of LIDAR tile
+        las_dir (str): directory of pointclouds
+        input_file (str): path to queried LIDAR tile
 
     Returns:
         Listfiles(li): list of tiles
     """
     # Parameters
-    root = os.path.splitext(fname)[0]
-    Fileoutput = os.path.join(output_dir, f"{root}_ground.las")
-    Filemerge = os.path.join(temp_dir, f"{root}_merge.las")
+    # root = os.path.splitext(fname)[0]
+    # Fileoutput = os.path.join(input_dir, f"{root}_ground.las")
+
     # Return list 8 tiles around the tile
-    Listinput = create_files(fname)
+    Listinput = create_files(os.path.basename(input_file))
     # List of pointcloud
-    li = []
-    f = Listinput # List of 8 tiles arond the data
-    for e in f:
-        e = os.path.join(output_dir, e)
-        li.append(e)
+    li = [os.path.join(las_dir, e) for e in Listinput]
     # Check the list
     li = check_tile_ground_exist(li)
-    # Appending output to list and the result
-    li.extend([Fileoutput])
-    li.extend([Filemerge])
+    # Appending queried tile to list
+    li.append(input_file)
+
     return li
 
-def las_merge(output_dir: str, temp_dir: str, fname: str):
-    """Merge LIDAR tiles
+def las_merge(las_dir, input_file, merge_file):
+    """Merge LIDAR tiles around input_file tile
     Args:
-        src (str): directory of pointclouds
-        fname (str): name of LIDAR tile
+        las_dir (str): directory of pointclouds (to look for neigboprs)
+        input_file (str): name of query LIDAR file (with extension)
+        output_file (str): path to output
     """
-    # List files
-    Listfiles = create_liste(output_dir, temp_dir, fname)
+    # List files to merge
+    Listfiles = create_liste(las_dir, input_file)
     if len(Listfiles) > 0:
         # Merge
         information = {}
         information = {
                 "pipeline":
-                        Listfiles
+                        Listfiles + [merge_file]
         }
         merge = json.dumps(information, sort_keys=True, indent=4)
         print(merge)
@@ -183,7 +182,7 @@ def las_prepare(input_dir: str, output_dir: str, temp_dir: str, fname: str, size
         - the coordinate location of the relative origin (bottom left)
 
     Args:
-        target_folder (str): directory of pointclouds
+        input_dir (str): directory of pointclouds
         output_dir (str): directory folder for saving the outputs
         fname (str): name of LIDAR tile
         size (int): raster cell size
@@ -195,13 +194,19 @@ def las_prepare(input_dir: str, output_dir: str, temp_dir: str, fname: str, size
     """
     # Parameters
     tile_name = os.path.splitext(fname)[0]
-    Fileoutput = os.path.join(temp_dir, f"{tile_name}_crop.las")
+    merge_file = os.path.join(temp_dir, f'{tile_name}_merge.las')
+    crop_file = os.path.join(temp_dir, f"{tile_name}_crop.las")
+    ground_file = os.path.join(output_dir, f"{tile_name}_ground.las")
+
     # STEP 1: Merge LIDAR tiles
-    las_merge(output_dir, temp_dir, fname)
+    las_merge(output_dir, ground_file, merge_file)
+
     # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
-    las_crop(input_dir, output_dir, temp_dir, fname)
+    bounds = las_info(os.path.join(input_dir, fname), buffer_width=100)
+    las_crop(merge_file, crop_file, bounds)
+
     # STEP 3 : Reads the LAS file and outputs the ground points as a numpy array.
-    in_file = laspy.read(Fileoutput)
+    in_file = laspy.read(crop_file)
     header = in_file.header
     in_np = np.vstack((in_file.raw_classification,
                            in_file.x, in_file.y, in_file.z)).transpose()

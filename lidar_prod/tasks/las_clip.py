@@ -13,18 +13,17 @@ log = logging.getLogger(__name__)
 
 
 @commons.eval_time
-def las_info(target_folder: str, fname: str):
+def las_info(filename: str, buffer_width: int=0):
     """ Launch command "pdal_info --stats" for extracting the bounding box from the LIDAR tile
 
     Args:
-        target_folder (str): directory of pointclouds
-        fname (str): name of LIDAR tile
+        filename (str): full path of file for which to get the bounding box
+        border_width (str): number of pixel to add to the bounding box on each side (buffer size)
 
     Returns:
-        bounds(tuple) : Tuple of bounding box from the LIDAR tile with buffer (100m)
+        bounds(tuple) : Tuple of bounding box from the LIDAR tile with potential buffer
     """
     # Parameters
-    FileInput = os.path.join(target_folder, fname)
     _x = []
     _y = []
     bounds= []
@@ -33,7 +32,7 @@ def las_info(target_folder: str, fname: str):
     "pipeline": [
             {
                 "type": "readers.las",
-                "filename": FileInput,
+                "filename": filename,
                 "override_srs": "EPSG:2154",
                 "nosrs": True
             },
@@ -54,49 +53,42 @@ def las_info(target_folder: str, fname: str):
     if type(metadata) == str:
         metadata = json.loads(metadata)
     # Export bound (maxy, maxy, minx and miny), then creating a buffer with 100 m
-    _x.append(float((metadata['metadata']['filters.info']['bbox']['minx']) - 100)) # coordinate minX
-    _x.append(float((metadata['metadata']['filters.info']['bbox']['maxx']) + 100)) # coordinate maxX
-    _y.append(float((metadata['metadata']['filters.info']['bbox']['miny']) - 100)) # coordinate minY
-    _y.append(float((metadata['metadata']['filters.info']['bbox']['maxy']) + 100)) # coordinate maxY
+    _x.append(float((metadata['metadata']['filters.info']['bbox']['minx']) - buffer_width)) # coordinate minX
+    _x.append(float((metadata['metadata']['filters.info']['bbox']['maxx']) + buffer_width)) # coordinate maxX
+    _y.append(float((metadata['metadata']['filters.info']['bbox']['miny']) - buffer_width)) # coordinate minY
+    _y.append(float((metadata['metadata']['filters.info']['bbox']['maxy']) + buffer_width)) # coordinate maxY
     bounds.append(_x) # [xmin, xmax]
     bounds.append(_y) # insert [ymin, ymax]
     return tuple(i for i in bounds)
 
-@commons.eval_time
-def las_crop(input_dir: str, output_dir: str, temp_dir: str, fname: str):
-    """ Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
 
+@commons.eval_time
+def las_crop(input_file: str, output_file: str, bounds):
+    """ Crop filter removes points that fall inside a cropping bounding box (2D)
     Args:
-        input_dir (str): directory of pointclouds
-        output_dir (str): directory of pointclouds
-        temp_dir (str): directory of intermediate results
-        fname (str): name of LIDAR tile
+        input_dir (str): input point cloud file
+        output_dir (str): output point cloud file
+        bounds : 2D bounding box to crop to
     """
-    # Lauch las_info for extracting boudning box
-    bounds = str(las_info(input_dir, fname))
     # Parameters
-    root = os.path.splitext(fname)[0]
-    FileInput = os.path.join(temp_dir, f'{root}_merge.las')
-    FileOutput = os.path.join(temp_dir, f'{root}_crop.las')
-    information = {}
     information = {
     "pipeline": [
             {
                 "type": "readers.las",
-                "filename": FileInput,
+                "filename": input_file,
                 "override_srs": "EPSG:2154",
                 "nosrs": True
             },
             {
                 "type":"filters.crop",
-                "bounds": bounds
+                "bounds": str(bounds)
             },
             {
                 "type": "writers.las",
                 "a_srs": "EPSG:2154",
                 # "minor_version": 4,
                 # "dataformat_id": 6,
-                "filename": FileOutput
+                "filename": output_file
             }
         ]
     }
