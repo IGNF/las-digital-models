@@ -148,13 +148,14 @@ def ip_worker(mp):
                     "IDWquad": "IDWquad",
                     "PDAL-IDW": "IDW"
     }
-    geotiff_path = os.path.join(temp_dir, f"{tile_name}{_size}_{file_postfix[method]}.tif")
+    geotiff_filename = f"{tile_name}{_size}_{file_postfix[method]}.tif"
+    geotiff_path_temp = os.path.join(temp_dir, geotiff_filename)
+    geotiff_path = os.path.join(output_dir, geotiff_filename)
     if method in ['startin-TINlinear', 'startin-Laplace', 'CGAL-NN', 'IDWquad']:
-        write_geotiff_withbuffer(ras, origin, size, geotiff_path)
+        write_geotiff_withbuffer(ras, origin, size, geotiff_path_temp)
 
-    if check_raster(geotiff_path) == True:
-        clip_raster(input_dir, temp_dir, output_dir,
-                    fname, size, _size, file_postfix[method])
+    if check_raster(geotiff_path_temp) == True:
+        clip_raster(os.path.join(input_dir, fname), geotiff_path_temp, geotiff_path, size)
 
     end = time()
     print("PID {} finished exporting.".format(os.getpid()),

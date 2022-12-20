@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 
 @commons.eval_time
-def filter_las_ground(input_file: str, output_dir: str):
+def filter_las_ground(input_file: str, output_file: str):
     """ Reads the LAS file and filter only grounds from LIDAR.
 
     Args:
@@ -21,7 +21,6 @@ def filter_las_ground(input_file: str, output_dir: str):
         folderOutput (str): Path to the output directory
     """
     root = os.path.splitext(os.path.basename(input_file))[0]
-    output_file = os.path.join(output_dir, f"{root}_ground.las")
     information = {}
     information = {
     "pipeline": [

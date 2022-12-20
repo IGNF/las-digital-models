@@ -7,11 +7,11 @@ import os
 from osgeo import gdal
 
 
-def clip_raster(input_dir, temp_folder, output_dir, fname, size, _size, method_postfix):
+def clip_raster(input_las, input_image, output_image, size):
     """ Clip the rasters with the boudnign box
 
     Args:
-        input_dir (str): directory of pointclouds
+        input_file (str): input_pointcloud
         tmp_folder (str): directory "_tmp"
         output_dir (str) : directory "DTM"
         fname (str): name of LIDAR tile
@@ -23,16 +23,13 @@ def clip_raster(input_dir, temp_folder, output_dir, fname, size, _size, method_p
     # Extract the bounding box
     (minX, maxX), (minY, maxY) = commons.las_info(input_las, buffer_width=0)
     # Parameters
-    root = os.path.splitext(fname)[0]
-    InputImage = os.path.join(temp_folder, f"{root}{_size}_{method_postfix}.tif")
-    OutputImage = os.path.join(output_dir, f"{root}{_size}_{method_postfix}.tif")
     RasterFormat = 'GTiff'
     PixelRes = float(size)
     # Open datasets
-    Raster = gdal.Open(InputImage, gdal.GA_ReadOnly)
+    Raster = gdal.Open(input_image, gdal.GA_ReadOnly)
     Projection = Raster.GetProjectionRef()
     # Create raster
-    OutTile = gdal.Warp(OutputImage, Raster,
+    OutTile = gdal.Warp(output_image, Raster,
         format=RasterFormat,
         outputBounds=[minX, minY, maxX, maxY],
         xRes=PixelRes,

@@ -33,16 +33,12 @@ def ip_worker(mp):
         mp: list of arguments : [input_dir, output_dir, temp_dir, fname, filetype]
     """
     # Parameters
-    input_dir = mp[0]
-    output_dir = mp[1]
-    temp_dir = mp[2]
-    fname = mp[3]
-    filetype = mp[4]
-    # fpath looks like input_dir/fname[:-3]extension
+    input_dir, output_dir, fname = mp
 
-    fpath = (mp[0] + mp[2])[:-3] + mp[3]
     # Filter pointcloud : keep only ground and virtual points if exist
-    filter_las_ground(os.path.join(input_dir, fname), output_dir)
+    tile_name = os.path.splitext(fname)[0]
+    output_file = os.path.join(output_dir, f"{tile_name}_ground.las")
+    filter_las_ground(os.path.join(input_dir, fname), output_file)
 
 
 def start_pool(input_dir: str, output_dir: str, temp_dir: str, filetype = 'las'):
@@ -63,7 +59,7 @@ def start_pool(input_dir: str, output_dir: str, temp_dir: str, filetype = 'las')
         print("Error: No file names were input. Returning."); return
     pre_map, processno = [], len(fnames)
     for i in range(processno):
-        pre_map.append([input_dir, output_dir, temp_dir, fnames[i], filetype])
+        pre_map.append([input_dir, output_dir, fnames[i]])
     p = Pool(num_threads)
     p.map(ip_worker, pre_map)
     p.close(); p.join()
