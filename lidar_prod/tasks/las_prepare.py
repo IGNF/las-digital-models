@@ -121,7 +121,7 @@ def check_tile_ground_exist(list_las: list):
             li.append(i)
     return li
 
-def create_liste(src: str, fname: str):
+def create_liste(output_dir: str, temp_dir:str, fname: str):
     """Return the list of 8 tiles around the LIDAR
     Args:
         src (str): directory of pointclouds
@@ -132,16 +132,15 @@ def create_liste(src: str, fname: str):
     """
     # Parameters
     root = os.path.splitext(fname)[0]
-    dirDTM = os.path.join(src, "DTM")
-    Fileoutput = os.path.join(dirDTM, f"{root}_ground.las")
-    Filemerge = os.path.join(src, "_tmp", f"{root}_merge.las")
+    Fileoutput = os.path.join(output_dir, f"{root}_ground.las")
+    Filemerge = os.path.join(temp_dir, f"{root}_merge.las")
     # Return list 8 tiles around the tile
     Listinput = create_files(fname)
     # List of pointcloud
     li = []
     f = Listinput # List of 8 tiles arond the data
     for e in f:
-        e = os.path.join(dirDTM, e)
+        e = os.path.join(output_dir, e)
         li.append(e)
     # Check the list
     li = check_tile_ground_exist(li)
@@ -150,14 +149,14 @@ def create_liste(src: str, fname: str):
     li.extend([Filemerge])
     return li
 
-def las_merge(src: str, fname: str):
+def las_merge(output_dir: str, temp_dir: str, fname: str):
     """Merge LIDAR tiles
     Args:
         src (str): directory of pointclouds
         fname (str): name of LIDAR tile
     """
     # List files
-    Listfiles = create_liste(src, fname)
+    Listfiles = create_liste(output_dir, temp_dir, fname)
     if len(Listfiles) > 0:
         # Merge
         information = {}
@@ -172,7 +171,7 @@ def las_merge(src: str, fname: str):
     else:
         print('List of tiles is not okay : stop the traitment')
 
-def las_prepare(target_folder: str, src: str, fname: str, size: float):
+def las_prepare(input_dir: str, output_dir: str, temp_dir: str, fname: str, size: float):
     """Severals steps :
         1- Merge LIDAR tiles
         2- Crop tiles
@@ -185,7 +184,7 @@ def las_prepare(target_folder: str, src: str, fname: str, size: float):
 
     Args:
         target_folder (str): directory of pointclouds
-        src (str): directory folder for saving the outputs
+        output_dir (str): directory folder for saving the outputs
         fname (str): name of LIDAR tile
         size (int): raster cell size
 
@@ -195,11 +194,12 @@ def las_prepare(target_folder: str, src: str, fname: str, size: float):
         origin(list): coordinate location of the relative origin (bottom left)
     """
     # Parameters
-    Fileoutput = os.path.join(src, "_tmp", f"{os.path.splitext(fname)[0]}_crop.las")
+    tile_name = os.path.splitext(fname)[0]
+    Fileoutput = os.path.join(temp_dir, f"{tile_name}_crop.las")
     # STEP 1: Merge LIDAR tiles
-    las_merge(src, fname)
+    las_merge(output_dir, temp_dir, fname)
     # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
-    las_crop(target_folder, src, fname)
+    las_crop(input_dir, output_dir, temp_dir, fname)
     # STEP 3 : Reads the LAS file and outputs the ground points as a numpy array.
     in_file = laspy.read(Fileoutput)
     header = in_file.header

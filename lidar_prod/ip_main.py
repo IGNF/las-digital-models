@@ -27,6 +27,11 @@ that was used.""")
         required=True,
         help="Directory folder for saving the outputs")
     parser.add_argument(
+        "--temp_dir", "-t",
+        type=str,
+        default = "/tmp",
+        help="Directory folder for saving the outputs")
+    parser.add_argument(
         "--extension", "-e",
         type=str.lower,
         default="las",
@@ -101,23 +106,14 @@ that was used.""")
     return  parser.parse_args()
 
 
-def create_folder(dest_folder: str):
-    """Create the severals folders "DTM" and "_tmp" if not exist"""
-    # Create folder "DTM"
-    DTM_new_dir = os.path.join(dest_folder, 'DTM')
-    if not os.path.isdir(DTM_new_dir):
-        os.makedirs(DTM_new_dir)
-    # Create folder "_tmp"
-    tmp_new_dir = os.path.join(dest_folder, '_tmp')
-    if not os.path.isdir(tmp_new_dir):
-        os.makedirs(tmp_new_dir)
-
 def main():
     args = parse_args()
     # Create the severals folder if not exists
-    create_folder(args.output)
-    start_pool(args.input, args.output, filetype=args.extension, postprocess=args.postprocessing,
-               size=args.pixel_size, method=args.interpolation_method)
+    os.makedirs(args.output, exist_ok=True)
+    os.makedirs(args.temp_dir, exist_ok=True)
+    start_pool(args.input, args.output, args.temp_dir, filetype=args.extension,
+               postprocess=args.postprocessing, size=args.pixel_size,
+               method=args.interpolation_method)
 
 
 if __name__ == '__main__':

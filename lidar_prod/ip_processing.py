@@ -44,10 +44,10 @@ def write_geotiff_withbuffer(raster, origin, size, fpath):
         raster(array) : Z interpolation
         origin(list): coordinate location of the relative origin (bottom left)
         size (float): raster cell size
-        fpath(str): target folder "_tmp"
+        fpath(str): path to the output geotiff file
 
     Returns:
-        bool: If the output "DTM" in the folder "_tmp" is okay or not
+        bool: If the output "DTM" saved in fpath is okay or not
     """
     import rasterio
     from rasterio.transform import Affine
@@ -110,18 +110,26 @@ def ip_worker(mp):
     one file each, writing the resulting rasters to disk.
     Runs slightly different workflows depending on the
     desired interpolation method/export format.
+    Args:
+        mp: list of arguments: eg [output_dir, int(postprocess), float(size),
+                            target_folder, fnames[i], method, filetype]
     """
     # Parameters
-    src, target_folder, postprocess = mp[0], mp[3], mp[1]
-    size, fpath = mp[2], os.path.join(mp[0], "_tmp/", os.path.splitext(mp[4])[0])
-    fname, method = mp[4], mp[5]
+    output_dir = mp[0]
+    temp_dir = mp[1]
+    postprocess = mp[2]
+    size = mp[3]
+    input_dir = mp[4]
+    fname = mp[5]
+    method =  mp[6]
+    tile_name = os.path.splitext(fname)[0]
     # Extract coordinate, resolution and coordinate location of the relative origin
     print("PID {} starting to work on {}".format(os.getpid(), fname))
     start = time()
-    gnd_coords, res, origin = las_prepare(target_folder, src, fname, size)
+    gnd_coords, res, origin = las_prepare(input_dir, output_dir, temp_dir, fname, size)
     # Interpolation with method deterministic
     _interpolation = deterministic_method(gnd_coords, res, origin, size, method)
-    ras = _interpolation.run(target_folder=mp[3], fname=mp[4])
+    ras = _interpolation.run(input_dir=temp_dir, output_dir=output_dir, tile_name=tile_name)
     end = time()
     print("PID {} finished interpolating.".format(os.getpid()),
           "Time spent interpolating: {} sec.".format(round(end - start, 2)))
@@ -140,12 +148,12 @@ def ip_worker(mp):
                     "IDWquad": "IDWquad",
                     "PDAL-IDW": "IDW"
     }
-    geotiff_path = f"{fpath}{size}_{file_postfix[method]}.tif"
+    geotiff_path = os.path.join(temp_dir, f"{tile_name}{_size}_{file_postfix[method]}.tif")
     if method in ['startin-TINlinear', 'startin-Laplace', 'CGAL-NN', 'IDWquad']:
         write_geotiff_withbuffer(ras, origin, size, geotiff_path)
 
     if check_raster(geotiff_path) == True:
-        clip_raster(target_folder, os.path.join(src, "_tmp"), os.path.join(src, "DTM"),
+        clip_raster(input_dir, temp_dir, output_dir,
                     fname, size, _size, file_postfix[method])
 
     end = time()
@@ -162,21 +170,18 @@ def listPointclouds(folder, filetype):
     Returns:
         li(List): List of pointclouds (name)
     """
-    li = []
-    f = os.listdir(folder)
-    for e in f:
-        extension = e.rpartition('.')[-1]
-        if extension in filetype:
-            li.append(e)
+    li = [f for f in os.listdir(folder)
+        if os.path.splitext(f)[1].lstrip(".").lower() == filetype]
+
     return li
 
-def start_pool(target_folder, src, filetype = 'las', postprocess = 0,
+def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype = 'las', postprocess = 0,
                size = 1, method = 'startin-Laplace'):
     """Assembles and executes the multiprocessing pool.
     The interpolation variants/export formats are handled
     by the worker function (ip_worker(mapped)).
     """
-    fnames = listPointclouds(target_folder, filetype)
+    fnames = listPointclouds(input_dir, filetype)
     cores = cpu_count()
     print(f"Found {cores} logical cores in this PC")
     num_threads = cores -1
@@ -190,8 +195,8 @@ def start_pool(target_folder, src, filetype = 'las', postprocess = 0,
         print("Error: No file names were input. Returning."); return
     pre_map, processno = [], len(fnames)
     for i in range(processno):
-        pre_map.append([src, int(postprocess), float(size),
-                            target_folder, fnames[i].strip('\n'), method, filetype])
+        pre_map.append([output_dir, temp_dir, int(postprocess), float(size),
+                            input_dir, fnames[i], method, filetype])
     p = Pool(cores -1)
     p.map(ip_worker, pre_map)
     p.close(); p.join()

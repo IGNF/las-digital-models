@@ -18,12 +18,9 @@ def listPointclouds(folder: str, filetype: str):
     Returns:
         li(List): List of pointclouds (name)
     """
-    li = []
-    f = os.listdir(folder)
-    for e in f:
-        extension = e.rpartition('.')[-1]
-        if extension in filetype:
-            li.append(e)
+    li = [f for f in os.listdir(folder)
+        if os.path.splitext(f)[1].lstrip(".").lower() == filetype]
+
     return li
 
 def ip_worker(mp):
@@ -32,21 +29,28 @@ def ip_worker(mp):
     multiple times in parallel on separate CPU cores.
     In this case the worker function instances prepare
     one file each, writing the resulting merge LIDAR.
+    Args:
+        mp: list of arguments : [input_dir, output_dir, temp_dir, fname, filetype]
     """
     # Parameters
+    input_dir = mp[0]
+    output_dir = mp[1]
+    temp_dir = mp[2]
+    fname = mp[3]
+    filetype = mp[4]
+    # fpath looks like input_dir/fname[:-3]extension
+
     fpath = (mp[0] + mp[2])[:-3] + mp[3]
-    fname = mp[2]
-    src = mp[1]
     # Filter pointcloud : keep only ground and virtual points if exist
-    filter_las_ground(fpath, src, fname)
+    filter_las_ground(os.path.join(input_dir, fname), output_dir)
 
 
-def start_pool(target_folder: str, src: str, filetype = 'las'):
+def start_pool(input_dir: str, output_dir: str, temp_dir: str, filetype = 'las'):
     """Assembles and executes the multiprocessing pool.
     The pre-processing are handled
     by the worker function (ip_worker(mapped)).
     """
-    fnames = listPointclouds(target_folder, filetype)
+    fnames = listPointclouds(input_dir, filetype)
     cores = cpu_count()
     print(f"Found {cores} logical cores in this PC")
     num_threads = cores -1
@@ -59,7 +63,7 @@ def start_pool(target_folder: str, src: str, filetype = 'las'):
         print("Error: No file names were input. Returning."); return
     pre_map, processno = [], len(fnames)
     for i in range(processno):
-        pre_map.append([target_folder, src, fnames[i].strip('\n'), filetype])
+        pre_map.append([input_dir, output_dir, temp_dir, fnames[i], filetype])
     p = Pool(num_threads)
     p.map(ip_worker, pre_map)
     p.close(); p.join()

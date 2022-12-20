@@ -63,20 +63,21 @@ def las_info(target_folder: str, fname: str):
     return tuple(i for i in bounds)
 
 @commons.eval_time
-def las_crop(target_folder: str, src: str, fname: str):
+def las_crop(input_dir: str, output_dir: str, temp_dir: str, fname: str):
     """ Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
 
     Args:
-        target_folder (str): directory of pointclouds
-        src (str): directory of pointclouds
+        input_dir (str): directory of pointclouds
+        output_dir (str): directory of pointclouds
+        temp_dir (str): directory of intermediate results
         fname (str): name of LIDAR tile
     """
     # Lauch las_info for extracting boudning box
-    bounds = str(las_info(target_folder, fname))
+    bounds = str(las_info(input_dir, fname))
     # Parameters
     root = os.path.splitext(fname)[0]
-    FileInput = os.path.join(src, "_tmp", f'{root}_merge.las')
-    FileOutput = os.path.join(src, "_tmp", f'{root}_crop.las')
+    FileInput = os.path.join(temp_dir, f'{root}_merge.las')
+    FileOutput = os.path.join(temp_dir, f'{root}_crop.las')
     information = {}
     information = {
     "pipeline": [

@@ -13,23 +13,21 @@ log = logging.getLogger(__name__)
 
 
 @commons.eval_time
-def filter_las_ground(fpath: str, src: str, file: str):
+def filter_las_ground(input_file: str, output_dir: str):
     """ Reads the LAS file and filter only grounds from LIDAR.
 
     Args:
-        fpath (str) : directory of projet who contains LIDAR (Ex. "data")
-        src (str): directory of work who contains the code
-        file (str): name of LIDAR tiles
+        fileInput (str) : Path to the input lidar file
+        folderOutput (str): Path to the output directory
     """
-    dst = os.path.join(src, "DTM")
-    root = os.path.splitext(file)[0]
-    FileOutput = os.path.join(dst, f"{root}_ground.las")
+    root = os.path.splitext(os.path.basename(input_file))[0]
+    output_file = os.path.join(output_dir, f"{root}_ground.las")
     information = {}
     information = {
     "pipeline": [
             {
                 "type":"readers.las",
-                "filename":fpath,
+                "filename":input_file,
                 "override_srs": "EPSG:2154",
                 "nosrs": True
             },
@@ -42,7 +40,7 @@ def filter_las_ground(fpath: str, src: str, file: str):
                 "a_srs": "EPSG:2154",
                 # "minor_version": 4,
                 # "dataformat_id": 6,
-                "filename": FileOutput
+                "filename": output_file
             }
         ]
     }
