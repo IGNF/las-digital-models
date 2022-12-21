@@ -120,23 +120,6 @@ class deterministic_method:
             yi += 1
         return ras
 
-    def give_name_resolution_raster(self):
-        """
-        Give a resolution from raster
-
-        Return:
-            _size(str): resolution from raster for output's name
-        """
-        if float(self.size) == 1.0:
-            _size = str('_1M')
-        elif float(self.size) == 0.5:
-            _size = str('_50CM')
-        elif float(self.size) == 5.0:
-            _size = str('_5M')
-        else:
-            _size = str(self.size)
-        return _size
-
     @commons.eval_time
     def execute_pdal(self, fpath: str, output_dir:str, tile_name: str, method: str):
         """Sets up a PDAL pipeline that reads a ground filtered LAS
@@ -163,7 +146,7 @@ class deterministic_method:
             wnd(float): The maximum distance from donor cell to a target cell when applying the fallback interpolation method. [default:0]
         """
         # # Return size for output's name
-        _size = self.give_name_resolution_raster()
+        _size = commons.give_name_resolution_raster()
 
         Fileoutput = os.path.join(output_dir, f"{tile_name}{_size}_IDW.tif")
         information = {}

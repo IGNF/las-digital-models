@@ -2,26 +2,13 @@
 # maintener : MDupays
 # version : v.1 06/12/2022
 # PRE-PROCESSING : filter ground pointcloud
+from commons import commons
 import os
 from multiprocessing import Pool, cpu_count
 from tasks.las_ground import filter_las_ground
 
 CPU_LIMIT=int(os.getenv("CPU_LIMIT", "-1"))
 
-def listPointclouds(folder: str, filetype: str):
-    """ Return list of pointclouds in the folder 'data'
-
-    Args:
-        folder (str): 'data' directory who contains severals pointclouds (tile)
-        filetype (str): pointcloud's type in folder 'data : LAS or LAZ ?
-
-    Returns:
-        li(List): List of pointclouds (name)
-    """
-    li = [f for f in os.listdir(folder)
-        if os.path.splitext(f)[1].lstrip(".").lower() == filetype]
-
-    return li
 
 def ip_worker(mp):
     """Multiprocessing worker function to be used by the
@@ -46,7 +33,7 @@ def start_pool(input_dir: str, output_dir: str, temp_dir: str, filetype = 'las')
     The pre-processing are handled
     by the worker function (ip_worker(mapped)).
     """
-    fnames = listPointclouds(input_dir, filetype)
+    fnames = commons.listPointclouds(input_dir, filetype)
     cores = cpu_count()
     print(f"Found {cores} logical cores in this PC")
     num_threads = cores -1

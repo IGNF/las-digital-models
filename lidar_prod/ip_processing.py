@@ -3,6 +3,7 @@
 # version : v.1 06/12/2022
 # INTERPOLATION + POST-PROCESSING SCRIPTS
 
+from commons import commons
 import os
 from time import time
 from multiprocessing import Pool, cpu_count
@@ -14,25 +15,6 @@ from tasks.las_interpolation_deterministic import deterministic_method
 
 CPU_LIMIT=int(os.getenv("CPU_LIMIT", "-1"))
 
-def give_name_resolution_raster(size):
-    """
-    Give a resolution from raster
-
-    Args:
-        size (int): raster cell size
-
-    Return:
-        _size(str): resolution from raster for output's name
-    """
-    if float(size) == 1.0:
-        _size = str('_1M')
-    elif float(size) == 0.5:
-        _size = str('_50CM')
-    elif float(size) == 5.0:
-        _size = str('_5M')
-    else:
-        _size = str(size)
-    return _size
 
 def write_geotiff_withbuffer(raster, origin, size, fpath):
     """Writes the interpolated TIN-linear and Laplace rasters
@@ -148,21 +130,14 @@ def ip_worker(mp):
     #     print("PID {} finished post-processing.".format(os.getpid()),
     #           "Time spent post-processing: {} sec.".format(
     #               round(end - start, 2)))
-    # Return size for output's name
-    _size = give_name_resolution_raster(size)
+    _size = commons.give_name_resolution_raster(size)
+
     # Write raster in the folder DTM who clipping from the LIDAR tile
     start = time()
-    file_postfix = {"startin-TINlinear": "TINlinear",
-                    "startin-Laplace": "Laplace",
-                    "CGAL-NN": "NN",
-                    "IDWquad": "IDWquad",
-                    "PDAL-IDW": "IDW"
-    }
-    geotiff_filename = f"{tile_name}{_size}_{file_postfix[method]}.tif"
+    geotiff_filename = f"{tile_name}{_size}_{commons.method_postfix[method]}.tif"
     geotiff_path_temp = os.path.join(temp_dir, geotiff_filename)
     geotiff_path = os.path.join(output_dir, geotiff_filename)
-
-    export_raster(os.path.join(input_dir, fname),ras, origin, size, geotiff_path_temp,
+    export_raster(os.path.join(input_dir, fname), ras, origin, size, geotiff_path_temp,
         geotiff_path, method)
 
     end = time()
@@ -170,28 +145,13 @@ def ip_worker(mp):
           "Time spent exporting: {} sec.".format(round(end - start, 2)))
 
 
-def listPointclouds(folder, filetype):
-    """ Return list of pointclouds in the folder 'data'
-
-    Args:
-        folder (str): 'data' directory who contains severals pointclouds (tile)
-        filetype (str): pointcloud's type in folder 'data : LAS or LAZ ?
-
-    Returns:
-        li(List): List of pointclouds (name)
-    """
-    li = [f for f in os.listdir(folder)
-        if os.path.splitext(f)[1].lstrip(".").lower() == filetype]
-
-    return li
-
 def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype = 'las', postprocess = 0,
                size = 1, method = 'startin-Laplace'):
     """Assembles and executes the multiprocessing pool.
     The interpolation variants/export formats are handled
     by the worker function (ip_worker(mapped)).
     """
-    fnames = listPointclouds(input_dir, filetype)
+    fnames = commons.listPointclouds(input_dir, filetype)
     cores = cpu_count()
     print(f"Found {cores} logical cores in this PC")
     num_threads = cores -1

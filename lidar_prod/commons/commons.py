@@ -4,6 +4,7 @@
 # COMMONS
 import json
 import logging
+import os
 import pdal
 import time
 from typing import Callable
@@ -72,3 +73,49 @@ def las_info(filename: str, buffer_width: int=0):
     bounds.append(_x) # [xmin, xmax]
     bounds.append(_y) # insert [ymin, ymax]
     return tuple(i for i in bounds)
+
+
+# Dictionnary used for postfix choice in filenames generation
+method_postfix = {"startin-TINlinear": "TINlinear",
+            "startin-Laplace": "Laplace",
+            "CGAL-NN": "NN",
+            "IDWquad": "IDWquad",
+            "PDAL-IDW": "IDW"
+}
+
+
+def listPointclouds(folder: str, filetype: str):
+    """ Return list of pointclouds in the folder 'data'
+
+    Args:
+        folder (str): 'data' directory who contains severals pointclouds (tile)
+        filetype (str): pointcloud's type in folder 'data : LAS or LAZ ?
+
+    Returns:
+        li(List): List of pointclouds (name)
+    """
+    li = [f for f in os.listdir(folder)
+        if os.path.splitext(f)[1].lstrip(".").lower() == filetype]
+
+    return li
+
+
+def give_name_resolution_raster(size):
+    """
+    Give a resolution from raster
+
+    Args:
+        size (int): raster cell size
+
+    Return:
+        _size(str): resolution from raster for output's name
+    """
+    if float(size) == 1.0:
+        _size = str('_1M')
+    elif float(size) == 0.5:
+        _size = str('_50CM')
+    elif float(size) == 5.0:
+        _size = str('_5M')
+    else:
+        _size = str(size)
+    return _size
