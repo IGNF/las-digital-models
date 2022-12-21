@@ -115,13 +115,27 @@ def ip_worker(mp):
     fname = mp[5]
     method =  mp[6]
     tile_name = os.path.splitext(fname)[0]
+
+    # Generate output filenames
+    # Las preparation
+    ground_file = os.path.join(output_dir, f"{tile_name}_ground.las")
+    merge_file = os.path.join(temp_dir, f'{tile_name}_merge.las')
+    crop_file = os.path.join(temp_dir, f"{tile_name}_crop.las")
+
+    # raster export
+    _size = commons.give_name_resolution_raster(size)
+    geotiff_filename = f"{tile_name}{_size}_{commons.method_postfix[method]}.tif"
+    geotiff_path_temp = os.path.join(temp_dir, geotiff_filename)
+    geotiff_path = os.path.join(output_dir, geotiff_filename)
+
     # Extract coordinate, resolution and coordinate location of the relative origin
     print("PID {} starting to work on {}".format(os.getpid(), fname))
     start = time()
-    gnd_coords, res, origin = las_prepare(input_dir, output_dir, temp_dir, fname, size)
+    gnd_coords, res, origin = las_prepare(output_dir, ground_file, merge_file, crop_file, size)
     # Interpolation with method deterministic
     _interpolation = deterministic_method(gnd_coords, res, origin, size, method)
-    ras = _interpolation.run(input_dir=temp_dir, output_dir=output_dir, tile_name=tile_name)
+
+    ras = _interpolation.run(pdal_idw_input=crop_file, pdal_idw_output=geotiff_path_temp)
     end = time()
     print("PID {} finished interpolating.".format(os.getpid()),
           "Time spent interpolating: {} sec.".format(round(end - start, 2)))
@@ -130,16 +144,11 @@ def ip_worker(mp):
     #     print("PID {} finished post-processing.".format(os.getpid()),
     #           "Time spent post-processing: {} sec.".format(
     #               round(end - start, 2)))
-    _size = commons.give_name_resolution_raster(size)
 
     # Write raster in the folder DTM who clipping from the LIDAR tile
     start = time()
-    geotiff_filename = f"{tile_name}{_size}_{commons.method_postfix[method]}.tif"
-    geotiff_path_temp = os.path.join(temp_dir, geotiff_filename)
-    geotiff_path = os.path.join(output_dir, geotiff_filename)
     export_raster(os.path.join(input_dir, fname), ras, origin, size, geotiff_path_temp,
         geotiff_path, method)
-
     end = time()
     print("PID {} finished exporting.".format(os.getpid()),
           "Time spent exporting: {} sec.".format(round(end - start, 2)))

@@ -121,7 +121,7 @@ class deterministic_method:
         return ras
 
     @commons.eval_time
-    def execute_pdal(self, fpath: str, output_dir:str, tile_name: str, method: str):
+    def execute_pdal(self, fpath: str, output_file:str, method: str):
         """Sets up a PDAL pipeline that reads a ground filtered LAS
         file, and writes it via GDAL. The GDAL writer has interpolation
         options, exposing the radius, power and a fallback kernel width
@@ -137,18 +137,14 @@ class deterministic_method:
 
         Args:
             fpath(str):  input file for the pdal pipeliine
-            output_dir(str): directory to save output to
-            tile_name(str): name of the las file (without extension), to generate output path
+            output_file(str): output file for the pdal pipeliine
             method(str): Chose of the method = min / max / mean / idw
 
             rad(float): Radius about cell center bounding points to use to calculate a cell value. [Default: resolution * sqrt(2)]
             pwr(float): Exponent of the distance when computing IDW. Close points have higher significance than far points. [Default: 1.0]
             wnd(float): The maximum distance from donor cell to a target cell when applying the fallback interpolation method. [default:0]
         """
-        # # Return size for output's name
-        _size = commons.give_name_resolution_raster()
 
-        Fileoutput = os.path.join(output_dir, f"{tile_name}{_size}_IDW.tif")
         information = {}
         information = {
             "pipeline": [
@@ -171,7 +167,7 @@ class deterministic_method:
                     "window_size": 1,
                     "nodata": -9999,
                     "data_type": "float32",
-                    "filename": Fileoutput
+                    "filename": output_file
                 }
             ]
         }
@@ -226,7 +222,7 @@ class deterministic_method:
             yi += 1
         return ras
 
-    def run(self, input_dir: str, output_dir: str, tile_name: str):
+    def run(self, pdal_idw_input: str, pdal_idw_output: str):
         """Lauch the deterministic method
         Args:
             input_dir: folder to look for las file (usually temp_dir)
@@ -235,8 +231,7 @@ class deterministic_method:
             ras(list): Z interpolation
         """
         if self.method == 'PDAL-IDW':
-            input_file = os.path.join(input_dir, f"{tile_name}_crop.las")
-            self.execute_pdal(input_file, output_dir, tile_name, method='idw')
+            self.execute_pdal(pdal_idw_input, pdal_idw_output, method='idw')
             return
         if self.method == 'startin-TINlinear' or self.method == 'startin-Laplace':
             ras = self.execute_startin()

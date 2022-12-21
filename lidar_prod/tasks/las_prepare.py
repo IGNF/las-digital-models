@@ -216,15 +216,16 @@ def read_las_file_to_numpy(input_file, size):
     return in_np, res, origin
 
 
-def las_prepare(input_dir: str, output_dir: str, temp_dir: str, fname: str, size: float):
+def las_prepare(input_dir: str, input_file: str, merge_file: str, output_file: str, size: float):
     """Severals steps :
         1- Create tile with buffer
         2- Read the new tile and establish basic raster parameter (ct read_las_file_to_numpy)
 
     Args:
         input_dir (str): directory of pointclouds
-        output_dir (str): directory folder for saving the outputs
-        fname (str): name of LIDAR tile
+        input_file (str): full path of pointcloud to prepare
+        merge_file (str): full path to intermediate result tile (tile merged qith its 8 neighbors)
+        output_file (str): full path of returned prepared pointcloud
         size (int): raster cell size
 
     Returns:
@@ -233,12 +234,9 @@ def las_prepare(input_dir: str, output_dir: str, temp_dir: str, fname: str, size
         origin(list): coordinate location of the relative origin (bottom left)
     """
     # Parameters
-    tile_name = os.path.splitext(fname)[0]
-    ground_file = os.path.join(output_dir, f"{tile_name}_ground.las")
-    merge_file = os.path.join(temp_dir, f'{tile_name}_merge.las')
-    crop_file = os.path.join(temp_dir, f"{tile_name}_crop.las")
 
-    create_las_with_buffer(output_dir, ground_file, merge_file, crop_file, buffer_width=100)
-    in_np, res, origin = read_las_file_to_numpy(crop_file, size)
+
+    create_las_with_buffer(input_dir, input_file, merge_file, output_file, buffer_width=100)
+    in_np, res, origin = read_las_file_to_numpy(output_file, size)
 
     return in_np, res, origin
