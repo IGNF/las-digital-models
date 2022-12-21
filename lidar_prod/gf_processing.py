@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # maintener : MDupays
 # version : v.1 06/12/2022
-# PRE-PROCESSING : filter ground pointcloud
+# PRE-PROCESSING : filter ground pointcloud (using multiprocessing)
 from commons import commons
 import os
 from multiprocessing import Pool, cpu_count
