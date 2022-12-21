@@ -102,6 +102,16 @@ def patch(raster, res, origin, size, min_n):
                         if val != -9999: vals += [val]
                 if len(vals) > min_n: raster[yi, xi] = np.median(vals)
 
+
+def export_raster(las_file, ras, origin, size, geotiff_path_temp, geotiff_path, method):
+    """Write raster in the folder DTM with clipping from the LIDAR tile"""
+    if method in ['startin-TINlinear', 'startin-Laplace', 'CGAL-NN', 'IDWquad']:
+        write_geotiff_withbuffer(ras, origin, size, geotiff_path_temp)
+
+    if check_raster(geotiff_path_temp) == True:
+        clip_raster(las_file, geotiff_path_temp, geotiff_path, size)
+
+
 def ip_worker(mp):
     """Multiprocessing worker function to be used by the
     p.map function to map objects to, and then start
@@ -151,15 +161,14 @@ def ip_worker(mp):
     geotiff_filename = f"{tile_name}{_size}_{file_postfix[method]}.tif"
     geotiff_path_temp = os.path.join(temp_dir, geotiff_filename)
     geotiff_path = os.path.join(output_dir, geotiff_filename)
-    if method in ['startin-TINlinear', 'startin-Laplace', 'CGAL-NN', 'IDWquad']:
-        write_geotiff_withbuffer(ras, origin, size, geotiff_path_temp)
 
-    if check_raster(geotiff_path_temp) == True:
-        clip_raster(os.path.join(input_dir, fname), geotiff_path_temp, geotiff_path, size)
+    export_raster(os.path.join(input_dir, fname),ras, origin, size, geotiff_path_temp,
+        geotiff_path, method)
 
     end = time()
     print("PID {} finished exporting.".format(os.getpid()),
           "Time spent exporting: {} sec.".format(round(end - start, 2)))
+
 
 def listPointclouds(folder, filetype):
     """ Return list of pointclouds in the folder 'data'

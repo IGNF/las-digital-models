@@ -172,16 +172,54 @@ def las_merge(las_dir, input_file, merge_file):
     else:
         print('List of tiles is not okay : stop the traitment')
 
+
+def create_las_with_buffer(input_dir: str, tile_filename: str,
+                           merge_filename: str, crop_filename: str,
+                           buffer_width=100):
+    """Merge lidar tiles around the queried tile and crop them in order to add a buffer
+    to the tile (usually 100m)
+    Args:
+        input_dir (str): directory of pointclouds (where you look for neigbors)
+        tile_filename (str): full path to the queried LIDAR tile
+        merge_filename (str): full path to the saved merged tile
+        crop_filename (str) : full path to the saved cropped tile
+        size (int): raster cell size
+        buffer_width (int): width of the border to add to the tile (in pixels)
+    """
+    # STEP 1: Merge LIDAR tiles
+    las_merge(input_dir, tile_filename, merge_filename)
+
+    # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
+    bounds = commons.las_info(tile_filename, buffer_width=buffer_width)
+    las_crop(merge_filename, crop_filename, bounds)
+
+
+def read_las_file_to_numpy(input_file, size):
+    """Takes the filepath to an input LAS (crop) file and the desired output raster cell size
+    Reads the LAS file and outputs the ground points as a numpy array.
+    Also establishes some asic raster parameters:
+    - the extents
+    - the resolution in coordinates
+    - the coordinate location of the relative origin (bottom left)
+        """
+    in_file = laspy.read(input_file)
+    header = in_file.header
+    in_np = np.vstack((in_file.raw_classification,
+                           in_file.x, in_file.y, in_file.z)).transpose()
+    in_np = in_np[in_np[:,0] == 2].copy()[:,1:]
+    extents = [[header.min[0], header.max[0]],
+               [header.min[1], header.max[1]]]
+    res = [math.ceil((extents[0][1] - extents[0][0]) / size),
+           math.ceil((extents[1][1] - extents[1][0]) / size)]
+    origin = [np.mean(extents[0]) - (size / 2) * res[0],
+              np.mean(extents[1]) - (size / 2) * res[1]]
+    return in_np, res, origin
+
+
 def las_prepare(input_dir: str, output_dir: str, temp_dir: str, fname: str, size: float):
     """Severals steps :
-        1- Merge LIDAR tiles
-        2- Crop tiles
-        3- Takes the filepath to an input LAS (crop) file and the desired output raster cell size. Reads the LAS file and outputs
-    the ground points as a numpy array. Also establishes some
-    basic raster parameters:
-        - the extents
-        - the resolution in coordinates
-        - the coordinate location of the relative origin (bottom left)
+        1- Create tile with buffer
+        2- Read the new tile and establish basic raster parameter (ct read_las_file_to_numpy)
 
     Args:
         input_dir (str): directory of pointclouds
@@ -196,27 +234,11 @@ def las_prepare(input_dir: str, output_dir: str, temp_dir: str, fname: str, size
     """
     # Parameters
     tile_name = os.path.splitext(fname)[0]
+    ground_file = os.path.join(output_dir, f"{tile_name}_ground.las")
     merge_file = os.path.join(temp_dir, f'{tile_name}_merge.las')
     crop_file = os.path.join(temp_dir, f"{tile_name}_crop.las")
-    ground_file = os.path.join(output_dir, f"{tile_name}_ground.las")
 
-    # STEP 1: Merge LIDAR tiles
-    las_merge(output_dir, ground_file, merge_file)
+    create_las_with_buffer(output_dir, ground_file, merge_file, crop_file, buffer_width=100)
+    in_np, res, origin = read_las_file_to_numpy(crop_file, size)
 
-    # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
-    bounds = commons.las_info(os.path.join(input_dir, fname), buffer_width=100)
-    las_crop(merge_file, crop_file, bounds)
-
-    # STEP 3 : Reads the LAS file and outputs the ground points as a numpy array.
-    in_file = laspy.read(crop_file)
-    header = in_file.header
-    in_np = np.vstack((in_file.raw_classification,
-                           in_file.x, in_file.y, in_file.z)).transpose()
-    in_np = in_np[in_np[:,0] == 2].copy()[:,1:]
-    extents = [[header.min[0], header.max[0]],
-               [header.min[1], header.max[1]]]
-    res = [math.ceil((extents[0][1] - extents[0][0]) / size),
-           math.ceil((extents[1][1] - extents[1][0]) / size)]
-    origin = [np.mean(extents[0]) - (size / 2) * res[0],
-              np.mean(extents[1]) - (size / 2) * res[1]]
     return in_np, res, origin
