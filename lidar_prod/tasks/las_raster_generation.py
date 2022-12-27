@@ -80,6 +80,7 @@ def patch(raster, res, origin, size, min_n):
                 if len(vals) > min_n: raster[yi, xi] = np.median(vals)
 
 
+@commons.eval_time_with_pid
 def export_raster(las_file, ras, origin, size, geotiff_path_temp, geotiff_path, method):
     """Write raster in the folder DTM with clipping from the LIDAR tile"""
     if method in ['startin-TINlinear', 'startin-Laplace', 'CGAL-NN', 'IDWquad']:

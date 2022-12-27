@@ -8,6 +8,17 @@ import os
 import pdal
 import time
 from typing import Callable
+import sys
+
+
+def get_logger(name):
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+    streamHandler = logging.StreamHandler(sys.stdout)
+    streamHandler.setLevel(logging.INFO)
+    log.addHandler(streamHandler)
+
+    return log
 
 
 def eval_time(function: Callable):
@@ -19,6 +30,22 @@ def eval_time(function: Callable):
         result = function(*args, **kwargs)
         time_elapsed = round(time.time() - time_start, 2)
 
+        log.info(f"Processing time of {function.__name__}: {time_elapsed}s")
+        return result
+
+    return timed
+
+
+def eval_time_with_pid(function: Callable):
+    """decorator to log the duration of the decorated method"""
+
+    def timed(*args, **kwargs):
+        log = logging.getLogger(__name__)
+        log.info(f"Starting {function.__name__} with PID {os.getpid()}.")
+        time_start = time.time()
+        result = function(*args, **kwargs)
+        time_elapsed = round(time.time() - time_start, 2)
+        log.info(f"{function.__name__} with PID {os.getpid()} finished.")
         log.info(f"Processing time of {function.__name__}: {time_elapsed}s")
         return result
 

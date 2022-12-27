@@ -5,9 +5,13 @@
 #             PRIMARY ENTRY POINT FOR PROGRAM
 
 import argparse
+from commons import commons
+from multiprocessing import Pool, cpu_count
 import os
-from sys import argv
-from ip_processing import start_pool
+from ip_one_tile import run_ip_on_tile
+
+
+CPU_LIMIT=int(os.getenv("CPU_LIMIT", "-1"))
 
 
 def parse_args():
@@ -104,6 +108,39 @@ that was used.""")
     #     help="IDWquad maximum number of iteration before declaring no-data")
 
     return  parser.parse_args()
+
+
+def ip_worker(args):
+    """Function to pass arguments to run_ip_on_tile as a list (for multiprocessing)
+    """
+    run_ip_on_tile(*args)
+
+
+def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype='las', postprocess=0,
+               size = 1, method = 'startin-Laplace'):
+    """Assembles and executes the multiprocessing pool.
+    The interpolation variants/export formats are handled
+    by the worker function (ip_worker(mapped)).
+    """
+    fnames = commons.listPointclouds(input_dir, filetype)
+    cores = cpu_count()
+    print(f"Found {cores} logical cores in this PC")
+    num_threads = cores -1
+    if CPU_LIMIT > 0 and num_threads > CPU_LIMIT:
+        print(f"Limit CPU usage to {CPU_LIMIT} cores due to env var CPU_LIMIT")
+        num_threads = CPU_LIMIT
+    print("\nStarting interpolation pool of processes on the {}".format(
+        num_threads) + " logical cores.\n")
+
+    if len(fnames) == 0:
+        print("Error: No file names were input. Returning."); return
+
+    pre_map = [[os.path.join(input_dir, fn), temp_dir, output_dir, size, method, postprocess]
+               for fn in fnames]
+    with Pool(num_threads) as p:
+        p.map(ip_worker, pre_map)
+
+    print("\nAll workers have returned.")
 
 
 def main():

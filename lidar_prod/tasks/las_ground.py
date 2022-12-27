@@ -2,17 +2,13 @@
 # maintener : MDupays
 # version : v.1 06/12/2022
 # LAS READING AND FILTER ONLY GROUND
-import logging
 import os
 from commons import commons
 import pdal
 import json
 
 
-log = logging.getLogger(__name__)
-
-
-@commons.eval_time
+@commons.eval_time_with_pid
 def filter_las_ground(input_file: str, output_file: str):
     """ Reads the LAS file and filter only grounds from LIDAR.
 
