@@ -5,25 +5,36 @@
 ## In repo:
 
 * `README.md` _(this readme file)_
-* `gf_main.py` _(main file for filtering LIDAR : keep only ground)_
-* `gf_processing.py` _(filter code)_
-* `ip_main.py` _(main file for interpolation)_
-* `ip_processing.py` _(interpolation code)_
+* `gf_one_tile.py` _(main file for filtering LIDAR : keep only ground for a single tile)_
+* `gf_multiprocessing.py` _(main file for filtering LIDAR : keep only ground for a whole folder using multiprocessing to run faster)_
+* `ip_one_tile.py` _(main file for interpolation on a single tile)_
+* `ip_multiprocessing.py` _(main file for interpolation on a whole folder using multiprocessing to run faster)_
 * folder `tasks` _(severals tasks)_
 * folder `commons`
 
 The testing environment so far includes multiprocessing pool-based implementations TIN-linear and Laplace interpolation via startin, constrained Delaunay-based (CDT) TIN-linear and natural neighbour (NN) interpolation via CGAL, radial IDW via GDAL/PDAL and quadrant-based IDW via scipy cKDTree and our own code.
 
 ## Primary (filter ground pointcloud)
-You are advised to run `gf_main.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+You are advised to run `gf_multiprocessing.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
 
-A key to the CMD call signature of `gf_main.py`:
-1. target folder file path
-2. extension from LIDAR : LAS / LAZ ?
+Run `python gf_multiprocessing.py -h` to get the whole signature of the script
+
+Here is an example:
+```bash
+python gf_multiprocessing.py -input ${INPUT_FOLDER} -output ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp --extension ${FORMAT}
+```
 
 ## Secondary entry point ( interpolation + post-processing)
 
-You are advised to run `ip_main.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+You are advised to run `ip_multiprocessing.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+
+Run `python ip_multiprocessing.py -h` to get the whole signature of the script
+
+Here is an example:
+```bash
+python ip_multiprocessing.py -i ${INPUT_FOLDER} -o ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp -e ${FORMAT} -p 0 -s 0.5
+
+```
 
 A key to the CMD call signature of `ip_main.py`:
 1. target folder file path
@@ -48,9 +59,9 @@ from the same prompt. So, for example:
 2. Activate conda environment : `conda activate lidar_prod`
 2. Lauch the script : `python [file_path_to_main] [argument_1] [argument_2] [...]`
 
-Another word of caution with the outputs is that they all use a fixed no-data value of -9999. This includes the GeoTIFF exporter. To view the results correctly, you should keep in mind that while the upper bounds of the data will be determined correctly by the viewer software (e.g. QGIS), the lower bound will be -9999. 
+Another word of caution with the outputs is that they all use a fixed no-data value of -9999. This includes the GeoTIFF exporter. To view the results correctly, you should keep in mind that while the upper bounds of the data will be determined correctly by the viewer software (e.g. QGIS), the lower bound will be -9999.
 
-**Note:** ASC export is not currently supported for the PDAL-IDW algorithm. 
+**Note:** ASC export is not currently supported for the PDAL-IDW algorithm.
 
 **Another note:** You are advised to configure the IDWquad parametrisation **with performance in mind** when first getting started. Otherwise it might take _veeeeeery long_ to finish.
 
