@@ -139,6 +139,11 @@ def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype='las', postproce
                for fn in fnames]
     with Pool(num_threads) as p:
         p.map(ip_worker, pre_map)
+        # Pool close and join are still required when using a context manager
+        # cf. https://superfastpython.com/multiprocessing-pool-context-manager/
+        p.close()
+        p.join()
+
 
     print("\nAll workers have returned.")
 
