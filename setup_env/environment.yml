@@ -5,9 +5,8 @@ channels:
 dependencies:
   - python==3.9.*
   - pip
-  # --------- geo --------- #
-  #- conda-forge:pdal==2.3.*
-  #- conda-forge:python-pdal==3.0.*
+  - pytest
+  - cgal
   - gdal
   - laspy
   - geojson
@@ -18,7 +17,8 @@ dependencies:
   - geopandas
   - scipy
   - rasterio
-  - python-pdal
+  - pdal>=2.4.3
+  - python-pdal>=3.2.1
   - pip:
       - postgis-toolkit
       - startinpy

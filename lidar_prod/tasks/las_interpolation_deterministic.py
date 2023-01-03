@@ -7,6 +7,7 @@ import os
 from commons import commons
 import pdal
 import json
+import numpy as np
 
 log = logging.getLogger(__name__)
 
@@ -102,7 +103,7 @@ class deterministic_method:
 
         tin = Delaunay_triangulation_2()
         for pt in cpts: tin.insert(pt)
-        ras = np.zeros([res[1], res[0]])
+        ras = np.zeros([self.res[1], self.res[0]])
         yi = 0
         for y in np.arange(self.origin[1], self.origin[1] + self.res[1] * self.size, self.size):
             xi = 0
@@ -176,7 +177,7 @@ class deterministic_method:
         pipeline.execute()
 
     @commons.eval_time
-    def execute_idwquad(start_rk, pwr: float, minp: float, incr_rk: float, method: str, tolerance: float, maxiter: float):
+    def execute_idwquad(self, start_rk, pwr: float, minp: float, incr_rk: float, method: str, tolerance: float, maxiter: float):
         """Creates a KD-tree representation of the tile's points and executes a quadrant-based IDW algorithm on them.
         Although the KD-tree is based on a C implementation, the rest is coded in pure Python (below).
         Keep in mind that because of this, this is inevitably slower than the rest of the algorithms here.
@@ -186,7 +187,6 @@ class deterministic_method:
         from scipy.spatial import cKDTree
 
         # Parameters
-        size = self.size
         ras = np.zeros([self.res[1], self.res[0]])
         tree = cKDTree(np.array([self.pts[:,0], self.pts[:,1]]).transpose())
         yi = 0
@@ -199,7 +199,7 @@ class deterministic_method:
                         ix = tree.query_ball_point([x, y], rk, tolerance)
                     elif method == "k-nearest":
                         ix = tree.query([x, y], rk, tolerance)[1]
-                    xyp = pts[ix]
+                    xyp = self.pts[ix]
                     qs = [
                             xyp[(xyp[:,0] < x) & (xyp[:,1] < y)],
                             xyp[(xyp[:,0] > x) & (xyp[:,1] < y)],

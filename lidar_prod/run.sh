@@ -25,10 +25,11 @@ done
 
 SCRIPT_RELATIVE_DIR=$(dirname "${BASH_SOURCE[0]}")
 # Step 1 : filter ground
-python ${SCRIPT_RELATIVE_DIR}/gf_main.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp -e ${FORMAT}
+python ${SCRIPT_RELATIVE_DIR}/gf_multiprocessing.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp -e ${FORMAT}
 # Step 2 ; create DTM with the severals method
-# python ${SCRIPT_RELATIVE_DIR}/ip_main.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp -e ${FORMAT} -p 0 -s 0.5
-# python ${SCRIPT_RELATIVE_DIR}/ip_main.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp  -e ${FORMAT} -p 0 -s 0.5 -m startin-TINlinear
-python ${SCRIPT_RELATIVE_DIR}/ip_main.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp -e ${FORMAT} -p 0 -s 0.5 -m PDAL-IDW
-# python ${SCRIPT_RELATIVE_DIR}/ip_main.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp  -e ${FORMAT} -p 0 -s 0.5 -m CGAL-NN
-# python ${SCRIPT_RELATIVE_DIR}/ip_main.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp  -e ${FORMAT} -p 0 -s 0.5 -m IDWquad
+python ${SCRIPT_RELATIVE_DIR}/ip_multiprocessing.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp -e ${FORMAT} -p 0 -s 0.5
+python ${SCRIPT_RELATIVE_DIR}/ip_multiprocessing.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp  -e ${FORMAT} -p 0 -s 0.5 -m startin-TINlinear
+python ${SCRIPT_RELATIVE_DIR}/ip_multiprocessing.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp -e ${FORMAT} -p 0 -s 0.5 -m PDAL-IDW
+python ${SCRIPT_RELATIVE_DIR}/ip_multiprocessing.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp  -e ${FORMAT} -p 0 -s 0.5 -m CGAL-NN
+# Not working for now:
+# python ${SCRIPT_RELATIVE_DIR}/ip_multiprocessing.py -i ${INPUT} -o ${OUTPUT}/DTM -t ${OUTPUT}/_tmp  -e ${FORMAT} -p 0 -s 0.5 -m IDWquad
