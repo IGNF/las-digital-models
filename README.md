@@ -9,12 +9,44 @@
 * `gf_multiprocessing.py` _(main file for filtering LIDAR : keep only ground for a whole folder using multiprocessing to run faster)_
 * `ip_one_tile.py` _(main file for interpolation on a single tile)_
 * `ip_multiprocessing.py` _(main file for interpolation on a whole folder using multiprocessing to run faster)_
+* folder `docker` _(contains tools to run each step in a docker container)_
 * folder `tasks` _(severals tasks)_
-* folder `commons`
+* folder `commons` _(common tools)_
 
 The testing environment so far includes multiprocessing pool-based implementations TIN-linear and Laplace interpolation via startin, constrained Delaunay-based (CDT) TIN-linear and natural neighbour (NN) interpolation via CGAL, radial IDW via GDAL/PDAL and quadrant-based IDW via scipy cKDTree and our own code.
 
-## Primary (filter ground pointcloud)
+## How to run
+
+The code in this repo can be executed either after being installed on your computer or via a docker image.
+
+### Run With docker
+_Tested on Linux only for the moment_
+Build docker image by running:
+
+```bash
+bash docker/build.sh
+```
+
+- Run preprocessing on one tile by editing and running `docker_gf.sh`
+- Run interpolation on one tile by editing and running `docker_ip.sh`
+
+To run on a whole folder, use gpao to manage the process with http://gitlab.forge-idi.ign.fr/Lidar/ProduitDeriveLidarGpao (work in progress as of january 2023)
+
+
+### Run with direct installation
+Install the conda environment for this repo:
+```bash
+bash setup_env/setup_env.sh
+```
+You can run ground filtering and interpolation on a single tile with:
+* `lidar_prod/gf_one_tile.py`
+* `lidar_prod/ip_one_tile.py`
+
+You can run on a whole folder, using mutliprocessing by following the instructions below
+
+### Run with multiprocessing
+
+#### Primary (filter ground pointcloud)
 You are advised to run `gf_multiprocessing.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
 
 Run `python gf_multiprocessing.py -h` to get the whole signature of the script
@@ -24,7 +56,7 @@ Here is an example:
 python gf_multiprocessing.py -input ${INPUT_FOLDER} -output ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp --extension ${FORMAT}
 ```
 
-## Secondary entry point ( interpolation + post-processing)
+#### Secondary entry point ( interpolation + post-processing)
 
 You are advised to run `ip_multiprocessing.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
 
@@ -35,21 +67,6 @@ Here is an example:
 python ip_multiprocessing.py -i ${INPUT_FOLDER} -o ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp -e ${FORMAT} -p 0 -s 0.5
 
 ```
-
-A key to the CMD call signature of `ip_main.py`:
-1. target folder file path
-2. extension from LIDAR : LAS / LAZ ?
-3. integer to set the post-processing mode, currently these ones are available:
-	* **0** _(default, does not run post-processing)_
-	* **1** _(runs missing pixel value patching only)_
-4. pixel size (in metres) for interpolation _(the default value is 1)_
-5. interpolation method, one of:
-	* startin-TINlinear
-	* startin-Laplace _(default)_
-	* CGAL-NN
-	* PDAL-IDW
-	* IDWquad
-
 
 ## A word of caution
 
