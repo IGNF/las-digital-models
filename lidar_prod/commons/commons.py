@@ -4,11 +4,27 @@
 # COMMONS
 import json
 import logging
+from multiprocessing import cpu_count
 import os
 import pdal
 import time
 from typing import Callable
 import sys
+
+
+def select_num_threads(display_name=""):
+    """Select number of threads for multiprocessing from the number of cpu cores
+    and the environment variable CPU_LIMIT"""
+    cores = cpu_count()
+    cpu_limit=int(os.getenv("CPU_LIMIT", "-1"))
+    print(f"Found {cores} logical cores in this PC")
+    num_threads = cores -1
+    if cpu_limit > 0 and num_threads > cpu_limit:
+        print(f"Limit CPU usage to {cpu_limit} cores due to env var CPU_LIMIT")
+        num_threads = cpu_limit
+    print(f"\nStarting {display_name} pool of processes on the {num_threads} logical cores.\n")
+
+    return num_threads
 
 
 def get_logger(name):

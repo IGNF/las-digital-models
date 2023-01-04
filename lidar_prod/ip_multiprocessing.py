@@ -6,12 +6,9 @@
 
 import argparse
 from commons import commons
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool
 import os
 from ip_one_tile import run_ip_on_tile
-
-
-CPU_LIMIT=int(os.getenv("CPU_LIMIT", "-1"))
 
 
 def parse_args():
@@ -19,7 +16,8 @@ def parse_args():
         epilog="""All IDW parameters are optional, but it is assumed the user will fine-tune them,
 hence the defaults are not listed.
 Output files will be written to the target folder, tagged with thename of the interpolation method
-that was used.""")
+that was used.
+The number of parallel processes can be limited using the CPU_COUNT environment variable """)
     parser.add_argument(
         "--input", "-i",
         type=str,
@@ -123,17 +121,11 @@ def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype='las', postproce
     by the worker function (ip_worker(mapped)).
     """
     fnames = commons.listPointclouds(input_dir, filetype)
-    cores = cpu_count()
-    print(f"Found {cores} logical cores in this PC")
-    num_threads = cores -1
-    if CPU_LIMIT > 0 and num_threads > CPU_LIMIT:
-        print(f"Limit CPU usage to {CPU_LIMIT} cores due to env var CPU_LIMIT")
-        num_threads = CPU_LIMIT
-    print("\nStarting interpolation pool of processes on the {}".format(
-        num_threads) + " logical cores.\n")
+    num_threads = commons.select_num_threads(display_name="interpolation")
 
     if len(fnames) == 0:
-        print("Error: No file names were input. Returning."); return
+        print("Error: No file names were input. Returning.")
+        return
 
     pre_map = [[os.path.join(input_dir, fn), temp_dir, output_dir, size, method, postprocess]
                for fn in fnames]

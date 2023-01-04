@@ -4,16 +4,16 @@
 # MAIN FILE FOR PRE-PROCESSING : filter ground pointcloud (using multiprocessing)
 from commons import commons
 import os
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool
 from gf_one_tile import run_gf_on_tile
 import argparse
 
 
-CPU_LIMIT=int(os.getenv("CPU_LIMIT", "-1"))
-
-
 def parse_args():
-    parser = argparse.ArgumentParser("Combine input from ground pointcloud into a single output")
+    parser = argparse.ArgumentParser(
+        "Generate point cloud with ground only.",
+        epilog="""The number of parallel processes can be limited using the CPU_COUNT environment
+               variable""")
     parser.add_argument(
         "--input", "-i",
         type=str,
@@ -51,16 +51,10 @@ def start_pool(input_dir: str, output_dir: str, temp_dir: str, filetype = 'las')
     by the worker function (ip_worker(mapped)).
     """
     fnames = commons.listPointclouds(input_dir, filetype)
-    cores = cpu_count()
-    print(f"Found {cores} logical cores in this PC")
-    num_threads = cores -1
-    if CPU_LIMIT > 0 and num_threads > CPU_LIMIT:
-        print(f"Limit CPU usage to {CPU_LIMIT} cores due to env var CPU_LIMIT")
-        num_threads = CPU_LIMIT
-    print("\nStarting ground filtering pool of processes on the {}".format(
-        num_threads) + " logical cores.\n")
+    num_threads = commons.select_num_threads(display_name="ground filtering")
     if len(fnames) == 0:
-        print("Error: No file names were input. Returning."); return
+        print("Error: No file names were input. Returning.")
+        return
 
     pre_map = [[os.path.join(input_dir, fn), output_dir] for fn in fnames]
 
