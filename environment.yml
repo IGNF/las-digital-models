@@ -9,17 +9,12 @@ dependencies:
   - cgal
   - gdal
   - laspy
-  - geojson
-  - shapely
-  - pandas
   - numpy
-  - scikit-learn
-  - geopandas
   - scipy
   - rasterio
+  - pyproj
   - pdal>=2.4.3
   - python-pdal>=3.2.1
   - pip:
-      - postgis-toolkit
       - startinpy
 
