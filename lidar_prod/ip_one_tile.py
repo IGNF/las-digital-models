@@ -61,24 +61,31 @@ def parse_args():
         choices=["startin-TINlinear", "startin-Laplace",
                  "CGAL-NN", "PDAL-IDW", "IDWquad"],
         help="interpolation method)")
+    # Optional parameters
+    parser.add_argument(
+        "--spatial_reference",
+        default="EPSG:2154",
+        help="Spatial reference to use to override the one from input las."
+    )
 
     return parser.parse_args()
 
 
 @commons.eval_time_with_pid
 def interpolate(input_dir, input_file, merge_file, output_file, output_raster,
-        pixel_size, interpolation_method):
+        pixel_size, interpolation_method, spatial_ref="EPSG:2154"):
     gnd_coords, res, origin = las_prepare(input_dir, input_file, merge_file, output_file,
-        pixel_size)
-    _interpolation = deterministic_method(gnd_coords, res, origin, pixel_size, interpolation_method)
+        pixel_size, spatial_ref=spatial_ref)
+    _interpolation = deterministic_method(gnd_coords, res, origin, pixel_size, interpolation_method,
+                                          spatial_ref=spatial_ref)
     ras = _interpolation.run(pdal_idw_input=output_file, pdal_idw_output=output_raster)
 
     return ras, origin
 
 
 def run_ip_on_tile(input_file, temp_dir, output_dir,
-        pixel_size=1,
-        interpolation_method='startin-Laplace', postprocessing_mode=0):
+        pixel_size=1, interpolation_method='startin-Laplace',
+        postprocessing_mode=0, spatial_ref="EPSG:2154"):
     ## infer input/output paths
     # split input file
     input_dir, input_basename = os.path.split(input_file)
@@ -100,10 +107,10 @@ def run_ip_on_tile(input_file, temp_dir, output_dir,
 
     ## process
     ras, origin = interpolate(ground_dir, ground_file, merge_file, buffer_file, geotiff_path_temp,
-            pixel_size, interpolation_method)
+            pixel_size, interpolation_method, spatial_ref=spatial_ref)
 
     export_raster(input_file, ras, origin, pixel_size, geotiff_path_temp,
-        geotiff_path, interpolation_method)
+        geotiff_path, interpolation_method, spatial_ref)
 
     return
 
@@ -115,4 +122,5 @@ if __name__ == "__main__":
     os.makedirs(args.output_dir, exist_ok=True)
 
     run_ip_on_tile(args.input_file, args.temp_dir, args.output_dir,
-        args.pixel_size, args.interpolation_method, args.postprocessing)
+        args.pixel_size, args.interpolation_method, args.postprocessing,
+        spatial_ref=args.spatial_ref)

@@ -29,11 +29,17 @@ def parse_args():
         type=str,
         required=True,
         help="Directory folder for saving the outputs")
+    # Optional parameters
+    parser.add_argument(
+        "--spatial_reference",
+        default="EPSG:2154",
+        help="Spatial reference to use to override the one from input las."
+    )
 
     return parser.parse_args()
 
 
-def run_gf_on_tile(input_file, output_dir):
+def run_gf_on_tile(input_file, output_dir, spatial_ref="EPSG:2154"):
     ## infer input/output paths
     # split input file
     _, input_basename = os.path.split(input_file)
@@ -43,7 +49,7 @@ def run_gf_on_tile(input_file, output_dir):
     ground_file = os.path.join(output_dir, f"{tilename}_ground.las")
 
     ## process
-    filter_las_ground(input_file, ground_file)
+    filter_las_ground(input_file, ground_file, spatial_ref=spatial_ref)
 
     return
 
@@ -51,4 +57,4 @@ def run_gf_on_tile(input_file, output_dir):
 if __name__ == "__main__":
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
-    run_gf_on_tile(args.input_file, args.output_dir)
+    run_gf_on_tile(args.input_file, args.output_dir, spatial_ref=args.spatial_reference)

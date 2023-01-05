@@ -174,7 +174,8 @@ def las_merge(las_dir, input_file, merge_file):
 
 def create_las_with_buffer(input_dir: str, tile_filename: str,
                            merge_filename: str, crop_filename: str,
-                           buffer_width=100):
+                           buffer_width=100,
+                           spatial_ref="EPSG:2154"):
     """Merge lidar tiles around the queried tile and crop them in order to add a buffer
     to the tile (usually 100m)
     Args:
@@ -189,8 +190,8 @@ def create_las_with_buffer(input_dir: str, tile_filename: str,
     las_merge(input_dir, tile_filename, merge_filename)
 
     # STEP 2 : Crop filter removes points that fall inside a cropping bounding box (2D) (with buffer 100 m)
-    bounds = commons.las_info(tile_filename, buffer_width=buffer_width)
-    las_crop(merge_filename, crop_filename, bounds)
+    bounds = commons.las_info(tile_filename, buffer_width=buffer_width, spatial_ref=spatial_ref)
+    las_crop(merge_filename, crop_filename, bounds, spatial_ref=spatial_ref)
 
 
 def read_las_file_to_numpy(input_file, size):
@@ -215,7 +216,8 @@ def read_las_file_to_numpy(input_file, size):
     return in_np, res, origin
 
 
-def las_prepare(input_dir: str, input_file: str, merge_file: str, output_file: str, size: float):
+def las_prepare(input_dir: str, input_file: str, merge_file: str, output_file: str, size: float,
+                spatial_ref="EPSG:2154"):
     """Severals steps :
         1- Create tile with buffer
         2- Read the new tile and establish basic raster parameter (ct read_las_file_to_numpy)
@@ -235,7 +237,8 @@ def las_prepare(input_dir: str, input_file: str, merge_file: str, output_file: s
     # Parameters
 
 
-    create_las_with_buffer(input_dir, input_file, merge_file, output_file, buffer_width=100)
+    create_las_with_buffer(input_dir, input_file, merge_file, output_file, buffer_width=100,
+                           spatial_ref=spatial_ref)
     in_np, res, origin = read_las_file_to_numpy(output_file, size)
 
     return in_np, res, origin

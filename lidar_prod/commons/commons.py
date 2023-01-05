@@ -69,7 +69,7 @@ def eval_time_with_pid(function: Callable):
 
 
 @eval_time
-def las_info(filename: str, buffer_width: int=0):
+def las_info(filename: str, buffer_width: int=0, spatial_ref="EPSG:2154"):
     """ Launch command "pdal_info --stats" for extracting the bounding box from the LIDAR tile
 
     Args:
@@ -89,7 +89,7 @@ def las_info(filename: str, buffer_width: int=0):
             {
                 "type": "readers.las",
                 "filename": filename,
-                "override_srs": "EPSG:2154",
+                "override_srs": spatial_ref,
                 "nosrs": True
             },
             {

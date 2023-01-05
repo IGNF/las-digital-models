@@ -9,7 +9,7 @@ import json
 
 
 @commons.eval_time_with_pid
-def filter_las_ground(input_file: str, output_file: str):
+def filter_las_ground(input_file: str, output_file: str, spatial_ref="EPSG:2154"):
     """ Reads the LAS file and filter only grounds from LIDAR.
 
     Args:
@@ -23,7 +23,7 @@ def filter_las_ground(input_file: str, output_file: str):
             {
                 "type":"readers.las",
                 "filename":input_file,
-                "override_srs": "EPSG:2154",
+                "override_srs": spatial_ref,
                 "nosrs": True
             },
             {
@@ -32,7 +32,7 @@ def filter_las_ground(input_file: str, output_file: str):
             },
             {
                 "type": "writers.las",
-                "a_srs": "EPSG:2154",
+                "a_srs": spatial_ref,
                 # "minor_version": 4,
                 # "dataformat_id": 6,
                 "filename": output_file

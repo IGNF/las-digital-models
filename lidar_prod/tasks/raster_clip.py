@@ -6,7 +6,7 @@ from lidar_prod.commons import commons
 from osgeo import gdal
 
 
-def clip_raster(input_las, input_image, output_image, size):
+def clip_raster(input_las, input_image, output_image, size, spatial_ref="EPSG:2154"):
     """ Clip the rasters with the boudnign box
 
     Args:
@@ -20,7 +20,8 @@ def clip_raster(input_las, input_image, output_image, size):
 
     """
     # Extract the bounding box
-    (minX, maxX), (minY, maxY) = commons.las_info(input_las, buffer_width=0)
+    (minX, maxX), (minY, maxY) = commons.las_info(input_las, buffer_width=0,
+                                                  spatial_ref=spatial_ref)
     # Parameters
     RasterFormat = 'GTiff'
     PixelRes = float(size)

@@ -29,13 +29,15 @@ class deterministic_method:
         res: list,
         origin: list,
         size: float,
-        method: str
+        method: str,
+        spatial_ref: str
     ):
         self.pts = pts
         self.res = res
         self.origin = origin
         self.size = size
         self.method = method
+        self.spatial_ref=spatial_ref
 
     @commons.eval_time
     def execute_startin(self):
@@ -151,7 +153,7 @@ class deterministic_method:
                 {
                     "type":"readers.las",
                     "filename":fpath,
-                    "override_srs": "EPSG:2154",
+                    "override_srs": self.spatial_ref,
                     "nosrs": True
                     # "NOSRS" = Don’t read the SRS VLRs. The data will not be assigned an SRS.
                 },

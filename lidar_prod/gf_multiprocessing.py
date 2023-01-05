@@ -35,7 +35,12 @@ def parse_args():
         default="las",
         choices=["las", "laz"],
         help="extension")
-
+    # Optional parameters
+    parser.add_argument(
+        "--spatial_reference",
+        default="EPSG:2154",
+        help="Spatial reference to use to override the one from input las."
+    )
     return  parser.parse_args()
 
 
@@ -45,7 +50,8 @@ def gf_worker(args):
     run_gf_on_tile(*args)
 
 
-def start_pool(input_dir: str, output_dir: str, temp_dir: str, filetype = 'las'):
+def start_pool(input_dir: str, output_dir: str, temp_dir: str,
+               filetype:str='las', spatial_ref="EPSG:2154"):
     """Assembles and executes the multiprocessing pool.
     The pre-processing are handled
     by the worker function (ip_worker(mapped)).
@@ -56,7 +62,8 @@ def start_pool(input_dir: str, output_dir: str, temp_dir: str, filetype = 'las')
         print("Error: No file names were input. Returning.")
         return
 
-    pre_map = [[os.path.join(input_dir, fn), output_dir] for fn in fnames]
+    pre_map = [[os.path.join(input_dir, fn), output_dir, spatial_ref]
+               for fn in fnames]
 
     with Pool(num_threads) as p:
         p.map(gf_worker, pre_map)
@@ -73,7 +80,9 @@ def main():
     # Create the severals folder if not exists
     os.makedirs(args.output, exist_ok=True)
     os.makedirs(args.temp_dir, exist_ok=True)
-    start_pool(args.input, args.output, args.temp_dir, filetype=args.extension)
+    start_pool(args.input, args.output, args.temp_dir,
+               filetype=args.extension,
+               spatial_ref=args.spatial_reference)
 
 
 if __name__ == '__main__':

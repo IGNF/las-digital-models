@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 @commons.eval_time
-def las_crop(input_file: str, output_file: str, bounds):
+def las_crop(input_file: str, output_file: str, bounds, spatial_ref:str="EPSG:2154"):
     """ Crop filter removes points that fall inside a cropping bounding box (2D)
     Args:
         input_dir (str): input point cloud file
@@ -25,7 +25,7 @@ def las_crop(input_file: str, output_file: str, bounds):
             {
                 "type": "readers.las",
                 "filename": input_file,
-                "override_srs": "EPSG:2154",
+                "override_srs": spatial_ref,
                 "nosrs": True
             },
             {
@@ -34,7 +34,7 @@ def las_crop(input_file: str, output_file: str, bounds):
             },
             {
                 "type": "writers.las",
-                "a_srs": "EPSG:2154",
+                "a_srs": spatial_ref,
                 # "minor_version": 4,
                 # "dataformat_id": 6,
                 "filename": output_file

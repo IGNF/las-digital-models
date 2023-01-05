@@ -64,6 +64,12 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         choices=["startin-TINlinear", "startin-Laplace",
                  "CGAL-NN", "PDAL-IDW", "IDWquad"],
         help="interpolation method)")
+    # Optional parameters
+    parser.add_argument(
+        "--spatial_reference",
+        default="EPSG:2154",
+        help="Spatial reference to use to override the one from input las."
+    )
     # Optional arguments for IDW
     # Not used at the moment
     # parser.add_argument(
@@ -115,7 +121,7 @@ def ip_worker(args):
 
 
 def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype='las', postprocess=0,
-               size = 1, method = 'startin-Laplace'):
+               size=1, method='startin-Laplace', spatial_ref="EPSG:2154"):
     """Assembles and executes the multiprocessing pool.
     The interpolation variants/export formats are handled
     by the worker function (ip_worker(mapped)).
@@ -127,7 +133,8 @@ def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype='las', postproce
         print("Error: No file names were input. Returning.")
         return
 
-    pre_map = [[os.path.join(input_dir, fn), temp_dir, output_dir, size, method, postprocess]
+    pre_map = [[os.path.join(input_dir, fn), temp_dir, output_dir, size, method,
+                postprocess, spatial_ref]
                for fn in fnames]
     with Pool(num_threads) as p:
         p.map(ip_worker, pre_map)
@@ -147,7 +154,8 @@ def main():
     os.makedirs(args.temp_dir, exist_ok=True)
     start_pool(args.input, args.output, args.temp_dir, filetype=args.extension,
                postprocess=args.postprocessing, size=args.pixel_size,
-               method=args.interpolation_method)
+               method=args.interpolation_method,
+               spatial_ref=args.spatial_reference)
 
 
 if __name__ == '__main__':
