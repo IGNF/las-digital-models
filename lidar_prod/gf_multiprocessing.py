@@ -2,10 +2,10 @@
 # maintener : MDupays
 # version : v.1 06/12/2022
 # MAIN FILE FOR PRE-PROCESSING : filter ground pointcloud (using multiprocessing)
-from commons import commons
 import os
 from multiprocessing import Pool
-from gf_one_tile import run_gf_on_tile
+from lidar_prod.commons import commons
+from lidar_prod.gf_one_tile import run_gf_on_tile
 import argparse
 
 

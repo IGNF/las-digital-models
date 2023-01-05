@@ -3,15 +3,14 @@
 # version : v.1 06/12/2022
 # Merge the severals LIDAR tiles around the tile and raster preparation
 
-from commons import commons
 import os
-import re
 import math
 import numpy as np
 import pdal
 import laspy
 import json
-from tasks.las_clip import las_crop
+from lidar_prod.commons import commons
+from lidar_prod.tasks.las_clip import las_crop
 
 
 def create_files(_file: str):

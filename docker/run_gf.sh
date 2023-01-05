@@ -10,7 +10,6 @@ docker run -t -d --userns=host --shm-size=2gb  \
     -v ${output_dir}:/output \
     -v /var/tmp:/tmp \
     lidar_hd/produitderivelidar:latest \
-    python /app/lidar_prod/gf_one_tile.py \
+    python -m lidar_prod.gf_one_tile \
     -i /input/${input_tile} \
-    -o /output/DTM \
-    -t /output/_tmp
+    -o /output/DTM

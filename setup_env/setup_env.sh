@@ -7,5 +7,5 @@
 # source setup_env/setup_env.sh
 
 
-conda env create -n lidar_prod -f setup_env/environment.yml --force
+conda env create -n lidar_prod -f environment.yml --force
 conda activate lidar_prod

@@ -1,8 +1,8 @@
 """Run ground filtering for a single tile"""
 import argparse
-from commons import commons
+from lidar_prod.commons import commons
+from lidar_prod.tasks.las_ground import filter_las_ground
 import os
-from tasks.las_ground import filter_las_ground
 
 
 log = commons.get_logger(__name__)
@@ -10,7 +10,7 @@ log = commons.get_logger(__name__)
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        "Main script for preprocessing +interpolation + post-processing on a single tile",
+        "Main script for ground filtering on a single tile",
         epilog="""All IDW parameters are optional, but it is assumed the user will fine-tune them,
         hence the defaults are not listed.
         Output files will be written to the target folder, tagged with thename of the interpolation

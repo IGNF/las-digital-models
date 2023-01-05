@@ -3,7 +3,7 @@
 # version : v.1 06/12/2022
 # Extract info from the tile
 import logging
-from commons import commons
+from lidar_prod.commons import commons
 import pdal
 import json
 

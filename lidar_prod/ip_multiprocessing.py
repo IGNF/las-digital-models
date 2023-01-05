@@ -5,10 +5,10 @@
 #             PRIMARY ENTRY POINT FOR PROGRAM
 
 import argparse
-from commons import commons
+from lidar_prod.commons import commons
+from lidar_prod.ip_one_tile import run_ip_on_tile
 from multiprocessing import Pool
 import os
-from ip_one_tile import run_ip_on_tile
 
 
 def parse_args():

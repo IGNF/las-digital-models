@@ -4,7 +4,7 @@
 # Merge the severals LIDAR tiles
 import logging
 import os
-from commons import commons
+from lidar_prod.commons import commons
 import pdal
 import json
 

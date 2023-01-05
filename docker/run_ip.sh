@@ -15,7 +15,7 @@ docker run -t -d --userns=host --shm-size=2gb  \
     -v /var/tmp:/tmp \
     --cpus 1 \
     lidar_hd/produitderivelidar:latest \
-    python /app/lidar_prod/ip_one_tile.py
+    python -m lidar_prod.ip_one_tile
     -i /input/${input_tile}
     -o /output/
     -t /tmp/

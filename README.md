@@ -39,32 +39,32 @@ Install the conda environment for this repo:
 bash setup_env/setup_env.sh
 ```
 You can run ground filtering and interpolation on a single tile with:
-* `lidar_prod/gf_one_tile.py`
-* `lidar_prod/ip_one_tile.py`
+* `python -m lidar_prod.gf_one_tile [YOUR ARGUMENTS]`
+* `python -m lidar_prod.ip_one_tile [YOUR ARGUMENTS]`
 
-You can run on a whole folder, using mutliprocessing by following the instructions below
+You can run on a whole folder, using multiprocessing by following the instructions below
 
 ### Run with multiprocessing
 
 #### Primary (filter ground pointcloud)
-You are advised to run `gf_multiprocessing.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+You are advised to run `gf_multiprocessing` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
 
-Run `python gf_multiprocessing.py -h` to get the whole signature of the script
+Run `python -m lidar_prod.gf_multiprocessing -h` to get the whole signature of the script
 
 Here is an example:
 ```bash
-python gf_multiprocessing.py -input ${INPUT_FOLDER} -output ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp --extension ${FORMAT}
+python -m lidar_prod.gf_multiprocessing  -input ${INPUT_FOLDER} -output ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp --extension ${FORMAT}
 ```
 
 #### Secondary entry point ( interpolation + post-processing)
 
-You are advised to run `ip_multiprocessing.py` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+You are advised to run `ip_multiprocessing` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
 
-Run `python ip_multiprocessing.py -h` to get the whole signature of the script
+Run `python -m lidar_prod.ip_multiprocessing  -h` to get the whole signature of the script
 
 Here is an example:
 ```bash
-python ip_multiprocessing.py -i ${INPUT_FOLDER} -o ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp -e ${FORMAT} -p 0 -s 0.5
+python -m lidar_prod.ip_multiprocessing -i ${INPUT_FOLDER} -o ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp -e ${FORMAT} -p 0 -s 0.5
 
 ```
 
@@ -74,7 +74,7 @@ If you are using an Anaconda virtual environment for PDAL/CGAL, you should first
 from the same prompt. So, for example:
 1. Create conda environment : `conda env create -n lidar_prod -f environment.yml`
 2. Activate conda environment : `conda activate lidar_prod`
-2. Lauch the script : `python [file_path_to_main] [argument_1] [argument_2] [...]`
+2. Launch the module : `python -m [name of the module to run] [argument_1] [argument_2] [...]`
 
 Another word of caution with the outputs is that they all use a fixed no-data value of -9999. This includes the GeoTIFF exporter. To view the results correctly, you should keep in mind that while the upper bounds of the data will be determined correctly by the viewer software (e.g. QGIS), the lower bound will be -9999.
 

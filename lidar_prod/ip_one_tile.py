@@ -1,11 +1,10 @@
 """Run interpolation + postprocessing for a single tile on ground filtered tiles"""
 import argparse
-from commons import commons
+from lidar_prod.commons import commons
+from lidar_prod.tasks.las_prepare import las_prepare
+from lidar_prod.tasks.las_interpolation_deterministic import deterministic_method
+from lidar_prod.tasks.las_raster_generation import export_raster
 import os
-from tasks.las_prepare import las_prepare
-from tasks.las_interpolation_deterministic import deterministic_method
-from tasks.las_raster_generation import export_raster
-from time import time
 
 
 log = commons.get_logger(__name__)
