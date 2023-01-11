@@ -24,6 +24,11 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         required=True,
         help="input folder (most likely the same as the one you used with PDAL folder 'data')")
     parser.add_argument(
+        "--ground_dir", "-g",
+        type=str,
+        required=False,  # set to None if not provided
+        help="Folder containing the ground filtered tiles (set to `--output` if not provided).")
+    parser.add_argument(
         "--output", "-o",
         type=str,
         required=True,
@@ -32,7 +37,7 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         "--temp_dir", "-t",
         type=str,
         default = "/tmp",
-        help="Directory folder for saving the outputs")
+        help="Directory folder for saving intermediate results")
     parser.add_argument(
         "--extension", "-e",
         type=str.lower,
@@ -120,7 +125,7 @@ def ip_worker(args):
     run_ip_on_tile(*args)
 
 
-def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype='las', postprocess=0,
+def start_pool(input_dir, ground_dir, output_dir, temp_dir='/tmp', filetype='las', postprocess=0,
                size=1, method='startin-Laplace', spatial_ref="EPSG:2154"):
     """Assembles and executes the multiprocessing pool.
     The interpolation variants/export formats are handled
@@ -133,7 +138,7 @@ def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype='las', postproce
         print("Error: No file names were input. Returning.")
         return
 
-    pre_map = [[os.path.join(input_dir, fn), temp_dir, output_dir, size, method,
+    pre_map = [[os.path.join(input_dir, fn), ground_dir, temp_dir, output_dir, size, method,
                 postprocess, spatial_ref]
                for fn in fnames]
     with Pool(num_threads) as p:
@@ -149,10 +154,12 @@ def start_pool(input_dir, output_dir, temp_dir='/tmp', filetype='las', postproce
 
 def main():
     args = parse_args()
+    ground_dir = args.output_dir if args.ground_dir is None else args.ground_dir
+
     # Create the severals folder if not exists
     os.makedirs(args.output, exist_ok=True)
     os.makedirs(args.temp_dir, exist_ok=True)
-    start_pool(args.input, args.output, args.temp_dir, filetype=args.extension,
+    start_pool(args.input, ground_dir, args.output, args.temp_dir, filetype=args.extension,
                postprocess=args.postprocessing, size=args.pixel_size,
                method=args.interpolation_method,
                spatial_ref=args.spatial_reference)

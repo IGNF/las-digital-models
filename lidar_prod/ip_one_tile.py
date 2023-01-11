@@ -37,6 +37,11 @@ def parse_args():
         default="/tmp",
         help="Temporary folder for intermediate results")
     parser.add_argument(
+        "--ground_dir", "-g",
+        type=str,
+        required=False,  # set to None if not provided
+        help="Folder containing the ground results (set to `--output_dir` if not provided).")
+    parser.add_argument(
         "--postprocessing", "-p",
         type=int,
         default=0,
@@ -83,7 +88,7 @@ def interpolate(input_dir, input_file, merge_file, output_file, output_raster,
     return ras, origin
 
 
-def run_ip_on_tile(input_file, temp_dir, output_dir,
+def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
         pixel_size=1, interpolation_method='startin-Laplace',
         postprocessing_mode=0, spatial_ref="EPSG:2154"):
     ## infer input/output paths
@@ -96,7 +101,6 @@ def run_ip_on_tile(input_file, temp_dir, output_dir,
     buffer_file = os.path.join(temp_dir, f"{tilename}_crop.las")
 
     # for ground extraction
-    ground_dir =output_dir
     ground_file = os.path.join(ground_dir, f"{tilename}_ground.las")
 
     # for export
@@ -117,10 +121,11 @@ def run_ip_on_tile(input_file, temp_dir, output_dir,
 
 if __name__ == "__main__":
     args = parse_args()
+    ground_dir = args.output_dir if args.ground_dir is None else args.ground_dir
 
     os.makedirs(args.temp_dir, exist_ok=True)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    run_ip_on_tile(args.input_file, args.temp_dir, args.output_dir,
+    run_ip_on_tile(args.input_file, ground_dir, args.temp_dir, args.output_dir,
         args.pixel_size, args.interpolation_method, args.postprocessing,
         spatial_ref=args.spatial_reference)
