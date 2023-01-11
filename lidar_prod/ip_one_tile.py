@@ -123,4 +123,4 @@ if __name__ == "__main__":
 
     run_ip_on_tile(args.input_file, args.temp_dir, args.output_dir,
         args.pixel_size, args.interpolation_method, args.postprocessing,
-        spatial_ref=args.spatial_ref)
+        spatial_ref=args.spatial_reference)
