@@ -17,4 +17,5 @@ dependencies:
   - python-pdal>=3.2.1
   - pip:
       - startinpy
+      - -e ./ign_las_stitching
 

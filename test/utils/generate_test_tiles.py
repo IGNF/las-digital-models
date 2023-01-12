@@ -8,7 +8,7 @@ Save only part of the tiles, the indices of the output tiles are located like:
 (the up-left corner of tile 4 is centered to make it easier to compute)
 """
 import argparse
-from lidar_prod.tasks.las_clip import las_crop
+from las_stitching.las_clip import las_crop
 import numpy as np
 import os
 import test.utils.point_cloud_utils as pcu
