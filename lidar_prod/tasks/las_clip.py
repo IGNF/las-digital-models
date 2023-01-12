@@ -17,7 +17,7 @@ def las_crop(input_file: str, output_file: str, bounds, spatial_ref:str="EPSG:21
     Args:
         input_dir (str): input point cloud file
         output_dir (str): output point cloud file
-        bounds : 2D bounding box to crop to
+        bounds : 2D bounding box to crop to : provided as ([xmin, xmax], [ymin, ymax])
     """
     # Parameters
     information = {
