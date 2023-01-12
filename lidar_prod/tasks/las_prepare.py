@@ -29,83 +29,21 @@ def create_files(_file: str):
     _suffix = elements[-1]
     coord_x = int(elements[2])
     coord_y = int(elements[3])
-    # # Create coordinate arround the LIDAR tile
-    _result = create_coordinate(coord_x, coord_y)
-    # # Coordinate X or Y - 1
-    coord_less_x = str(_result[0])
-    coord_less_y = str(_result[1])
-    # # Coordinate X or Y + 1
-    coord_more_x = str(_result[2])
-    coord_more_y = str(_result[3])
     # On left
-    _tile_hl = str(_prefix + '_' + coord_less_x + '_' + coord_more_y + '_' + _suffix)
-    _tile_ml = str(_prefix + '_' + coord_less_x + '_' + check_name(str(coord_y)) + '_' + _suffix)
-    _tile_bl = str(_prefix + '_' + coord_less_x + '_' + coord_less_y + '_' + _suffix)
+    _tile_hl = f"{_prefix}_{(coord_x - 1):04d}_{(coord_y + 1):04d}_{_suffix}"
+    _tile_ml = f"{_prefix}_{(coord_x - 1):04d}_{coord_y:04d}_{_suffix}"
+    _tile_bl = f"{_prefix}_{(coord_x - 1):04d}_{(coord_y - 1):04d}_{_suffix}"
     # On Right
-    _tile_hr = str(_prefix + '_' + coord_more_x + '_' + coord_more_y + '_' + _suffix)
-    _tile_mr = str(_prefix + '_' + coord_more_x + '_' + check_name(str(coord_y)) + '_' + _suffix)
-    _tile_br = str(_prefix + '_' + coord_more_x + '_' + coord_less_y + '_' + _suffix)
+    _tile_hr = f"{_prefix}_{(coord_x + 1):04d}_{(coord_y + 1):04d}_{_suffix}"
+    _tile_mr = f"{_prefix}_{(coord_x + 1):04d}_{coord_y:04d}_{_suffix}"
+    _tile_br = f"{_prefix}_{(coord_x + 1):04d}_{(coord_y - 1):04d}_{_suffix}"
     # Above
-    _tile_a = str(_prefix + '_' + check_name(str(coord_x)) + '_' + coord_more_y + '_' + _suffix)
+    _tile_a = f"{_prefix}_{coord_x:04d}_{(coord_y + 1):04d}_{_suffix}"
     # Below
-    _tile_b = str(_prefix + '_' + check_name(str(coord_x)) + '_' + coord_less_y + '_' + _suffix)
+    _tile_b = f"{_prefix}_{coord_x:04d}_{(coord_y - 1):04d}_{_suffix}"
     # Return the severals tile's names
     return _tile_hl, _tile_ml, _tile_bl, _tile_a, _tile_b, _tile_hr, _tile_mr, _tile_br
 
-# def from_list(_file: list):
-#     """ Extract list from LIDAR name
-
-#     Args:
-#         _file(str): name of LIDAR
-
-#     Returns:
-#         _Listparser(list): List of parser
-#     """
-#     # Regex
-#     pattern = r'(?x)^(?P<type>[a-zA-Z]+)_(?P<date>[1-2][0-9]{3})_(?P<coord_x>[0-9]{4})_(?P<coord_y>[0-9]{4})_(?P<p_proj>[A-Z0-9]+)_(?P<v_proj>[A-Z0-9]+)(_[0-9]*)?\.(?P<ext>[a-zA-Z0-9]{0,3})$'
-#     # list of parser
-#     _parser = re.split(pattern, _file)
-#     _Listparser = list(filter(None, _parser))
-#     return _Listparser
-
-def check_name(_coord):
-    """Add '0' if the coordinate X or Y who strats by '0'
-
-    Args:
-        _coord(str): the coordinate X or Y
-
-    Returns:
-        new_x(str): the new coordinate X or Y
-
-    """
-    # If the number start by "0..."
-    if len(_coord) == 3:
-        new_coordinate = f"0{_coord}"
-    else:
-        new_coordinate = _coord
-    return new_coordinate
-
-def create_coordinate(_x, _y):
-    """Create coordinate arround the LIDAR tile
-
-    Args:
-        _x(str): the coordinate X
-        _y(str): the coordinate Y
-
-    Returns:
-        coord_less_x(str): the new coordinate X - 1
-        coord_less_y(str): the new coordinate Y - 1
-        coord_more_x(str): the new coordinate X + 1
-        coord_more_y(str): the new coordinate Y + 1
-
-    """
-    # Coordinate X or Y - 1
-    coord_less_x = check_name(str(_x - 1))
-    coord_less_y = check_name(str(_y - 1))
-    # Coordinate X or Y + 1
-    coord_more_x = check_name(str(_x + 1))
-    coord_more_y = check_name(str(_y + 1))
-    return coord_less_x, coord_less_y, coord_more_x, coord_more_y
 
 def check_tile_ground_exist(list_las: list):
     """ Check if grounds pointcloud exist

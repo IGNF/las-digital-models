@@ -13,7 +13,7 @@ input_file = os.path.join(input_dir, "test_data_0001_0001_LA93_IGN69_ground.las"
 output_file = os.path.join(tmp_path, "cropped.las")
 
 input_nb_points = 22343
-expected_output_nb_points = 46250
+expected_output_nb_points = 47037
 expected_out_mins = [770540., 6277540.]
 expected_out_maxs = [770610., 6277600.]
 
