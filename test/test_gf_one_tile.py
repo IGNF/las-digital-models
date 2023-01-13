@@ -14,7 +14,8 @@ input_file = os.path.join(
     "test_data_0001_0001_LA93_IGN69.laz"
 )
 input_nb_points = 60653
-expected_output_nb_points = 22343
+expected_output_nb_points_ground = 22343
+expected_output_nb_points_building = 14908
 
 spatial_reference = "EPSG:2154"
 output_dir = tmp_path
@@ -33,9 +34,17 @@ def setup_module(module):
 def test_gf_one_tile():
     gf_one_tile.run_gf_on_tile(input_file, output_dir, spatial_ref=spatial_reference)
     assert os.path.isfile(output_file)
-    assert pcu.get_nb_points(output_file) == expected_output_nb_points
+    assert pcu.get_nb_points(output_file) == expected_output_nb_points_ground
+
+
+def test_gf_one_tile_building_class():
+    gf_one_tile.run_gf_on_tile(input_file, output_dir, spatial_ref=spatial_reference,
+    keep_classes=[6])
+    assert os.path.isfile(output_file)
+    assert pcu.get_nb_points(output_file) == expected_output_nb_points_building
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     test_gf_one_tile()
+    test_gf_one_tile_building_class()

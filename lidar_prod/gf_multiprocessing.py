@@ -42,6 +42,13 @@ def parse_args():
         default="EPSG:2154",
         help="Spatial reference to use to override the one from input las."
     )
+    parser.add_argument(
+        "--keep_classes",
+        nargs='+',
+        type=int,
+        default=[2, 66],
+        help="Classes to keep when filtering. Default: ground + virtual points"
+    )
     return  parser.parse_args()
 
 
@@ -52,7 +59,7 @@ def gf_worker(args):
 
 
 def start_pool(input_dir: str, output_dir: str, temp_dir: str,
-               filetype:str='las', spatial_ref="EPSG:2154"):
+               filetype:str='las', spatial_ref="EPSG:2154", keep_classes=[2, 66]):
     """Assembles and executes the multiprocessing pool.
     The pre-processing are handled
     by the worker function (ip_worker(mapped)).
@@ -62,7 +69,7 @@ def start_pool(input_dir: str, output_dir: str, temp_dir: str,
     if len(fnames) == 0:
         raise ValueError("No file names were input.")
 
-    pre_map = [[os.path.join(input_dir, fn), output_dir, spatial_ref]
+    pre_map = [[os.path.join(input_dir, fn), output_dir, spatial_ref, keep_classes]
                for fn in fnames]
 
     with Pool(num_threads) as p:
@@ -83,7 +90,8 @@ def main():
     os.makedirs(args.temp_dir, exist_ok=True)
     start_pool(args.input, args.output, args.temp_dir,
                filetype=args.extension,
-               spatial_ref=args.spatial_reference)
+               spatial_ref=args.spatial_reference,
+               keep_classes = args.keep_classes)
 
 
 if __name__ == '__main__':

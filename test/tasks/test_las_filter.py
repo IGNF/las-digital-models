@@ -1,8 +1,9 @@
 import os
 import pytest
 import shutil
-from lidar_prod.tasks import las_ground
+from lidar_prod.tasks import las_filter
 import test.utils.point_cloud_utils as pcu
+import logging
 
 
 test_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,21 +26,22 @@ def setup_module(module):
     os.mkdir(tmp_path)
 
 
-def test_las_ground_create_file():
-    """Check that a ground file is created after running filter_las_ground"""
+def test_las_filter_create_file():
+    """Check that a ground file is created after running filter_las_classes"""
     output_file = os.path.join(tmp_path, "ground.las")
-    las_ground.filter_las_ground(input_file, output_file)
+    las_filter.filter_las_classes(input_file, output_file)
     assert os.path.isfile(output_file)
 
 
-def test_las_ground_nb_points():
-    """Check that a ground file is created after running filter_las_ground"""
+def test_las_filter_nb_points():
+    """Check that a ground file is created after running filter_las_classes"""
     output_file = os.path.join(tmp_path, "ground.las")
-    las_ground.filter_las_ground(input_file, output_file)
+    las_filter.filter_las_classes(input_file, output_file)
     assert pcu.get_nb_points(output_file) == expected_output_nb_points
 
 
 if __name__ == "__main__":
     setup_module(None)
-    test_las_ground_create_file()
-    test_las_ground_nb_points()
+    logging.basicConfig(level=logging.DEBUG)
+    test_las_filter_create_file()
+    test_las_filter_nb_points()
