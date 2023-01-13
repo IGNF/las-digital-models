@@ -1,4 +1,5 @@
 from lidar_prod import gf_one_tile
+import logging
 import os
 import pytest
 import shutil
@@ -36,4 +37,5 @@ def test_gf_one_tile():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     test_gf_one_tile()

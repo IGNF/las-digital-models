@@ -4,6 +4,7 @@ from lidar_prod.commons import commons
 from lidar_prod.tasks.las_prepare import las_prepare
 from lidar_prod.tasks.las_interpolation_deterministic import deterministic_method
 from lidar_prod.tasks.las_raster_generation import export_raster
+import logging
 import os
 
 
@@ -119,7 +120,8 @@ def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
     return
 
 
-if __name__ == "__main__":
+def main():
+    logging.basicConfig(level=logging.INFO)
     args = parse_args()
     ground_dir = args.output_dir if args.ground_dir is None else args.ground_dir
 
@@ -129,3 +131,6 @@ if __name__ == "__main__":
     run_ip_on_tile(args.input_file, ground_dir, args.temp_dir, args.output_dir,
         args.pixel_size, args.interpolation_method, args.postprocessing,
         spatial_ref=args.spatial_reference)
+
+if __name__ == "__main__":
+    main()

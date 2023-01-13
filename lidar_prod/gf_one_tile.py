@@ -2,6 +2,7 @@
 import argparse
 from lidar_prod.commons import commons
 from lidar_prod.tasks.las_ground import filter_las_ground
+import logging
 import os
 
 
@@ -54,7 +55,11 @@ def run_gf_on_tile(input_file, output_dir, spatial_ref="EPSG:2154"):
     return
 
 
-if __name__ == "__main__":
+def main():
+    logging.basicConfig(level=logging.INFO)
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
     run_gf_on_tile(args.input_file, args.output_dir, spatial_ref=args.spatial_reference)
+
+if __name__ == "__main__":
+    main()

@@ -12,7 +12,6 @@ from las_stitching.las_clip import las_crop
 import numpy as np
 import os
 import test.utils.point_cloud_utils as pcu
-from lidar_prod.commons import commons
 
 
 def parse_args():

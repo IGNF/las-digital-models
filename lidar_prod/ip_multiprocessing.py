@@ -7,6 +7,7 @@
 import argparse
 from lidar_prod.commons import commons
 from lidar_prod.ip_one_tile import run_ip_on_tile
+import logging
 from multiprocessing import Pool
 import os
 
@@ -135,8 +136,7 @@ def start_pool(input_dir, ground_dir, output_dir, temp_dir='/tmp', filetype='las
     num_threads = commons.select_num_threads(display_name="interpolation")
 
     if len(fnames) == 0:
-        print("Error: No file names were input. Returning.")
-        return
+        raise ValueError("No file names were input")
 
     pre_map = [[os.path.join(input_dir, fn), ground_dir, temp_dir, output_dir, size, method,
                 postprocess, spatial_ref]
@@ -149,10 +149,11 @@ def start_pool(input_dir, ground_dir, output_dir, temp_dir='/tmp', filetype='las
         p.join()
 
 
-    print("\nAll workers have returned.")
+    logging.ingo("All workers have returned.")
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
     args = parse_args()
     ground_dir = args.output_dir if args.ground_dir is None else args.ground_dir
 

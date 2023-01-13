@@ -17,12 +17,12 @@ def select_num_threads(display_name=""):
     and the environment variable CPU_LIMIT"""
     cores = cpu_count()
     cpu_limit=int(os.getenv("CPU_LIMIT", "-1"))
-    print(f"Found {cores} logical cores in this PC")
+    logging.info(f"Found {cores} logical cores in this PC")
     num_threads = cores -1
     if cpu_limit > 0 and num_threads > cpu_limit:
-        print(f"Limit CPU usage to {cpu_limit} cores due to env var CPU_LIMIT")
+        logging.info(f"Limit CPU usage to {cpu_limit} cores due to env var CPU_LIMIT")
         num_threads = cpu_limit
-    print(f"\nStarting {display_name} pool of processes on the {num_threads} logical cores.\n")
+    logging.info(f"\nStarting {display_name} pool of processes on the {num_threads} logical cores.\n")
 
     return num_threads
 
@@ -41,12 +41,11 @@ def eval_time(function: Callable):
     """decorator to log the duration of the decorated method"""
 
     def timed(*args, **kwargs):
-        log = logging.getLogger(__name__)
         time_start = time.time()
         result = function(*args, **kwargs)
         time_elapsed = round(time.time() - time_start, 2)
 
-        log.info(f"Processing time of {function.__name__}: {time_elapsed}s")
+        logging.info(f"Processing time of {function.__name__}: {time_elapsed}s")
         return result
 
     return timed
@@ -56,13 +55,12 @@ def eval_time_with_pid(function: Callable):
     """decorator to log the duration of the decorated method"""
 
     def timed(*args, **kwargs):
-        log = logging.getLogger(__name__)
-        log.info(f"Starting {function.__name__} with PID {os.getpid()}.")
+        logging.info(f"Starting {function.__name__} with PID {os.getpid()}.")
         time_start = time.time()
         result = function(*args, **kwargs)
         time_elapsed = round(time.time() - time_start, 2)
-        log.info(f"{function.__name__} with PID {os.getpid()} finished.")
-        log.info(f"Processing time of {function.__name__}: {time_elapsed}s")
+        logging.info(f"{function.__name__} with PID {os.getpid()} finished.")
+        logging.info(f"Processing time of {function.__name__}: {time_elapsed}s")
         return result
 
     return timed
@@ -100,7 +98,7 @@ def las_info(filename: str, buffer_width: int=0, spatial_ref="EPSG:2154"):
 
     # Create json
     json_info = json.dumps(information, sort_keys=True, indent=4)
-    print(json_info)
+    logging.info(json_info)
     pipeline = pdal.Pipeline(json_info)
     pipeline.execute()
     pipeline.arrays

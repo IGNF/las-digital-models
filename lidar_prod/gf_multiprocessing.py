@@ -7,6 +7,7 @@ from multiprocessing import Pool
 from lidar_prod.commons import commons
 from lidar_prod.gf_one_tile import run_gf_on_tile
 import argparse
+import logging
 
 
 def parse_args():
@@ -59,8 +60,7 @@ def start_pool(input_dir: str, output_dir: str, temp_dir: str,
     fnames = commons.listPointclouds(input_dir, filetype)
     num_threads = commons.select_num_threads(display_name="ground filtering")
     if len(fnames) == 0:
-        print("Error: No file names were input. Returning.")
-        return
+        raise ValueError("No file names were input.")
 
     pre_map = [[os.path.join(input_dir, fn), output_dir, spatial_ref]
                for fn in fnames]
@@ -72,10 +72,11 @@ def start_pool(input_dir: str, output_dir: str, temp_dir: str,
         p.close()
         p.join()
 
-    print("\nAll workers have returned.")
+    logging.info("\nAll workers have returned.")
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
     args = parse_args()
     # Create the severals folder if not exists
     os.makedirs(args.output, exist_ok=True)

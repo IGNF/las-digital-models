@@ -8,8 +8,6 @@ import pdal
 import json
 import numpy as np
 
-log = logging.getLogger(__name__)
-
 
 class deterministic_method:
     """Takes the grid parameters and the ground points. Interpolates
@@ -60,7 +58,7 @@ class deterministic_method:
         elif self.method == 'startin-Laplace':
             def interpolant(x, y): return tin.interpolate_laplace(x, y)
         else:
-            print('error')
+            raise NotImplementedError(f"Method {self.method} not impplemented for execute_startin")
         yi = 0
         for y in np.arange(self.origin[1], self.origin[1] + self.res[1] * self.size, self.size):
             xi = 0
