@@ -8,6 +8,7 @@ from lidar_prod.commons import commons
 from lidar_prod.gf_one_tile import run_gf_on_tile
 import argparse
 import logging
+from typing import List
 
 
 def parse_args():
@@ -49,6 +50,12 @@ def parse_args():
         default=[2, 66],
         help="Classes to keep when filtering. Default: ground + virtual points"
     )
+    parser.add_argument(
+        "--cpu_limit",
+        type=int,
+        default=-1,
+        help="Maximum number of cpus to use (Default: use cpu_count - 1)"
+    )
     return  parser.parse_args()
 
 
@@ -58,14 +65,18 @@ def gf_worker(args):
     run_gf_on_tile(*args)
 
 
-def start_pool(input_dir: str, output_dir: str, temp_dir: str,
-               filetype:str='las', spatial_ref="EPSG:2154", keep_classes=[2, 66]):
+def start_pool(input_dir: str,
+               output_dir: str, temp_dir: str,
+               filetype:str='las',
+               spatial_ref: str="EPSG:2154",
+               keep_classes: List=[2, 66],
+               cpu_limit: int=-1):
     """Assembles and executes the multiprocessing pool.
     The pre-processing are handled
     by the worker function (ip_worker(mapped)).
     """
     fnames = commons.listPointclouds(input_dir, filetype)
-    num_threads = commons.select_num_threads(display_name="ground filtering")
+    num_threads = commons.select_num_threads(display_name="ground filtering", cpu_limit=cpu_limit)
     if len(fnames) == 0:
         raise ValueError("No file names were input.")
 
@@ -91,7 +102,8 @@ def main():
     start_pool(args.input, args.output, args.temp_dir,
                filetype=args.extension,
                spatial_ref=args.spatial_reference,
-               keep_classes = args.keep_classes)
+               keep_classes=args.keep_classes,
+               cpu_limit=args.cpu_limit)
 
 
 if __name__ == '__main__':

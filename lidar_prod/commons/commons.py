@@ -12,15 +12,14 @@ from typing import Callable
 import sys
 
 
-def select_num_threads(display_name=""):
-    """Select number of threads for multiprocessing from the number of cpu cores
-    and the environment variable CPU_LIMIT"""
+def select_num_threads(display_name="", cpu_limit=-1):
+    """Select number of threads for multiprocessing from the number of cpu core and cpu_limit
+    (maximum number of cores to use)"""
     cores = cpu_count()
-    cpu_limit=int(os.getenv("CPU_LIMIT", "-1"))
     logging.info(f"Found {cores} logical cores in this PC")
     num_threads = cores -1
     if cpu_limit > 0 and num_threads > cpu_limit:
-        logging.info(f"Limit CPU usage to {cpu_limit} cores due to env var CPU_LIMIT")
+        logging.info(f"Limit CPU usage to {cpu_limit} cores.")
         num_threads = cpu_limit
     logging.info(f"\nStarting {display_name} pool of processes on the {num_threads} logical cores.\n")
 

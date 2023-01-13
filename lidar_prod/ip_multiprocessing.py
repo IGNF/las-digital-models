@@ -83,6 +83,12 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         help="Width (in meter) for the buffer that is added to the tile before interpolation " +
              "(to prevent artefacts)"
     )
+    parser.add_argument(
+        "--cpu_limit",
+        type=int,
+        default=-1,
+        help="Maximum number of cpus to use (Default: use cpu_count - 1)"
+    )
     # Optional arguments for IDW
     # Not used at the moment
     # parser.add_argument(
@@ -133,15 +139,23 @@ def ip_worker(args):
     run_ip_on_tile(*args)
 
 
-def start_pool(input_dir, ground_dir, output_dir, temp_dir='/tmp', filetype='las', postprocess=0,
-               size=1, method='startin-Laplace', spatial_ref="EPSG:2154",
-               buffer_width=100):
+def start_pool(input_dir: str,
+               ground_dir: str,
+               output_dir: str,
+               temp_dir: str='/tmp',
+               filetype: str='las',
+               postprocess: int=0,
+               size: int=1,
+               method: str='startin-Laplace',
+               spatial_ref: str="EPSG:2154",
+               buffer_width: int=100,
+               cpu_limit: int=-1):
     """Assembles and executes the multiprocessing pool.
     The interpolation variants/export formats are handled
     by the worker function (ip_worker(mapped)).
     """
     fnames = commons.listPointclouds(input_dir, filetype)
-    num_threads = commons.select_num_threads(display_name="interpolation")
+    num_threads = commons.select_num_threads(display_name="interpolation", cpu_limit=cpu_limit)
 
     if len(fnames) == 0:
         raise ValueError("No file names were input")
@@ -172,7 +186,8 @@ def main():
                postprocess=args.postprocessing, size=args.pixel_size,
                method=args.interpolation_method,
                spatial_ref=args.spatial_reference,
-               buffer_width=args.buffer_width)
+               buffer_width=args.buffer_width,
+               cpu_limit=args.cpu_limit)
 
 
 if __name__ == '__main__':
