@@ -73,15 +73,22 @@ def parse_args():
         default="EPSG:2154",
         help="Spatial reference to use to override the one from input las."
     )
+    parser.add_argument(
+        "--buffer_width",
+        default=100,
+        type=int,
+        help="Width (in meter) for the buffer that is added to the tile before interpolation " +
+             "(to prevent artefacts)"
+    )
 
     return parser.parse_args()
 
 
 @commons.eval_time_with_pid
 def interpolate(input_dir, input_file, merge_file, output_file, output_raster,
-        pixel_size, interpolation_method, spatial_ref="EPSG:2154"):
+        pixel_size, interpolation_method, spatial_ref="EPSG:2154", buffer_width=100):
     gnd_coords, res, origin = las_prepare(input_dir, input_file, merge_file, output_file,
-        pixel_size, spatial_ref=spatial_ref)
+        pixel_size, spatial_ref=spatial_ref, buffer_width=buffer_width)
     _interpolation = deterministic_method(gnd_coords, res, origin, pixel_size, interpolation_method,
                                           spatial_ref=spatial_ref)
     ras = _interpolation.run(pdal_idw_input=output_file, pdal_idw_output=output_raster)
@@ -91,7 +98,7 @@ def interpolate(input_dir, input_file, merge_file, output_file, output_raster,
 
 def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
         pixel_size=1, interpolation_method='startin-Laplace',
-        postprocessing_mode=0, spatial_ref="EPSG:2154"):
+        postprocessing_mode=0, spatial_ref="EPSG:2154", buffer_width=100):
     ## infer input/output paths
     # split input file
     input_dir, input_basename = os.path.split(input_file)
@@ -112,7 +119,7 @@ def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
 
     ## process
     ras, origin = interpolate(ground_dir, ground_file, merge_file, buffer_file, geotiff_path_temp,
-            pixel_size, interpolation_method, spatial_ref=spatial_ref)
+            pixel_size, interpolation_method, spatial_ref=spatial_ref, buffer_width=buffer_width)
 
     export_raster(input_file, ras, origin, pixel_size, geotiff_path_temp,
         geotiff_path, interpolation_method, spatial_ref)
@@ -130,7 +137,9 @@ def main():
 
     run_ip_on_tile(args.input_file, ground_dir, args.temp_dir, args.output_dir,
         args.pixel_size, args.interpolation_method, args.postprocessing,
-        spatial_ref=args.spatial_reference)
+        spatial_ref=args.spatial_reference,
+        buffer_width=args.buffer_width)
+
 
 if __name__ == "__main__":
     main()

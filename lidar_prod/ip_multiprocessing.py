@@ -76,6 +76,13 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         default="EPSG:2154",
         help="Spatial reference to use to override the one from input las."
     )
+    parser.add_argument(
+        "--buffer_width",
+        default=100,
+        type=int,
+        help="Width (in meter) for the buffer that is added to the tile before interpolation " +
+             "(to prevent artefacts)"
+    )
     # Optional arguments for IDW
     # Not used at the moment
     # parser.add_argument(
@@ -127,7 +134,8 @@ def ip_worker(args):
 
 
 def start_pool(input_dir, ground_dir, output_dir, temp_dir='/tmp', filetype='las', postprocess=0,
-               size=1, method='startin-Laplace', spatial_ref="EPSG:2154"):
+               size=1, method='startin-Laplace', spatial_ref="EPSG:2154",
+               buffer_width=100):
     """Assembles and executes the multiprocessing pool.
     The interpolation variants/export formats are handled
     by the worker function (ip_worker(mapped)).
@@ -139,7 +147,7 @@ def start_pool(input_dir, ground_dir, output_dir, temp_dir='/tmp', filetype='las
         raise ValueError("No file names were input")
 
     pre_map = [[os.path.join(input_dir, fn), ground_dir, temp_dir, output_dir, size, method,
-                postprocess, spatial_ref]
+                postprocess, spatial_ref, buffer_width]
                for fn in fnames]
     with Pool(num_threads) as p:
         p.map(ip_worker, pre_map)
@@ -163,7 +171,8 @@ def main():
     start_pool(args.input, ground_dir, args.output, args.temp_dir, filetype=args.extension,
                postprocess=args.postprocessing, size=args.pixel_size,
                method=args.interpolation_method,
-               spatial_ref=args.spatial_reference)
+               spatial_ref=args.spatial_reference,
+               buffer_width=args.buffer_width)
 
 
 if __name__ == '__main__':
