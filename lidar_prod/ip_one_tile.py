@@ -3,7 +3,7 @@ import argparse
 from lidar_prod.commons import commons
 from lidar_prod.tasks.las_prepare import las_prepare
 from lidar_prod.tasks.las_interpolation_deterministic import deterministic_method
-from lidar_prod.tasks.las_raster_generation import export_raster
+from lidar_prod.tasks.las_raster_generation import export_and_clip_raster
 import logging
 import os
 
@@ -85,13 +85,35 @@ def parse_args():
 
 
 @commons.eval_time_with_pid
-def interpolate(input_dir, input_file, merge_file, output_file, output_raster,
-        pixel_size, interpolation_method, spatial_ref="EPSG:2154", buffer_width=100):
-    gnd_coords, res, origin = las_prepare(input_dir, input_file, merge_file, output_file,
+def add_buffer_and_interpolate(input_dir: str,
+                input_file: str,
+                merge_file: str,
+                buffer_file: str,
+                output_raster: str,
+                pixel_size: int=1,
+                interpolation_method: str="startin-Laplace",
+                spatial_ref: str="EPSG:2154",
+                buffer_width: str=100):
+    """Run interpolation with data preparation (adding a buffer around the las tile)
+    Args:
+        input_dir(str): Directory to look for neighbors in (for buffer addition)
+        input_file(str): File on which to run the buffer addition + interpolation
+        buffer_fiile(str): output las file with buffer
+        output_raster(str): output file for raster image (with buffer)
+        pixel_size(int): pixel size for raster generation
+        interpolation_method(str): interpolation method for raster generation
+        spatial_ref(str): spatial reference to use when reading las file
+        buffer_width(int): size of the buffer to add (in meters)
+
+    interpolate(ground_dir, ground_file, merge_file, buffer_file, geotiff_path_temp,
+            pixel_size, interpolation_method, spatial_ref=spatial_ref, buffer_width=buffer_width)
+
+    """
+    gnd_coords, res, origin = las_prepare(input_dir, input_file, merge_file, buffer_file,
         pixel_size, spatial_ref=spatial_ref, buffer_width=buffer_width)
     _interpolation = deterministic_method(gnd_coords, res, origin, pixel_size, interpolation_method,
                                           spatial_ref=spatial_ref)
-    ras = _interpolation.run(pdal_idw_input=output_file, pdal_idw_output=output_raster)
+    ras = _interpolation.run(pdal_idw_input=buffer_file, pdal_idw_output=output_raster)
 
     return ras, origin
 
@@ -105,11 +127,15 @@ def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
     tilename, extension = os.path.splitext(input_basename) # here, extension is like ".las"
 
     # for buffer addition
-    merge_file = os.path.join(temp_dir, f"{tilename}_merge.las")
-    buffer_file = os.path.join(temp_dir, f"{tilename}_crop.las")
+    merge_dir = os.path.join(temp_dir, "merge")
+    buffer_dir = os.path.join(temp_dir, "crop")
+    os.makedirs(merge_dir, exist_ok=True)
+    os.makedirs(buffer_dir, exist_ok=True)
+    merge_file = os.path.join(merge_dir, f"{tilename}.las")
+    buffer_file = os.path.join(buffer_dir, f"{tilename}.las")
 
     # for ground extraction
-    ground_file = os.path.join(ground_dir, f"{tilename}_ground.las")
+    ground_file = os.path.join(ground_dir, f"{tilename}.las")
 
     # for export
     _size = commons.give_name_resolution_raster(pixel_size)
@@ -118,10 +144,11 @@ def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
     geotiff_path = os.path.join(output_dir, geotiff_filename)
 
     ## process
-    ras, origin = interpolate(ground_dir, ground_file, merge_file, buffer_file, geotiff_path_temp,
-            pixel_size, interpolation_method, spatial_ref=spatial_ref, buffer_width=buffer_width)
+    ras, origin = add_buffer_and_interpolate(ground_dir, ground_file, merge_file, buffer_file,
+            geotiff_path_temp, pixel_size, interpolation_method, spatial_ref=spatial_ref,
+            buffer_width=buffer_width)
 
-    export_raster(input_file, ras, origin, pixel_size, geotiff_path_temp,
+    export_and_clip_raster(input_file, ras, origin, pixel_size, geotiff_path_temp,
         geotiff_path, interpolation_method, spatial_ref)
 
     return

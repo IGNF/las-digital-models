@@ -18,8 +18,8 @@ expected_output_nb_points_ground = 22343
 expected_output_nb_points_building = 14908
 
 spatial_reference = "EPSG:2154"
-output_dir = tmp_path
-output_file = os.path.join(output_dir, "test_data_0001_0001_LA93_IGN69_ground.las")
+output_dir = os.path.join(tmp_path,  "ground")
+output_file = os.path.join(output_dir, "test_data_0001_0001_LA93_IGN69.las")
 
 
 def setup_module(module):

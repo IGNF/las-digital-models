@@ -30,7 +30,9 @@ def parse_args():
         "--output_dir", "-o",
         type=str,
         required=True,
-        help="Directory folder for saving the outputs")
+        default="/tmp/ground",
+        help="Directory folder for saving the outputs" +
+             "(ground files with same root name as input files)")
     # Optional parameters
     parser.add_argument(
         "--spatial_reference",
@@ -54,11 +56,12 @@ def run_gf_on_tile(input_file, output_dir, spatial_ref="EPSG:2154", keep_classes
     _, input_basename = os.path.split(input_file)
     tilename, _ = os.path.splitext(input_basename) # here, extension is like ".las"
 
-    # for ground extraction
-    ground_file = os.path.join(output_dir, f"{tilename}_ground.las")
+    # Export output to .las
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, f"{tilename}.las")
 
     ## process
-    filter_las_classes(input_file, ground_file, spatial_ref=spatial_ref, keep_classes=keep_classes)
+    filter_las_classes(input_file, output_file, spatial_ref=spatial_ref, keep_classes=keep_classes)
 
     return
 

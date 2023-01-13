@@ -25,7 +25,8 @@ def parse_args():
         "--output", "-o",
         type=str,
         required=True,
-        help="Directory folder for saving the outputs")
+        help="Directory folder for saving the outputs " +
+             "(ground files with same root name as input files)")
     parser.add_argument(
         "--temp_dir", "-t",
         type=str,

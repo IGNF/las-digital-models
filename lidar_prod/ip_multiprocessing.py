@@ -27,13 +27,13 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
     parser.add_argument(
         "--ground_dir", "-g",
         type=str,
-        required=False,  # set to None if not provided
-        help="Folder containing the ground filtered tiles (set to `--output` if not provided).")
+        default="/tmp/ground",
+        help="Folder containing the ground filtered tiles.")
     parser.add_argument(
         "--output", "-o",
         type=str,
         required=True,
-        help="Directory folder for saving the outputs")
+        help="Directory folder for saving the outputs.")
     parser.add_argument(
         "--temp_dir", "-t",
         type=str,
@@ -177,12 +177,11 @@ def start_pool(input_dir: str,
 def main():
     logging.basicConfig(level=logging.INFO)
     args = parse_args()
-    ground_dir = args.output_dir if args.ground_dir is None else args.ground_dir
 
     # Create the severals folder if not exists
     os.makedirs(args.output, exist_ok=True)
     os.makedirs(args.temp_dir, exist_ok=True)
-    start_pool(args.input, ground_dir, args.output, args.temp_dir, filetype=args.extension,
+    start_pool(args.input, args.ground_dir, args.output, args.temp_dir, filetype=args.extension,
                postprocess=args.postprocessing, size=args.pixel_size,
                method=args.interpolation_method,
                spatial_ref=args.spatial_reference,
