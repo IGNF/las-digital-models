@@ -11,15 +11,15 @@ RUN rm -f /etc/apt/sources.list.d/*.list
 # Create a working directory
 RUN mkdir /app
 
-# Set up the Conda environment
-COPY environment.yml /app/environment.yml
-RUN conda env update -n base -f /app/environment.yml \
-        && rm -r /app/environment.yml \
-        && conda clean -ya
 
 # Copy the repository content in /app
 WORKDIR /app
 COPY . .
+
+# Set up the Conda environment
+RUN conda env update -n base -f /app/environment.yml \
+        && rm -r /app/environment.yml \
+        && conda clean -ya
 
 # Set the default command to bash for image inspection.
 CMD ["bash"]
