@@ -6,7 +6,6 @@
 import math
 import numpy as np
 import laspy
-from las_stitching.las_add_buffer import create_las_with_buffer
 
 
 def read_las_file_to_numpy(input_file, size):
@@ -28,33 +27,4 @@ def read_las_file_to_numpy(input_file, size):
            math.ceil((extents[1][1] - extents[1][0]) / size)]
     origin = [np.mean(extents[0]) - (size / 2) * res[0],
               np.mean(extents[1]) - (size / 2) * res[1]]
-    return in_np, res, origin
-
-
-def las_prepare(input_dir: str, input_file: str, merge_file: str, output_file: str, size: float,
-                spatial_ref="EPSG:2154", buffer_width=100):
-    """Severals steps :
-        1- Create tile with buffer
-        2- Read the new tile and establish basic raster parameter (ct read_las_file_to_numpy)
-
-    Args:
-        input_dir (str): directory of pointclouds
-        input_file (str): full path of pointcloud to prepare
-        merge_file (str): full path to intermediate result tile (tile merged qith its 8 neighbors)
-        output_file (str): full path of returned prepared pointcloud
-        size (int): raster cell size
-
-    Returns:
-        extents(array) : extents
-        res(list): resolution in coordinates
-        origin(list): coordinate location of the relative origin (bottom left)
-    """
-    # Parameters
-
-
-    create_las_with_buffer(input_dir, input_file, merge_file, output_file,
-                           buffer_width=buffer_width,
-                           spatial_ref=spatial_ref)
-    in_np, res, origin = read_las_file_to_numpy(output_file, size)
-
     return in_np, res, origin

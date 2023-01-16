@@ -1,9 +1,10 @@
 """Run interpolation + postprocessing for a single tile on ground filtered tiles"""
 import argparse
 from lidar_prod.commons import commons
-from lidar_prod.tasks.las_prepare import las_prepare
+from lidar_prod.commons.laspy_io import read_las_file_to_numpy
 from lidar_prod.tasks.las_interpolation_deterministic import deterministic_method
 from lidar_prod.tasks.las_raster_generation import export_and_clip_raster
+from las_stitching.las_add_buffer import create_las_with_buffer
 import logging
 import os
 
@@ -87,7 +88,6 @@ def parse_args():
 @commons.eval_time_with_pid
 def add_buffer_and_interpolate(input_dir: str,
                 input_file: str,
-                merge_file: str,
                 buffer_file: str,
                 output_raster: str,
                 pixel_size: int=1,
@@ -98,7 +98,7 @@ def add_buffer_and_interpolate(input_dir: str,
     Args:
         input_dir(str): Directory to look for neighbors in (for buffer addition)
         input_file(str): File on which to run the buffer addition + interpolation
-        buffer_fiile(str): output las file with buffer
+        buffer_file(str): output las file with buffer
         output_raster(str): output file for raster image (with buffer)
         pixel_size(int): pixel size for raster generation
         interpolation_method(str): interpolation method for raster generation
@@ -109,10 +109,15 @@ def add_buffer_and_interpolate(input_dir: str,
             pixel_size, interpolation_method, spatial_ref=spatial_ref, buffer_width=buffer_width)
 
     """
-    gnd_coords, res, origin = las_prepare(input_dir, input_file, merge_file, buffer_file,
-        pixel_size, spatial_ref=spatial_ref, buffer_width=buffer_width)
+    create_las_with_buffer(input_dir, input_file, buffer_file,
+                           buffer_width=buffer_width,
+                           spatial_ref=spatial_ref)
+
+    gnd_coords, res, origin = read_las_file_to_numpy(buffer_file, pixel_size)
+
     _interpolation = deterministic_method(gnd_coords, res, origin, pixel_size, interpolation_method,
                                           spatial_ref=spatial_ref)
+
     ras = _interpolation.run(pdal_idw_input=buffer_file, pdal_idw_output=output_raster)
 
     return ras, origin
@@ -127,11 +132,8 @@ def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
     tilename, extension = os.path.splitext(input_basename) # here, extension is like ".las"
 
     # for buffer addition
-    merge_dir = os.path.join(temp_dir, "merge")
     buffer_dir = os.path.join(temp_dir, "crop")
-    os.makedirs(merge_dir, exist_ok=True)
     os.makedirs(buffer_dir, exist_ok=True)
-    merge_file = os.path.join(merge_dir, f"{tilename}.las")
     buffer_file = os.path.join(buffer_dir, f"{tilename}.las")
 
     # for ground extraction
@@ -144,7 +146,7 @@ def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
     geotiff_path = os.path.join(output_dir, geotiff_filename)
 
     ## process
-    ras, origin = add_buffer_and_interpolate(ground_dir, ground_file, merge_file, buffer_file,
+    ras, origin = add_buffer_and_interpolate(ground_dir, ground_file, buffer_file,
             geotiff_path_temp, pixel_size, interpolation_method, spatial_ref=spatial_ref,
             buffer_width=buffer_width)
 
