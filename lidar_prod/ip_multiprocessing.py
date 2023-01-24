@@ -171,7 +171,7 @@ def start_pool(input_dir: str,
         p.join()
 
 
-    logging.ingo("All workers have returned.")
+    logging.info("All workers have returned.")
 
 
 def main():
