@@ -49,7 +49,8 @@ def parse_args():
         nargs='+',
         type=int,
         default=[2, 66],
-        help="Classes to keep when filtering. Default: ground + virtual points"
+        help="Classes to keep when filtering. Default: ground + virtual points. " +
+        "To provide a list, follow this example : '--keep_classes 2 66 291'"
     )
     parser.add_argument(
         "--cpu_limit",

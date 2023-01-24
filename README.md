@@ -53,7 +53,25 @@ Run `python -m lidar_prod.gf_multiprocessing -h` to get the whole signature of t
 
 Here is an example:
 ```bash
-python -m lidar_prod.gf_multiprocessing  -input ${INPUT_FOLDER} -output ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp --extension ${FORMAT}
+python -m lidar_prod.gf_multiprocessing  -input ${INPUT_FOLDER} -output ${OUTPUT_FOLDER}/ground -t ${OUTPUT_FOLDER}/_tmp --extension ${FORMAT}
+
+existing arguments:
+  -h, --help            show this help message and exit
+  --input INPUT, -i INPUT
+                        input folder (most likely the same as the one you used with PDAL folder 'data')
+  --output OUTPUT, -o OUTPUT
+                        Directory folder for saving the outputs (ground files with same root name as input files)
+  --temp_dir TEMP_DIR, -t TEMP_DIR
+                        Directory folder for saving the outputs
+  --extension {las,laz}, -e {las,laz}
+                        extension
+  --spatial_reference SPATIAL_REFERENCE
+                        Spatial reference to use to override the one from input las.
+  --keep_classes KEEP_CLASSES [KEEP_CLASSES ...]
+                        Classes to keep when filtering. Default: ground + virtual points. To provide a list, follow this example : '--keep_classes 2 66 291'
+  --cpu_limit CPU_LIMIT
+                        Maximum number of cpus to use (Default: use cpu_count - 1)
+
 ```
 
 #### Secondary entry point ( interpolation + post-processing)
@@ -64,7 +82,36 @@ Run `python -m lidar_prod.ip_multiprocessing  -h` to get the whole signature of 
 
 Here is an example:
 ```bash
-python -m lidar_prod.ip_multiprocessing -i ${INPUT_FOLDER} -o ${OUTPUT_FOLDER}/DTM -t ${OUTPUT_FOLDER}/_tmp -e ${FORMAT} -p 0 -s 0.5
+python -m lidar_prod.ip_multiprocessing -i ${INPUT_FOLDER} -g ${OUTPUT_FOLDER}/ground -o ${OUTPUT_FOLDER}/dtm -t ${OUTPUT_FOLDER}/_tmp -e ${FORMAT} -p 0 -s 0.5
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --input INPUT, -i INPUT
+                        input folder (most likely the same as the one you used with PDAL folder 'data')
+  --ground_dir GROUND_DIR, -g GROUND_DIR
+                        Folder containing the ground filtered tiles.
+  --output OUTPUT, -o OUTPUT
+                        Directory folder for saving the outputs.
+  --temp_dir TEMP_DIR, -t TEMP_DIR
+                        Directory folder for saving intermediate results
+  --extension {las,laz}, -e {las,laz}
+                        extension
+  --postprocessing {0,1,2,3,4}, -p {0,1,2,3,4}
+                        post-processing mode, currently these ones are available: - 0 (default, does not run post-processing) - 1 (runs missing pixel value patching only) - 2 (runs basic flattening only)
+                        - 3 (runs both patching and basic flattening) - 4 (runs patching, basic flattening and hydro-flattening)
+  --pixel_size PIXEL_SIZE, -s PIXEL_SIZE
+                        pixel size (in metres) for interpolation
+  --interpolation_method {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}, -m {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}
+                        interpolation method)
+  --spatial_reference SPATIAL_REFERENCE
+                        Spatial reference to use to override the one from input las.
+  --buffer_width BUFFER_WIDTH
+                        Width (in meter) for the buffer that is added to the tile before interpolation (to prevent artefacts)
+  --cpu_limit CPU_LIMIT
+                        Maximum number of cpus to use (Default: use cpu_count - 1)
+
+Output files will be written to the target folder, tagged with thename of the
+interpolation method that was used. The number of parallel processes can be limited using the CPU_COUNT environment variable
 
 ```
 
