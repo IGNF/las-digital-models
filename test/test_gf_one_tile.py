@@ -3,7 +3,7 @@ import logging
 import os
 import pytest
 import shutil
-import test.utils.point_cloud_utils as pcu
+import utils.point_cloud_utils as pcu
 
 
 test_path = os.path.dirname(__file__)
