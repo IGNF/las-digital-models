@@ -18,9 +18,7 @@ def read_las_file_to_numpy(input_file, size):
         """
     in_file = laspy.read(input_file)
     header = in_file.header
-    in_np = np.vstack((in_file.raw_classification,
-                           in_file.x, in_file.y, in_file.z)).transpose()
-    in_np = in_np[in_np[:,0] == 2].copy()[:,1:]
+    in_np = np.vstack((in_file.x, in_file.y, in_file.z)).transpose()
     extents = [[header.min[0], header.max[0]],
                [header.min[1], header.max[1]]]
     res = [math.ceil((extents[0][1] - extents[0][0]) / size),
