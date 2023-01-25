@@ -5,8 +5,8 @@
 #             PRIMARY ENTRY POINT FOR PROGRAM
 
 import argparse
-from lidar_prod.commons import commons
-from lidar_prod.ip_one_tile import run_ip_on_tile
+from produit_derive_lidar.commons import commons
+from produit_derive_lidar.ip_one_tile import run_ip_on_tile
 import logging
 from multiprocessing import Pool
 import os
@@ -20,17 +20,18 @@ Output files will be written to the target folder, tagged with thename of the in
 that was used.
 The number of parallel processes can be limited using the CPU_COUNT environment variable """)
     parser.add_argument(
-        "--input", "-i",
+        "--origin_dir", "-i",
         type=str,
         required=True,
-        help="input folder (most likely the same as the one you used with PDAL folder 'data')")
+        help="Folder containing the origin lidar tiles (before filtering)." +
+            "Used to retrieve the tile bounding box.")
     parser.add_argument(
-        "--ground_dir", "-g",
+        "--filtered_las_dir", "-f",
         type=str,
         default="/tmp/ground",
-        help="Folder containing the ground filtered tiles.")
+        help="Folder containing the input filtered tiles.")
     parser.add_argument(
-        "--output", "-o",
+        "--output_dir", "-o",
         type=str,
         required=True,
         help="Directory folder for saving the outputs.")
@@ -139,8 +140,8 @@ def ip_worker(args):
     run_ip_on_tile(*args)
 
 
-def start_pool(input_dir: str,
-               ground_dir: str,
+def start_pool(origin_dir: str,
+               filtered_las_dir: str,
                output_dir: str,
                temp_dir: str='/tmp',
                filetype: str='las',
@@ -154,13 +155,13 @@ def start_pool(input_dir: str,
     The interpolation variants/export formats are handled
     by the worker function (ip_worker(mapped)).
     """
-    fnames = commons.listPointclouds(input_dir, filetype)
+    fnames = commons.listPointclouds(origin_dir, filetype)
     num_threads = commons.select_num_threads(display_name="interpolation", cpu_limit=cpu_limit)
 
     if len(fnames) == 0:
         raise ValueError("No file names were input")
 
-    pre_map = [[os.path.join(input_dir, fn), ground_dir, temp_dir, output_dir, size, method,
+    pre_map = [[os.path.join(origin_dir, fn), filtered_las_dir, temp_dir, output_dir, size, method,
                 postprocess, spatial_ref, buffer_width]
                for fn in fnames]
     with Pool(num_threads) as p:
@@ -179,9 +180,9 @@ def main():
     args = parse_args()
 
     # Create the severals folder if not exists
-    os.makedirs(args.output, exist_ok=True)
+    os.makedirs(args.output_dir, exist_ok=True)
     os.makedirs(args.temp_dir, exist_ok=True)
-    start_pool(args.input, args.ground_dir, args.output, args.temp_dir, filetype=args.extension,
+    start_pool(args.origin_dir, args.filtered_las_dir, args.output_dir, args.temp_dir, filetype=args.extension,
                postprocess=args.postprocessing, size=args.pixel_size,
                method=args.interpolation_method,
                spatial_ref=args.spatial_reference,

@@ -4,8 +4,8 @@
 # MAIN FILE FOR PRE-PROCESSING : filter ground pointcloud (using multiprocessing)
 import os
 from multiprocessing import Pool
-from lidar_prod.commons import commons
-from lidar_prod.gf_one_tile import run_gf_on_tile
+from produit_derive_lidar.commons import commons
+from produit_derive_lidar.filter_one_tile import run_filter_on_tile
 import argparse
 import logging
 from typing import List
@@ -13,25 +13,20 @@ from typing import List
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        "Generate point cloud with ground only.",
-        epilog="""The number of parallel processes can be limited using the CPU_COUNT environment
-               variable""")
+        "Generate point cloud filtered by classes.",)
     parser.add_argument(
-        "--input", "-i",
+        "--input_dir", "-i",
         type=str,
         required=True,
-        help="input folder (most likely the same as the one you used with PDAL folder 'data')")
+        help="Input file on which to run the pipeline " +
+             "(most likely located in PDAL folder 'data'). " +
+             "The script assumes that the neighbor tiles are located in the same folder as " +
+             "the queried tile")
     parser.add_argument(
-        "--output", "-o",
+        "--output_dir", "-o",
         type=str,
         required=True,
-        help="Directory folder for saving the outputs " +
-             "(ground files with same root name as input files)")
-    parser.add_argument(
-        "--temp_dir", "-t",
-        type=str,
-        default = "/tmp",
-        help="Directory folder for saving the outputs")
+        help="Directory folder for saving the filtered tiles")
     parser.add_argument(
         "--extension", "-e",
         type=str.lower,
@@ -61,14 +56,14 @@ def parse_args():
     return  parser.parse_args()
 
 
-def gf_worker(args):
+def filter_worker(args):
     """Function to pass arguments to run_gf_on_tile as a list (for multiprocessing)
     """
-    run_gf_on_tile(*args)
+    run_filter_on_tile(*args)
 
 
 def start_pool(input_dir: str,
-               output_dir: str, temp_dir: str,
+               output_dir: str,
                filetype:str='las',
                spatial_ref: str="EPSG:2154",
                keep_classes: List=[2, 66],
@@ -86,7 +81,7 @@ def start_pool(input_dir: str,
                for fn in fnames]
 
     with Pool(num_threads) as p:
-        p.map(gf_worker, pre_map)
+        p.map(filter_worker, pre_map)
         # Pool close and join are still required when using a context manager
         # cf. https://superfastpython.com/multiprocessing-pool-context-manager/
         p.close()
@@ -99,9 +94,8 @@ def main():
     logging.basicConfig(level=logging.INFO)
     args = parse_args()
     # Create the severals folder if not exists
-    os.makedirs(args.output, exist_ok=True)
-    os.makedirs(args.temp_dir, exist_ok=True)
-    start_pool(args.input, args.output, args.temp_dir,
+    os.makedirs(args.output_dir, exist_ok=True)
+    start_pool(args.input_dir, args.output_dir,
                filetype=args.extension,
                spatial_ref=args.spatial_reference,
                keep_classes=args.keep_classes,

@@ -1,7 +1,7 @@
 # RASTER_GENERATION METHODS
 
-from lidar_prod.commons import commons
-from lidar_prod.tasks.raster_clip import clip_raster
+from produit_derive_lidar.commons import commons
+from produit_derive_lidar.tasks.raster_clip import clip_raster
 import numpy as np
 from osgeo import gdal
 

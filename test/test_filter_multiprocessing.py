@@ -3,7 +3,7 @@ import numpy as np
 import os
 import pytest
 import shutil
-from lidar_prod.gf_multiprocessing import start_pool
+from produit_derive_lidar.filter_multiprocessing import start_pool
 
 
 test_path = os.path.dirname(os.path.abspath(__file__))

@@ -1,4 +1,4 @@
-from lidar_prod import gf_one_tile
+from produit_derive_lidar import filter_one_tile
 import logging
 import os
 import pytest
@@ -31,14 +31,14 @@ def setup_module(module):
     os.mkdir(tmp_path)
 
 
-def test_gf_one_tile():
-    gf_one_tile.run_gf_on_tile(input_file, output_dir, spatial_ref=spatial_reference)
+def test_filter_one_tile():
+    filter_one_tile.run_filter_on_tile(input_file, output_dir, spatial_ref=spatial_reference)
     assert os.path.isfile(output_file)
     assert pcu.get_nb_points(output_file) == expected_output_nb_points_ground
 
 
-def test_gf_one_tile_building_class():
-    gf_one_tile.run_gf_on_tile(input_file, output_dir, spatial_ref=spatial_reference,
+def test_filter_one_tile_building_class():
+    filter_one_tile.run_filter_on_tile(input_file, output_dir, spatial_ref=spatial_reference,
     keep_classes=[6])
     assert os.path.isfile(output_file)
     assert pcu.get_nb_points(output_file) == expected_output_nb_points_building
@@ -46,5 +46,5 @@ def test_gf_one_tile_building_class():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    test_gf_one_tile()
-    test_gf_one_tile_building_class()
+    test_filter_one_tile()
+    test_filter_one_tile_building_class()

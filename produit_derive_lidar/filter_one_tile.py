@@ -1,7 +1,7 @@
 """Run ground filtering for a single tile"""
 import argparse
-from lidar_prod.commons import commons
-from lidar_prod.tasks.las_filter import filter_las_classes
+from produit_derive_lidar.commons import commons
+from produit_derive_lidar.tasks.las_filter import filter_las_classes
 import logging
 import os
 
@@ -12,11 +12,7 @@ log = commons.get_logger(__name__)
 def parse_args():
     parser = argparse.ArgumentParser(
         "Main script for filtering by class on a single tile " +
-        "(by default keep ground + virtual points)",
-        epilog="""All IDW parameters are optional, but it is assumed the user will fine-tune them,
-        hence the defaults are not listed.
-        Output files will be written to the target folder, tagged with thename of the interpolation
-        method that was used."""
+        "(by default keep ground + virtual points)"
     )
     parser.add_argument(
         "--input_file", "-i",
@@ -31,8 +27,7 @@ def parse_args():
         type=str,
         required=True,
         default="/tmp/ground",
-        help="Directory folder for saving the outputs" +
-             "(ground files with same root name as input files)")
+        help="Directory folder for saving the filtered tile")
     # Optional parameters
     parser.add_argument(
         "--spatial_reference",
@@ -50,7 +45,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_gf_on_tile(input_file, output_dir, spatial_ref="EPSG:2154", keep_classes=[2, 66]):
+def run_filter_on_tile(input_file, output_dir, spatial_ref="EPSG:2154", keep_classes=[2, 66]):
     ## infer input/output paths
     # split input file
     _, input_basename = os.path.split(input_file)
@@ -70,7 +65,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
-    run_gf_on_tile(args.input_file, args.output_dir, spatial_ref=args.spatial_reference,
+    run_filter_on_tile(args.input_file, args.output_dir, spatial_ref=args.spatial_reference,
                    keep_classes=args.keep_classes)
 
 

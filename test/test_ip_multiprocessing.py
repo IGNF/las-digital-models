@@ -1,11 +1,11 @@
-from lidar_prod.commons import commons
+from produit_derive_lidar.commons import commons
 import logging
 import numpy as np
 import os
 import pytest
 import shutil
-from lidar_prod.ip_multiprocessing import start_pool
-from lidar_prod.commons import commons
+from produit_derive_lidar.ip_multiprocessing import start_pool
+from produit_derive_lidar.commons import commons
 
 
 test_path = os.path.dirname(os.path.abspath(__file__))

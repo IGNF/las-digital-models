@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run lidar_prod interpolation in a docker container (as generated with ./build.sh)
+# Run produit_derive_lidar interpolation in a docker container (as generated with ./build.sh)
 
 input_dir="TO SET"
 output_dir="TO SET"
@@ -15,7 +15,7 @@ docker run -t -d --userns=host --shm-size=2gb  \
     -v /var/tmp:/tmp \
     --cpus 1 \
     lidar_hd/produitderivelidar:latest \
-    python -m lidar_prod.ip_one_tile
+    python -m produit_derive_lidar.ip_one_tile
     -i /input/${input_tile}
     -o /output/
     -t /tmp/

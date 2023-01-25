@@ -5,8 +5,8 @@
 ## In repo:
 
 * `README.md` _(this readme file)_
-* `gf_one_tile.py` _(main file for filtering LIDAR : keep only ground for a single tile)_
-* `gf_multiprocessing.py` _(main file for filtering LIDAR : keep only ground for a whole folder using multiprocessing to run faster)_
+* `filter_one_tile.py` _(main file for filtering LIDAR by classes: eg. keep only ground for a single tile)_
+* `filter_multiprocessing.py` _(main file for filtering LIDAR by classes: eg. keep only ground for a whole folder using multiprocessing to run faster)_
 * `ip_one_tile.py` _(main file for interpolation on a single tile)_
 * `ip_multiprocessing.py` _(main file for interpolation on a whole folder using multiprocessing to run faster)_
 * folder `docker` _(contains tools to run each step in a docker container)_
@@ -27,8 +27,8 @@ Build docker image by running:
 bash docker/build.sh
 ```
 
-- Run preprocessing on one tile by editing and running `docker_gf.sh`
-- Run interpolation on one tile by editing and running `docker_ip.sh`
+- Run preprocessing on one tile by editing and running `docker/run_filter.sh`
+- Run interpolation on one tile by editing and running `docker/run_ip.sh`
 
 To run on a whole folder, use gpao to manage the process with http://gitlab.forge-idi.ign.fr/Lidar/ProduitDeriveLidarGpao (work in progress as of january 2023)
 
@@ -39,30 +39,30 @@ Install the conda environment for this repo:
 bash setup_env/setup_env.sh
 ```
 You can run ground filtering and interpolation on a single tile with:
-* `python -m lidar_prod.gf_one_tile [YOUR ARGUMENTS]`
-* `python -m lidar_prod.ip_one_tile [YOUR ARGUMENTS]`
+* `python -m produit_derive_lidar.filter_one_tile [YOUR ARGUMENTS]`
+* `python -m produit_derive_lidar.ip_one_tile [YOUR ARGUMENTS]`
+(cf. `python -m produit_derive_lidar.filter_one_tile` for the arguments list)
 
 You can run on a whole folder, using multiprocessing by following the instructions below
 
 ### Run with multiprocessing
 
-#### Primary (filter ground pointcloud)
-You are advised to run `gf_multiprocessing` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+You can find examples in `example_run_dsm.sh` and `example_run_dtm.sh`
+#### Primary (filter pointcloud by classes)
+You are advised to run `filter_multiprocessing` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
 
-Run `python -m lidar_prod.gf_multiprocessing -h` to get the whole signature of the script
+Run `python -m produit_derive_lidar.filter_multiprocessing -h` to get the whole signature of the script
 
 Here is an example:
 ```bash
-python -m lidar_prod.gf_multiprocessing  -input ${INPUT_FOLDER} -output ${OUTPUT_FOLDER}/ground -t ${OUTPUT_FOLDER}/_tmp --extension ${FORMAT}
-
-existing arguments:
+python -m produit_derive_lidar.filter_multiprocessing -i ${origin_dir} -o ${filtered_las_dir} --keep_classes 2 66
+optional arguments:
   -h, --help            show this help message and exit
-  --input INPUT, -i INPUT
-                        input folder (most likely the same as the one you used with PDAL folder 'data')
-  --output OUTPUT, -o OUTPUT
-                        Directory folder for saving the outputs (ground files with same root name as input files)
-  --temp_dir TEMP_DIR, -t TEMP_DIR
-                        Directory folder for saving the outputs
+  --input_dir INPUT_DIR, -i INPUT_DIR
+                        Input file on which to run the pipeline (most likely located in PDAL folder 'data'). The script assumes that the neighbor tiles are located in the same folder
+                        as the queried tile
+  --output_dir OUTPUT_DIR, -o OUTPUT_DIR
+                        Directory folder for saving the filtered tiles
   --extension {las,laz}, -e {las,laz}
                         extension
   --spatial_reference SPATIAL_REFERENCE
@@ -71,34 +71,33 @@ existing arguments:
                         Classes to keep when filtering. Default: ground + virtual points. To provide a list, follow this example : '--keep_classes 2 66 291'
   --cpu_limit CPU_LIMIT
                         Maximum number of cpus to use (Default: use cpu_count - 1)
-
 ```
 
-#### Secondary entry point ( interpolation + post-processing)
+#### Secondary entry point (interpolation + post-processing)
 
 You are advised to run `ip_multiprocessing` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
 
-Run `python -m lidar_prod.ip_multiprocessing  -h` to get the whole signature of the script
+Run `python -m produit_derive_lidar.ip_multiprocessing  -h` to get the whole signature of the script
 
 Here is an example:
 ```bash
-python -m lidar_prod.ip_multiprocessing -i ${INPUT_FOLDER} -g ${OUTPUT_FOLDER}/ground -o ${OUTPUT_FOLDER}/dtm -t ${OUTPUT_FOLDER}/_tmp -e ${FORMAT} -p 0 -s 0.5
+python -m produit_derive_lidar.ip_multiprocessing -i ${origin_dir} -f ${filtered_las_dir} -o ${output_dir}
 
 optional arguments:
   -h, --help            show this help message and exit
-  --input INPUT, -i INPUT
-                        input folder (most likely the same as the one you used with PDAL folder 'data')
-  --ground_dir GROUND_DIR, -g GROUND_DIR
-                        Folder containing the ground filtered tiles.
-  --output OUTPUT, -o OUTPUT
+  --origin_dir ORIGIN_DIR, -i ORIGIN_DIR
+                        Folder containing the origin lidar tiles (before filtering).Used to retrieve the tile bounding box.
+  --filtered_las_dir FILTERED_LAS_DIR, -f FILTERED_LAS_DIR
+                        Folder containing the input filtered tiles.
+  --output_dir OUTPUT_DIR, -o OUTPUT_DIR
                         Directory folder for saving the outputs.
   --temp_dir TEMP_DIR, -t TEMP_DIR
                         Directory folder for saving intermediate results
   --extension {las,laz}, -e {las,laz}
                         extension
   --postprocessing {0,1,2,3,4}, -p {0,1,2,3,4}
-                        post-processing mode, currently these ones are available: - 0 (default, does not run post-processing) - 1 (runs missing pixel value patching only) - 2 (runs basic flattening only)
-                        - 3 (runs both patching and basic flattening) - 4 (runs patching, basic flattening and hydro-flattening)
+                        post-processing mode, currently these ones are available: - 0 (default, does not run post-processing) - 1 (runs missing pixel value patching only) - 2 (runs
+                        basic flattening only) - 3 (runs both patching and basic flattening) - 4 (runs patching, basic flattening and hydro-flattening)
   --pixel_size PIXEL_SIZE, -s PIXEL_SIZE
                         pixel size (in metres) for interpolation
   --interpolation_method {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}, -m {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}
@@ -110,8 +109,8 @@ optional arguments:
   --cpu_limit CPU_LIMIT
                         Maximum number of cpus to use (Default: use cpu_count - 1)
 
-Output files will be written to the target folder, tagged with thename of the
-interpolation method that was used. The number of parallel processes can be limited using the CPU_COUNT environment variable
+All IDW parameters are optional, but it is assumed the user will fine-tune them, hence the defaults are not listed. Output files will be written to the target folder, tagged with
+thename of the interpolation method that was used.
 
 ```
 
@@ -119,8 +118,8 @@ interpolation method that was used. The number of parallel processes can be limi
 
 If you are using an Anaconda virtual environment for PDAL/CGAL, you should first activate the environment in Anaconda prompt and _then_ run the relevant script
 from the same prompt. So, for example:
-1. Create conda environment : `conda env create -n lidar_prod -f environment.yml`
-2. Activate conda environment : `conda activate lidar_prod`
+1. Create conda environment : `conda env create -n produit_derive_lidar -f environment.yml`
+2. Activate conda environment : `conda activate produit_derive_lidar`
 2. Launch the module : `python -m [name of the module to run] [argument_1] [argument_2] [...]`
 
 Another word of caution with the outputs is that they all use a fixed no-data value of -9999. This includes the GeoTIFF exporter. To view the results correctly, you should keep in mind that while the upper bounds of the data will be determined correctly by the viewer software (e.g. QGIS), the lower bound will be -9999.

@@ -3,7 +3,7 @@
 # version : v.1 06/12/2022
 # LAS READING AND FILTER BY CLASSES (GROUND + VIRTUAL POINTS BY DEFAULT)
 import json
-from lidar_prod.commons import commons
+from produit_derive_lidar.commons import commons
 import logging
 import os
 

@@ -1,6 +1,6 @@
 from osgeo import gdal
-from lidar_prod import ip_one_tile
-from lidar_prod.commons import commons
+from produit_derive_lidar import ip_one_tile
+from produit_derive_lidar.commons import commons
 import logging
 import numpy as np
 import os

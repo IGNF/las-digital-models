@@ -1,9 +1,9 @@
 """Run interpolation + postprocessing for a single tile on ground filtered tiles"""
 import argparse
-from lidar_prod.commons import commons
-from lidar_prod.commons.laspy_io import read_las_file_to_numpy
-from lidar_prod.tasks.las_interpolation_deterministic import deterministic_method
-from lidar_prod.tasks.las_raster_generation import export_and_clip_raster
+from produit_derive_lidar.commons import commons
+from produit_derive_lidar.commons.laspy_io import read_las_file_to_numpy
+from produit_derive_lidar.tasks.las_interpolation_deterministic import deterministic_method
+from produit_derive_lidar.tasks.las_raster_generation import export_and_clip_raster
 from las_stitching.las_add_buffer import create_las_with_buffer
 import logging
 import os
@@ -21,13 +21,16 @@ def parse_args():
         method that was used."""
     )
     parser.add_argument(
-        "--input_file", "-i",
+        "--origin_file", "-i",
         type=str,
         required=True,
-        help="Input file on which to run the pipeline " +
-             "(with ground already filtered). " +
-             "The script assumes that the neighbor tiles are located in the same folder as " +
-             "the queried tile")
+        help="Path to the origin lidar tile (before filtering)." +
+            "Used to retrieve the tile bounding box.")
+    parser.add_argument(
+        "--filtered_las_dir", "-f",
+        type=str,
+        required=False,  # set to None if not provided
+        help="Folder containing the input filtered tiles. (set to `--output_dir` if not provided).")
     parser.add_argument(
         "--output_dir", "-o",
         type=str,
@@ -38,11 +41,6 @@ def parse_args():
         type=str,
         default="/tmp",
         help="Temporary folder for intermediate results")
-    parser.add_argument(
-        "--ground_dir", "-g",
-        type=str,
-        required=False,  # set to None if not provided
-        help="Folder containing the ground results (set to `--output_dir` if not provided).")
     parser.add_argument(
         "--postprocessing", "-p",
         type=int,
@@ -105,7 +103,7 @@ def add_buffer_and_interpolate(input_dir: str,
         spatial_ref(str): spatial reference to use when reading las file
         buffer_width(int): size of the buffer to add (in meters)
 
-    interpolate(ground_dir, ground_file, merge_file, buffer_file, geotiff_path_temp,
+    interpolate(filtered_las_dir, ground_file, merge_file, buffer_file, geotiff_path_temp,
             pixel_size, interpolation_method, spatial_ref=spatial_ref, buffer_width=buffer_width)
 
     """
@@ -123,7 +121,7 @@ def add_buffer_and_interpolate(input_dir: str,
     return ras, origin
 
 
-def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
+def run_ip_on_tile(input_file, filtered_las_dir, temp_dir, output_dir,
         pixel_size=1, interpolation_method='startin-Laplace',
         postprocessing_mode=0, spatial_ref="EPSG:2154", buffer_width=100):
     ## infer input/output paths
@@ -137,7 +135,7 @@ def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
     buffer_file = os.path.join(buffer_dir, f"{tilename}.las")
 
     # for ground extraction
-    ground_file = os.path.join(ground_dir, f"{tilename}.las")
+    ground_file = os.path.join(filtered_las_dir, f"{tilename}.las")
 
     # for export
     _size = commons.give_name_resolution_raster(pixel_size)
@@ -146,7 +144,7 @@ def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
     geotiff_path = os.path.join(output_dir, geotiff_filename)
 
     ## process
-    ras, origin = add_buffer_and_interpolate(ground_dir, ground_file, buffer_file,
+    ras, origin = add_buffer_and_interpolate(filtered_las_dir, ground_file, buffer_file,
             geotiff_path_temp, pixel_size, interpolation_method, spatial_ref=spatial_ref,
             buffer_width=buffer_width)
 
@@ -159,12 +157,12 @@ def run_ip_on_tile(input_file, ground_dir, temp_dir, output_dir,
 def main():
     logging.basicConfig(level=logging.INFO)
     args = parse_args()
-    ground_dir = args.output_dir if args.ground_dir is None else args.ground_dir
+    filtered_las_dir = args.output_dir if args.filtered_las_dir is None else args.filtered_las_dir
 
     os.makedirs(args.temp_dir, exist_ok=True)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    run_ip_on_tile(args.input_file, ground_dir, args.temp_dir, args.output_dir,
+    run_ip_on_tile(args.origin_file, filtered_las_dir, args.temp_dir, args.output_dir,
         args.pixel_size, args.interpolation_method, args.postprocessing,
         spatial_ref=args.spatial_reference,
         buffer_width=args.buffer_width)
