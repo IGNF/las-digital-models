@@ -156,10 +156,6 @@ class deterministic_method:
                     # "NOSRS" = Don’t read the SRS VLRs. The data will not be assigned an SRS.
                 },
                 {
-                    "type":"filters.range",
-                    "limits":"Classification[2:2],Classification[66:66]"
-                },
-                {
                     "output_type": method,
                     "resolution": str(self.size),
                     #"radius": str(self.size * sqrt(2)),
