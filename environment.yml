@@ -6,7 +6,7 @@ dependencies:
   - python==3.9.*
   - pip
   - pytest
-  - cgal
+  - cgal==5.4
   - gdal
   - laspy
   - numpy
@@ -16,6 +16,6 @@ dependencies:
   - pdal>=2.4.3
   - python-pdal>=3.2.1
   - pip:
-      - startinpy
+      - startinpy==0.8.0
       - -e ./ign_las_stitching
 
