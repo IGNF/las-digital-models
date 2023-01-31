@@ -2,7 +2,7 @@ import os
 import pytest
 import shutil
 from produit_derive_lidar.tasks import las_filter
-import utils.point_cloud_utils as pcu
+import test.utils.point_cloud_utils as pcu
 import logging
 
 

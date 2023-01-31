@@ -23,12 +23,11 @@ def setup_module(module):
     os.mkdir(tmp_path)
 
 
-def test_gf_multiprocessing():
+def test_filter_multiprocessing():
     filetype = "laz"
-        # Create the severals folder if not exists
+    # Create the severals folder if not exists
     os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(tmp_path, exist_ok=True)
-    start_pool(input_dir, output_dir, tmp_path, filetype=filetype,
+    start_pool(input_dir, output_dir, filetype=filetype,
                spatial_ref=spatial_reference)
     # Check all files are generated
     for input_file in os.listdir(input_dir):
@@ -40,4 +39,4 @@ def test_gf_multiprocessing():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    test_gf_multiprocessing()
+    test_filter_multiprocessing()

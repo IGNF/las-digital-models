@@ -6,8 +6,8 @@ import numpy as np
 import os
 import pytest
 import shutil
-import utils.point_cloud_utils as pcu
-import utils.raster_utils as ru
+import test.utils.point_cloud_utils as pcu
+import test.utils.raster_utils as ru
 
 
 test_path = os.path.dirname(os.path.abspath(__file__))

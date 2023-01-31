@@ -1,6 +1,6 @@
 import os
 import pytest
-from lidar_prod.commons import commons
+from produit_derive_lidar.commons import commons
 import test.utils.point_cloud_utils as pcu
 import logging
 
