@@ -67,6 +67,7 @@ optional arguments:
                         extension
   --spatial_reference SPATIAL_REFERENCE
                         Spatial reference to use to override the one from input las.
+
   --keep_classes KEEP_CLASSES [KEEP_CLASSES ...]
                         Classes to keep when filtering. Default: ground + virtual points. To provide a list, follow this example : '--keep_classes 2 66 291'
   --cpu_limit CPU_LIMIT
@@ -106,6 +107,46 @@ optional arguments:
                         Spatial reference to use to override the one from input las.
   --buffer_width BUFFER_WIDTH
                         Width (in meter) for the buffer that is added to the tile before interpolation (to prevent artefacts)
+  --cpu_limit CPU_LIMIT
+                        Maximum number of cpus to use (Default: use cpu_count - 1)
+
+All IDW parameters are optional, but it is assumed the user will fine-tune them, hence the defaults are not listed. Output files will be written to the target folder, tagged with
+thename of the interpolation method that was used.
+
+```
+
+#### Thirty entry point (calculate DHM = DSM - DTM)
+
+You are advised to run `dhm_multiprocessing` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+
+Run `python -m produit_derive_lidar.dhm_multiprocessing  -h` to get the whole signature of the script
+
+Here is an example:
+```bash
+python -m produit_derive_lidar.dhm_multiprocessing -i ${origin_dir} -i_s ${geotiff_dsm} -i_t ${geotiff_dsm} -o ${output_dir}
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --origin_dir ORIGIN_DIR, -i ORIGIN_DIR
+                        Folder containing the origin lidar tiles (before filtering).Used to retrieve the tile bounding box.
+  --origin_file_dsm ORIGIN_FILE_MNS, -i_s ORIGIN_FILE_MNS
+                        Directory folder for creating DSM.
+  --origin_file_dtm ORIGIN_FILE_DTM, -i_s ORIGIN_FILE_MNT
+                        Directory folder for creating DTM.
+  --output_dir OUTPUT_DIR, -o OUTPUT_DIR
+                        Directory folder for saving the outputs.
+  --temp_dir TEMP_DIR, -t TEMP_DIR
+                        Directory folder for saving intermediate results
+  --extension {las,laz}, -e {las,laz}
+                        extension
+  --postprocessing {0,1}, -p {0,1}
+                        post-processing mode, currently these ones are available: - 0 (default, does not run post-processing) - 1 (runs missing pixel value patching only)
+  --pixel_size PIXEL_SIZE, -s PIXEL_SIZE
+                        pixel size (in metres) for interpolation
+  --interpolation_method {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}, -m {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}
+                        interpolation method)
+  --spatial_reference SPATIAL_REFERENCE
+                        Spatial reference to use to override the one from input las.
   --cpu_limit CPU_LIMIT
                         Maximum number of cpus to use (Default: use cpu_count - 1)
 
