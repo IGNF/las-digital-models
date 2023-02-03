@@ -69,7 +69,7 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         type=str,
         default="startin-Laplace",
         choices=["startin-TINlinear", "startin-Laplace",
-                 "CGAL-NN", "PDAL-IDW", "IDWquad"],
+                 "CGAL-NN", "PDAL-IDW", "PDAL-TIN", "IDWquad"],
         help="interpolation method)")
     # Optional parameters
     parser.add_argument(

@@ -160,7 +160,7 @@ class deterministic_method:
                     "resolution": str(self.size),
                     #"radius": str(self.size * sqrt(2)),
                     "power": 2,
-                    "window_size": 1,
+                    "window_size": 5,
                     "nodata": -9999,
                     "data_type": "float32",
                     "filename": output_file
@@ -217,7 +217,59 @@ class deterministic_method:
             yi += 1
         return ras
 
-    def run(self, pdal_idw_input: str, pdal_idw_output: str):
+    @commons.eval_time
+    def execute_pdal_tin(self, fpath: str, output_file:str):
+        """Sets up a PDAL pipeline that reads a ground filtered LAS
+        file, and interpolates either using "Delaunay", then " Faceraster" and writes it via RASTER. Uses a -9999 no-data value.
+        More about these in the readme on GitHub.
+        
+        The Delaunay Filter creates a triangulated mesh fulfilling the Delaunay condition from a collection of points.
+
+        The FaceRaster filter creates a raster from a point cloud using an algorithm based on an existing triangulation. 
+        Each raster cell is given a value that is an interpolation of the known values of the containing triangle. If the raster cell center is outside of the triangulation, 
+        it is assigned the nodata value. Use writers.raster to write the output.
+        The extent of the raster can be defined by using the origin_x, origin_y, width and height options. If these options aren’t provided the raster is sized to contain the input data.
+
+        The Raster Writer writes an existing raster to a file. Output is produced using GDAL and can use any driver that supports creation of rasters. 
+        A data_type can be specified for the raster (double, float, int32, etc.). 
+        If no data type is specified, the data type with the largest range supported by the driver is used.
+
+        Args:
+            fpath(str):  input file for the pdal pipeliine
+            output_file(str): output file for the pdal pipeliine
+        """
+
+        information = {}
+        information = {
+            "pipeline": [
+                {
+                    "type":"readers.las",
+                    "filename":fpath,
+                    "override_srs": self.spatial_ref,
+                    "nosrs": True
+                    # "NOSRS" = Don’t read the SRS VLRs. The data will not be assigned an SRS.
+                },
+                {
+                    "type": "filters.delaunay"
+                },
+                {
+                    "type": "filters.faceraster",
+                    "resolution": str(self.size)
+                },
+                {
+                    "type": "writers.raster",
+                    "gdaldriver":"GTiff",
+                    "nodata": -9999,
+                    "data_type": "float32",
+                    "filename": output_file
+                }
+            ]
+        }
+        las_mnt = json.dumps(information, sort_keys=True, indent=4)
+        pipeline = pdal.Pipeline(las_mnt)
+        pipeline.execute()
+
+    def run(self, pdal_input: str, pdal_output: str):
         """Lauch the deterministic method
         Args:
             input_dir: folder to look for las file (usually temp_dir)
@@ -226,7 +278,9 @@ class deterministic_method:
             ras(list): Z interpolation
         """
         if self.method == 'PDAL-IDW':
-            self.execute_pdal(pdal_idw_input, pdal_idw_output, method='idw')
+            self.execute_pdal(pdal_input, pdal_output, method='idw')
+        elif self.method == 'PDAL-TIN':
+            self.execute_pdal_tin(pdal_input, pdal_output)
             return
         if self.method == 'startin-TINlinear' or self.method == 'startin-Laplace':
             ras = self.execute_startin()

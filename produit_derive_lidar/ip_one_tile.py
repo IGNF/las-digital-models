@@ -64,7 +64,7 @@ def parse_args():
         type=str,
         default="startin-Laplace",
         choices=["startin-TINlinear", "startin-Laplace",
-                 "CGAL-NN", "PDAL-IDW", "IDWquad"],
+                 "CGAL-NN", "PDAL-IDW", "PDAL-TIN", "IDWquad"],
         help="interpolation method)")
     # Optional parameters
     parser.add_argument(
@@ -116,7 +116,7 @@ def add_buffer_and_interpolate(input_dir: str,
     _interpolation = deterministic_method(gnd_coords, res, origin, pixel_size, interpolation_method,
                                           spatial_ref=spatial_ref)
 
-    ras = _interpolation.run(pdal_idw_input=buffer_file, pdal_idw_output=output_raster)
+    ras = _interpolation.run(pdal_input=buffer_file, pdal_output=output_raster)
 
     return ras, origin
 
