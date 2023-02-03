@@ -18,4 +18,6 @@ dependencies:
   - pip:
       - startinpy==0.8.0
       - -e ./ign_las_stitching
+      - --extra-index-url=https://qlf-nexus.ign.fr/repository/pypi-lidarhd-hosted/simple
+      - ign-lidarutils
 
