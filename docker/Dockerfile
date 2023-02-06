@@ -8,6 +8,11 @@ ENV https_proxy 'http://192.168.4.9:3128/'
 # Remove any third-party apt sources to avoid issues with expiring keys.
 RUN rm -f /etc/apt/sources.list.d/*.list
 
+# install required libs
+RUN apt-get update && apt-get install -y \
+        libtiff-dev \
+        && rm -rf /var/lib/apt/lists/*
+
 # Create a working directory
 RUN mkdir /app
 
