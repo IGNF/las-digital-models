@@ -1,7 +1,7 @@
 """Run create DHM"""
 import argparse
 from produit_derive_lidar.commons import commons
-from produit_derive_lidar.tasks.calculate_DHM import calculate_dhm
+from produit_derive_lidar.tasks.dhm_generation import calculate_dhm
 import logging
 import os
 
