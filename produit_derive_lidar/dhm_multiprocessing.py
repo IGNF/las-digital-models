@@ -120,27 +120,11 @@ def main():
     # Create the severals folder if not exists
     os.makedirs(args.output_dir, exist_ok=True)
     os.makedirs(args.temp_dir, exist_ok=True)
-    start_pool(args.origin_file, args.origin_file_mns, args.origin_file_mnt,
+    start_pool(args.origin_file, args.origin_file_dsm, args.origin_file_dtm,
                args.temp_dir, args.output_dir,
                args.pixel_size, args.interpolation_method, args.postprocessing,
                cpu_limit=args.cpu_limit)
 
 
 if __name__ == '__main__':
-    main()
-
-
-def main():
-    logging.basicConfig(level=logging.INFO)
-    args = parse_args()
-
-    os.makedirs(args.temp_dir, exist_ok=True)
-    os.makedirs(args.output_dir, exist_ok=True)
-
-    run_ip_on_tile(args.origin_file, args.origin_file_mns, args.origin_file_mnt,
-                   args.temp_dir, args.output_dir,
-                   args.pixel_size, args.interpolation_method, args.postprocessing)
-
-
-if __name__ == "__main__":
     main()

@@ -99,7 +99,7 @@ def main():
     os.makedirs(args.temp_dir, exist_ok=True)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    run_dhm_on_tile(args.origin_file, args.origin_file_mns, args.origin_file_mnt,
+    run_dhm_on_tile(args.origin_file, args.origin_file_dsm, args.origin_file_dtm,
                    args.temp_dir, args.output_dir,
                    args.pixel_size, args.interpolation_method, args.postprocessing)
 
