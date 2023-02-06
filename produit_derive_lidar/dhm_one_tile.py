@@ -71,9 +71,9 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_dhm_on_tile(input_file, input_file_mns, input_file_mnt, temp_dir, output_dir,
+def run_dhm_on_tile(input_file, input_folder_dsm, input_folder_dtm, output_dir,
                    pixel_size=1, interpolation_method='startin-Laplace',
-                postprocessing_mode=0, spatial_ref="EPSG:2154"):
+                   postprocessing_mode=0):
     ## infer input/output paths
     # split input file
     input_dir, input_basename = os.path.split(input_file)
@@ -83,8 +83,8 @@ def run_dhm_on_tile(input_file, input_file_mns, input_file_mnt, temp_dir, output
     # for export
     _size = commons.give_name_resolution_raster(pixel_size)
     geotiff_filename = f"{tilename}{_size}_{commons.method_postfix[interpolation_method]}.tif"
-    geotiff_dsm = os.path.join(output_dir.replace("DHM", "DSM"), geotiff_filename)
-    geotiff_dtm = os.path.join(output_dir.replace("DHM", "DTM"), geotiff_filename)
+    geotiff_dsm = os.path.join(input_folder_dsm, geotiff_filename)
+    geotiff_dtm = os.path.join(input_folder_dtm, geotiff_filename)
     geotiff_output = os.path.join(output_dir, geotiff_filename)
     ## process
     calculate_dhm(geotiff_dsm, geotiff_dtm, geotiff_output)
