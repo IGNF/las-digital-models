@@ -1,5 +1,5 @@
 # RASTER_GENERATION METHODS
-
+import logging
 from produit_derive_lidar.commons import commons
 from produit_derive_lidar.tasks.raster_clip import clip_raster
 import numpy as np
@@ -81,7 +81,7 @@ def patch(raster, res, origin, size, min_n):
 def export_and_clip_raster(las_file, ras, origin, size, geotiff_path_temp, geotiff_path, method,
                   spatial_ref="EPSG:2154"):
     """Write raster in the folder DTM with clipping from the LIDAR tile"""
-    if method in ['startin-TINlinear', 'startin-Laplace', 'CGAL-NN', 'IDWquad']:
+    if not method.startswith("PDAL"):
         write_geotiff_withbuffer(ras, origin, size, geotiff_path_temp)
 
     if check_raster(geotiff_path_temp) == True:

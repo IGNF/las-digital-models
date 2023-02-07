@@ -42,16 +42,6 @@ def parse_args():
         required=True,
         help="Directory folder for saving the outputs")
     parser.add_argument(
-        "--postprocessing", "-p",
-        type=int,
-        default=0,
-        choices=range(5),
-        help="""
-        post-processing mode, currently these ones are available:
-          - 0 (default, does not run post-processing)
-          - 1 (runs missing pixel value patching only)
-          """)
-    parser.add_argument(
         "--pixel_size", "-s",
         type=float,
         default=1,
@@ -60,8 +50,7 @@ def parse_args():
         "--interpolation_method", "-m",
         type=str,
         default="startin-Laplace",
-        choices=["startin-TINlinear", "startin-Laplace",
-                 "CGAL-NN", "PDAL-TIN", "PDAL-IDW", "IDWquad"],
+        choices=list(commons.method_postfix.keys()),
         help="interpolation method)")
     parser.add_argument(
         "--cpu_limit",
@@ -85,7 +74,6 @@ def start_pool(origin_las_dir: str,
                output_dir: str,
                pixel_size: int,
                interpolation_method: str,
-               postprocessing: int,
                cpu_limit: int=-1,
                filetype: str='las'):
 
@@ -98,7 +86,7 @@ def start_pool(origin_las_dir: str,
         raise ValueError("No file names were input")
 
     pre_map = [[os.path.join(origin_las_dir, fn), dsm_dir, dtm_dir, output_dir, pixel_size,
-        interpolation_method, postprocessing]
+        interpolation_method]
                for fn in fnames]
     with Pool(num_threads) as p:
         p.map(ip_worker, pre_map)
@@ -123,7 +111,6 @@ def main():
                args.output_dir,
                args.pixel_size,
                args.interpolation_method,
-               args.postprocessing,
                cpu_limit=args.cpu_limit,
                filetype=args.extension)
 

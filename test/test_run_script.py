@@ -30,9 +30,12 @@ def setup_module(module):
 
 def test_run_script():
     cmd = ["./run.sh", "-i", input_dir, "-o", output_dir, "-f", file_ext, "-p", str(pixel_size)]
-    r = sp.run(cmd, stderr=sp.PIPE, stdout=sp.PIPE)
+    r = sp.run(cmd, capture_output=True)
+    logging.debug(f"Stdout is: {r.stdout.decode()}")
+    logging.debug(f"Stderr is: {r.stderr.decode()}")
     if r.returncode == 1:
         msg = r.stderr.decode()
+
         pytest.fail(f"Test for run.sh failed with message: {msg}", True)
 
     # Check that all files are created (for all methods)

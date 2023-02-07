@@ -30,6 +30,10 @@ while getopts "h?i:o:f:p:" opt; do
   esac
 done
 
+METHODS=($(python -c "from produit_derive_lidar.commons import commons; print(list(commons.method_postfix.keys()))" | tr -d "'[],"))
+
+echo "GENERATE DSM/DTM/DHM FOR METHODS: ${METHODS[@]}"
+echo ""
 
 echo "------------------"
 echo "RUN DTM GENERATION"
@@ -58,7 +62,7 @@ python -m produit_derive_lidar.add_buffer_multiprocessing \
 
 
 # # Step 1.3 ; create DTM with the severals method
-for METHOD in "startin-Laplace" "startin-TINlinear"  "CGAL-NN" "PDAL-IDW" "PDAL-TIN"
+for METHOD in ${METHODS[@]}
 do
   python -m produit_derive_lidar.ip_multiprocessing \
       -or ${INPUT} \
@@ -67,7 +71,6 @@ do
       -m ${METHOD} \
       -t ${TMP_DIR} \
       -e ${FORMAT} \
-      -p 0 \
       -s ${PIXEL_SIZE}
 done
 
@@ -99,7 +102,7 @@ python -m produit_derive_lidar.add_buffer_multiprocessing \
     -b 100
 
 # # Step 2.3 ; create DTM with the severals method
-for METHOD in "startin-Laplace" "startin-TINlinear" "CGAL-NN" "PDAL-IDW" "PDAL-TIN"
+for METHOD in ${METHODS[@]}
 do
   python -m produit_derive_lidar.ip_multiprocessing \
       -or ${INPUT} \
@@ -108,7 +111,6 @@ do
       -m ${METHOD} \
       -t ${TMP_DIR} \
       -e ${FORMAT} \
-      -p 0 \
       -s ${PIXEL_SIZE}
 done
 
@@ -121,7 +123,7 @@ echo "------------------"
 # Output filenames for each step
 DHM_DIR=${OUTPUT}/DHM
 
-for METHOD in "startin-Laplace" "startin-TINlinear" "CGAL-NN" "PDAL-IDW" "PDAL-TIN"
+for METHOD in ${METHODS[@]}
 do
   python -m produit_derive_lidar.dhm_multiprocessing \
       -or ${INPUT} \
@@ -130,6 +132,5 @@ do
       -m ${METHOD} \
       -o ${DHM_DIR} \
       -e ${FORMAT} \
-      -p 0 \
       -s ${PIXEL_SIZE}
 done

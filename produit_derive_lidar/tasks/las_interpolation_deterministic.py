@@ -171,51 +171,6 @@ class deterministic_method:
         pipeline = pdal.Pipeline(las_mnt)
         pipeline.execute()
 
-    @commons.eval_time
-    def execute_idwquad(self, start_rk, pwr: float, minp: float, incr_rk: float, method: str, tolerance: float, maxiter: float):
-        """Creates a KD-tree representation of the tile's points and executes a quadrant-based IDW algorithm on them.
-        Although the KD-tree is based on a C implementation, the rest is coded in pure Python (below).
-        Keep in mind that because of this, this is inevitably slower than the rest of the algorithms here.
-        To optimise performance, one is advised to fine-tune the parametrisation, especially tolerance and maxiter.
-        More info in the GitHub readme.
-        """
-        from scipy.spatial import cKDTree
-
-        # Parameters
-        ras = np.zeros([self.res[1], self.res[0]])
-        tree = cKDTree(np.array([self.pts[:,0], self.pts[:,1]]).transpose())
-        yi = 0
-        for y in np.arange(self.origin[1], self.origin[1] + self.res[1] * self.size, self.size):
-            xi = 0
-            for x in np.arange(self.origin[0], self.origin[0] + self.res[0] * self.size, self.size):
-                done, i, rk = False, 0, start_rk
-                while done == False:
-                    if method == "radial":
-                        ix = tree.query_ball_point([x, y], rk, tolerance)
-                    elif method == "k-nearest":
-                        ix = tree.query([x, y], rk, tolerance)[1]
-                    xyp = self.pts[ix]
-                    qs = [
-                            xyp[(xyp[:,0] < x) & (xyp[:,1] < y)],
-                            xyp[(xyp[:,0] > x) & (xyp[:,1] < y)],
-                            xyp[(xyp[:,0] < x) & (xyp[:,1] > y)],
-                            xyp[(xyp[:,0] > x) & (xyp[:,1] > y)]
-                        ]
-                    if min(qs[0].size, qs[1].size,
-                        qs[2].size, qs[3].size) >= minp: done = True
-                    elif i == maxiter:
-                        ras[yi, xi] = -9999; break
-                    rk += incr_rk; i += 1
-                else:
-                    asum, bsum = 0, 0
-                    for pt in xyp:
-                        dst = np.sqrt((x - pt[0])**2 + (y - pt[1])**2)
-                        u, w = pt[2], 1 / dst ** pwr
-                        asum += u * w; bsum += w
-                        ras[yi, xi] = asum / bsum
-                xi += 1
-            yi += 1
-        return ras
 
     @commons.eval_time
     def execute_pdal_tin(self, fpath: str, output_file:str):
@@ -287,6 +242,6 @@ class deterministic_method:
             ras = self.execute_startin()
         elif self.method == 'CGAL-NN':
             ras = self.execute_cgal()
-        elif self.method == 'IDWquad':
-            ras = self.execute_idwquad()
+        else:
+            raise ValueError(f"Method {self.method} not recognized")
         return ras

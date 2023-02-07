@@ -12,8 +12,7 @@ from typing import List
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        "Generate point cloud filtered by classes.",)
+    parser = argparse.ArgumentParser("Generate point cloud filtered by classes.")
     parser.add_argument(
         "--input_dir", "-i",
         type=str,

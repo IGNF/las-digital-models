@@ -14,41 +14,26 @@ def parse_args():
         "Main script for calculating DHM on a single tile"
     )
     parser.add_argument(
-        "--origin_file", "-i",
+        "--origin_las_file", "-or",
         type=str,
         required=True,
         help="Path to the origin lidar tile (before filtering)." +
             "Used to retrieve the tile bounding box.")
     parser.add_argument(
-        "--origin_file_dsm", "-i_s",
+        "--dsm_dir", "-is",
         type=str,
         required=True,
-        help="Directory folder for creating DSM")
+        help="Directory folder for the input DSM")
     parser.add_argument(
-        "--origin_file_dtm", "-i_t",
+        "--dtm_dir", "-it",
         type=str,
         required=True,
-        help="Directory folder for creating DTM")
+        help="Directory folder for the input DTM")
     parser.add_argument(
         "--output_dir", "-o",
         type=str,
         required=True,
         help="Directory folder for saving the outputs")
-    parser.add_argument(
-        "--temp_dir", "-t",
-        type=str,
-        default="/tmp",
-        help="Temporary folder for intermediate results")
-    parser.add_argument(
-        "--postprocessing", "-p",
-        type=int,
-        default=0,
-        choices=range(5),
-        help="""
-        post-processing mode, currently these ones are available:
-          - 0 (default, does not run post-processing)
-          - 1 (runs missing pixel value patching only)
-          """)
     parser.add_argument(
         "--pixel_size", "-s",
         type=float,
@@ -58,8 +43,7 @@ def parse_args():
         "--interpolation_method", "-m",
         type=str,
         default="startin-Laplace",
-        choices=["startin-TINlinear", "startin-Laplace",
-                 "CGAL-NN", "PDAL-TIN", "PDAL-IDW", "IDWquad"],
+        choices=list(commons.method_postfix.keys()),
         help="interpolation method)")
     # Optional parameters
     parser.add_argument(
@@ -72,8 +56,7 @@ def parse_args():
 
 
 def run_dhm_on_tile(input_file, input_folder_dsm, input_folder_dtm, output_dir,
-                   pixel_size=1, interpolation_method='startin-Laplace',
-                   postprocessing_mode=0):
+                   pixel_size=1, interpolation_method='startin-Laplace'):
     ## infer input/output paths
     # split input file
     input_dir, input_basename = os.path.split(input_file)
@@ -100,8 +83,7 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
 
     run_dhm_on_tile(args.origin_file, args.origin_file_dsm, args.origin_file_dtm,
-                   args.temp_dir, args.output_dir,
-                   args.pixel_size, args.interpolation_method, args.postprocessing)
+                   args.output_dir, args.pixel_size, args.interpolation_method)
 
 
 if __name__ == "__main__":

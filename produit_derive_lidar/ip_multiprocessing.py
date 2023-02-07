@@ -13,12 +13,9 @@ import os
 
 
 def parse_args():
-    parser = argparse.ArgumentParser("Main script for interpolation + post-processing",
-        epilog="""All IDW parameters are optional, but it is assumed the user will fine-tune them,
-hence the defaults are not listed.
-Output files will be written to the target folder, tagged with thename of the interpolation method
-that was used.
-The number of parallel processes can be limited using the CPU_COUNT environment variable """)
+    parser = argparse.ArgumentParser("Main script for interpolation",
+        epilog="""Output files will be written to the target folder, tagged with the name of the
+        interpolation method that was used.""")
     parser.add_argument(
         "--origin_dir", "-or",
         type=str,
@@ -47,19 +44,6 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         choices=["las", "laz"],
         help="extension of the origin tile file")
     parser.add_argument(
-        "--postprocessing", "-p",
-        type=int,
-        default=0,
-        choices=range(5),
-        help="""
-        post-processing mode, currently these ones are available:
-          - 0 (default, does not run post-processing)
-          - 1 (runs missing pixel value patching only)
-          - 2 (runs basic flattening only)
-          - 3 (runs both patching and basic flattening)
-          - 4 (runs patching, basic flattening and hydro-flattening)
-          """)
-    parser.add_argument(
         "--pixel_size", "-s",
         type=float,
         default=1,
@@ -68,8 +52,7 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         "--interpolation_method", "-m",
         type=str,
         default="startin-Laplace",
-        choices=["startin-TINlinear", "startin-Laplace",
-                 "CGAL-NN", "PDAL-IDW", "PDAL-TIN", "IDWquad"],
+        choices=list(commons.method_postfix.keys()),
         help="interpolation method)")
     # Optional parameters
     parser.add_argument(
@@ -83,46 +66,6 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         default=-1,
         help="Maximum number of cpus to use (Default: use cpu_count - 1)"
     )
-    # Optional arguments for IDW
-    # Not used at the moment
-    # parser.add_argument(
-    #     "--idw_radius",
-    #     type=float,
-    #     required=False,
-    #     help="IDW radius (for PDAL-IDW) " +
-    #          "// STARTING IDW radius/number of neighbours to query (for IDWquad)")
-    # parser.add_argument(
-    #     "--idw_power",
-    #     type=float,
-    #     required=False,
-    #     help="IDW power (for PDAL-IDW and IDWquad)")
-    # parser.add_argument(
-    #     "--idw_kernel_width",
-    #     type=float,
-    #     required=False,
-    #     help="IDW fallback kernel width (for PDAL-IDW)" +
-    #          "MINIMUM number of points per quadrant (for IDWquad)")
-    # parser.add_argument(
-    #     "--increment",
-    #     type=float,
-    #     required=False,
-    #     help="radius/number of neighbours INCREMENT value (for IDWquad)")
-    # parser.add_argument(
-    #     "--idwquad_method",
-    #     type=str,
-    #     required=False,
-    #     choices=["radial", "k-nearest"],
-    #     help="IDWquad method")
-    # parser.add_argument(
-    #     "--idwquad_tolerence",
-    #     type=float,
-    #     required=False,
-    #     help="IDWquad method")
-    # parser.add_argument(
-    #     "--idwquad_iterations",
-    #     type=float,
-    #     required=False,
-    #     help="IDWquad maximum number of iteration before declaring no-data")
 
     return  parser.parse_args()
 
@@ -138,7 +81,6 @@ def start_pool(origin_dir: str,
                output_dir: str,
                temp_dir: str='/tmp',
                filetype: str='las',
-               postprocess: int=0,
                size: int=1,
                method: str='startin-Laplace',
                spatial_ref: str="EPSG:2154",
@@ -154,7 +96,7 @@ def start_pool(origin_dir: str,
         raise ValueError("No file names were input")
 
     pre_map = [[os.path.join(origin_dir, fn), input_las_dir, temp_dir, output_dir, size, method,
-                postprocess, spatial_ref]
+                spatial_ref]
                for fn in fnames]
     with Pool(num_threads) as p:
         p.map(ip_worker, pre_map)
@@ -176,7 +118,7 @@ def main():
     os.makedirs(args.temp_dir, exist_ok=True)
     start_pool(args.origin_dir, args.input_las_dir, args.output_dir, args.temp_dir,
                filetype=args.extension,
-               postprocess=args.postprocessing, size=args.pixel_size,
+               size=args.pixel_size,
                method=args.interpolation_method,
                spatial_ref=args.spatial_reference,
                cpu_limit=args.cpu_limit)

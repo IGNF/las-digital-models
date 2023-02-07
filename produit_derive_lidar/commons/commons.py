@@ -116,12 +116,12 @@ def las_info(filename: str, buffer_width: int=0, spatial_ref="EPSG:2154"):
 
 
 # Dictionnary used for postfix choice in filenames generation
-method_postfix = {"startin-TINlinear": "TINlinear",
-            "startin-Laplace": "Laplace",
-            "CGAL-NN": "NN",
-            "IDWquad": "IDWquad",
-            "PDAL-IDW": "IDW",
-            "PDAL-TIN": "TIN"
+method_postfix = {
+    "startin-TINlinear": "TINlinear",
+    "startin-Laplace": "Laplace",
+    "CGAL-NN": "NN",
+    "PDAL-IDW": "IDW",
+    "PDAL-TIN": "TIN"
 }
 
 

@@ -1,10 +1,9 @@
-"""Run interpolation + postprocessing for a single tile on ground filtered tiles"""
+"""Run interpolation for a single tile on filtered (and buffered) tiles"""
 import argparse
 from produit_derive_lidar.commons import commons
 from produit_derive_lidar.commons.laspy_io import read_las_file_to_numpy
 from produit_derive_lidar.tasks.las_interpolation_deterministic import deterministic_method
 from produit_derive_lidar.tasks.las_raster_generation import export_and_clip_raster
-from las_stitching.las_add_buffer import create_las_with_buffer
 import logging
 import os
 
@@ -14,11 +13,9 @@ log = commons.get_logger(__name__)
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        "Main script for preprocessing +interpolation + post-processing on a single tile",
-        epilog="""All IDW parameters are optional, but it is assumed the user will fine-tune them,
-        hence the defaults are not listed.
-        Output files will be written to the target folder, tagged with thename of the interpolation
-        method that was used."""
+        "Main script for interpolation on a single tile",
+        epilog="""Output files will be written to the target folder, tagged with the name of the
+        interpolation method that was used."""
     )
     parser.add_argument(
         "--origin_file", "-or",
@@ -43,19 +40,6 @@ def parse_args():
         default="/tmp",
         help="Temporary folder for intermediate results")
     parser.add_argument(
-        "--postprocessing", "-p",
-        type=int,
-        default=0,
-        choices=range(5),
-        help="""
-        post-processing mode, currently these ones are available:
-          - 0 (default, does not run post-processing)
-          - 1 (runs missing pixel value patching only)
-          - 2 (runs basic flattening only)
-          - 3 (runs both patching and basic flattening)
-          - 4 (runs patching, basic flattening and hydro-flattening)
-          """)
-    parser.add_argument(
         "--pixel_size", "-s",
         type=float,
         default=1,
@@ -64,8 +48,7 @@ def parse_args():
         "--interpolation_method", "-m",
         type=str,
         default="startin-Laplace",
-        choices=["startin-TINlinear", "startin-Laplace",
-                 "CGAL-NN", "PDAL-IDW", "PDAL-TIN", "IDWquad"],
+        choices=list(commons.method_postfix.keys()),
         help="interpolation method)")
     # Optional parameters
     parser.add_argument(
@@ -114,7 +97,6 @@ def run_ip_on_tile(origin_file,
                    output_dir,
                    pixel_size=1,
                    interpolation_method='startin-Laplace',
-                   postprocessing_mode=0,
                    spatial_ref="EPSG:2154"):
     ## infer input/output paths
     # split origin file (used for bounds retrieval)
@@ -152,7 +134,7 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
 
     run_ip_on_tile(args.origin_file, input_las_dir, args.temp_dir, args.output_dir,
-        args.pixel_size, args.interpolation_method, args.postprocessing,
+        args.pixel_size, args.interpolation_method,
         spatial_ref=args.spatial_reference,
         buffer_width=args.buffer_width)
 
