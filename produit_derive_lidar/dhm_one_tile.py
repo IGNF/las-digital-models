@@ -59,7 +59,7 @@ def parse_args():
         type=str,
         default="startin-Laplace",
         choices=["startin-TINlinear", "startin-Laplace",
-                 "CGAL-NN", "PDAL-IDW", "IDWquad"],
+                 "CGAL-NN", "PDAL-TIN", "PDAL-IDW", "IDWquad"],
         help="interpolation method)")
     # Optional parameters
     parser.add_argument(

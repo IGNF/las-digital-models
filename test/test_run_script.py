@@ -41,6 +41,8 @@ def test_run_script():
         if input_file.endswith(file_ext):
             tilename = os.path.splitext(input_file)[0]
             for method, m_postfix in commons.method_postfix.items():
+                if method == "IDWquad":
+                    continue
                 for od in expected_output_dirs.keys():
                     _size = commons.give_name_resolution_raster(pixel_size)
                     out_filename = f"{tilename}{_size}_{m_postfix}.tif"

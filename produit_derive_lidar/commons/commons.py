@@ -120,7 +120,8 @@ method_postfix = {"startin-TINlinear": "TINlinear",
             "startin-Laplace": "Laplace",
             "CGAL-NN": "NN",
             "IDWquad": "IDWquad",
-            "PDAL-IDW": "IDW"
+            "PDAL-IDW": "IDW",
+            "PDAL-TIN": "TIN"
 }
 
 

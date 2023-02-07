@@ -58,7 +58,7 @@ python -m produit_derive_lidar.add_buffer_multiprocessing \
 
 
 # # Step 1.3 ; create DTM with the severals method
-for METHOD in "startin-Laplace" "startin-TINlinear"  "CGAL-NN"  #"PDAL-IDW" "PDAL-TIN"
+for METHOD in "startin-Laplace" "startin-TINlinear"  "CGAL-NN" "PDAL-IDW" "PDAL-TIN"
 do
   python -m produit_derive_lidar.ip_multiprocessing \
       -or ${INPUT} \
@@ -99,7 +99,7 @@ python -m produit_derive_lidar.add_buffer_multiprocessing \
     -b 100
 
 # # Step 2.3 ; create DTM with the severals method
-for METHOD in "startin-Laplace" "startin-TINlinear" "CGAL-NN"  # "PDAL-IDW" "PDAL-TIN"
+for METHOD in "startin-Laplace" "startin-TINlinear" "CGAL-NN" "PDAL-IDW" "PDAL-TIN"
 do
   python -m produit_derive_lidar.ip_multiprocessing \
       -or ${INPUT} \
@@ -121,7 +121,7 @@ echo "------------------"
 # Output filenames for each step
 DHM_DIR=${OUTPUT}/DHM
 
-for METHOD in "startin-Laplace" "startin-TINlinear" "CGAL-NN"  # "PDAL-IDW" "PDAL-TIN"
+for METHOD in "startin-Laplace" "startin-TINlinear" "CGAL-NN" "PDAL-IDW" "PDAL-TIN"
 do
   python -m produit_derive_lidar.dhm_multiprocessing \
       -or ${INPUT} \

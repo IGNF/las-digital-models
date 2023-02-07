@@ -67,6 +67,10 @@ def test_ip_one_tile_startin_CGALNN():
     interpolation_method = "CGAL-NN"
     compute_test_ip_one_tile(interpolation_method)
 
+def test_ip_one_tile_startin_PDALTIN():
+    interpolation_method = "PDAL-TIN"
+    compute_test_ip_one_tile(interpolation_method)
+
 
 def test_ip_one_tile_startin_pdal_idw():
     interpolation_method = "PDAL-IDW"
@@ -83,6 +87,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     test_ip_one_tile_startin_TINlinear()
     test_ip_one_tile_startin_laplace()
+    test_ip_one_tile_startin_PDALTIN()
     test_ip_one_tile_startin_CGALNN()
     test_ip_one_tile_startin_pdal_idw()
     # test_ip_one_tile_startin_IDWquad()

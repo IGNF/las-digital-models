@@ -222,16 +222,16 @@ class deterministic_method:
         """Sets up a PDAL pipeline that reads a ground filtered LAS
         file, and interpolates either using "Delaunay", then " Faceraster" and writes it via RASTER. Uses a -9999 no-data value.
         More about these in the readme on GitHub.
-        
+
         The Delaunay Filter creates a triangulated mesh fulfilling the Delaunay condition from a collection of points.
 
-        The FaceRaster filter creates a raster from a point cloud using an algorithm based on an existing triangulation. 
-        Each raster cell is given a value that is an interpolation of the known values of the containing triangle. If the raster cell center is outside of the triangulation, 
+        The FaceRaster filter creates a raster from a point cloud using an algorithm based on an existing triangulation.
+        Each raster cell is given a value that is an interpolation of the known values of the containing triangle. If the raster cell center is outside of the triangulation,
         it is assigned the nodata value. Use writers.raster to write the output.
         The extent of the raster can be defined by using the origin_x, origin_y, width and height options. If these options aren’t provided the raster is sized to contain the input data.
 
-        The Raster Writer writes an existing raster to a file. Output is produced using GDAL and can use any driver that supports creation of rasters. 
-        A data_type can be specified for the raster (double, float, int32, etc.). 
+        The Raster Writer writes an existing raster to a file. Output is produced using GDAL and can use any driver that supports creation of rasters.
+        A data_type can be specified for the raster (double, float, int32, etc.).
         If no data type is specified, the data type with the largest range supported by the driver is used.
 
         Args:
@@ -279,6 +279,7 @@ class deterministic_method:
         """
         if self.method == 'PDAL-IDW':
             self.execute_pdal(pdal_input, pdal_output, method='idw')
+            return
         elif self.method == 'PDAL-TIN':
             self.execute_pdal_tin(pdal_input, pdal_output)
             return
