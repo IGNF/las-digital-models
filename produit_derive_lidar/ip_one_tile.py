@@ -137,7 +137,7 @@ def run_ip_on_tile(origin_file,
                               interpolation_method,
                               spatial_ref=spatial_ref)
 
-    export_and_clip_raster(input_file, ras, origin, pixel_size, geotiff_path_temp,
+    export_and_clip_raster(origin_file, ras, origin, pixel_size, geotiff_path_temp,
         geotiff_path, interpolation_method, spatial_ref)
 
     return
