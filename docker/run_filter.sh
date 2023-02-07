@@ -5,7 +5,7 @@ input_dir="TO SET"
 output_dir="TO SET"
 input_tile="TO SET"
 
-docker run -t -d --userns=host --shm-size=2gb  \
+docker run -t --rm --userns=host --shm-size=2gb  \
     -v ${input_dir}:/input \
     -v ${output_dir}:/output \
     -v /var/tmp:/tmp \

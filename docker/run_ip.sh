@@ -3,14 +3,13 @@
 
 input_dir="TO SET"
 output_dir="TO SET"
-filtered_dir="TO SET" 
+filtered_dir="TO SET"
 input_tile="TO SET"
 
-postprocessing=0
 pixel_size=1
 interpolation_method="startin-TINlinear"
 
-docker run -t -d --userns=host --shm-size=2gb  \
+docker run -t --rm --userns=host --shm-size=2gb  \
     -v ${input_dir}:/input \
     -v ${output_dir}:/output \
     -v ${filtered_dir}:/filtered \
@@ -22,7 +21,6 @@ docker run -t -d --userns=host --shm-size=2gb  \
     -f /filtered/ \
     -o /output/ \
     -t /tmp/ \
-    -p ${postprocessing} \
     -s ${pixel_size} \
     -m ${interpolation_method} \
 
