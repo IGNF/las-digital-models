@@ -20,16 +20,16 @@ Output files will be written to the target folder, tagged with thename of the in
 that was used.
 The number of parallel processes can be limited using the CPU_COUNT environment variable """)
     parser.add_argument(
-        "--origin_dir", "-i",
+        "--origin_dir", "-or",
         type=str,
         required=True,
         help="Folder containing the origin lidar tiles (before filtering)." +
             "Used to retrieve the tile bounding box.")
     parser.add_argument(
-        "--filtered_las_dir", "-f",
+        "--input_las_dir", "-i",
         type=str,
         default="/tmp/ground",
-        help="Folder containing the input filtered tiles.")
+        help="Folder containing the input tiles (filtered and potentially with buffer added).")
     parser.add_argument(
         "--output_dir", "-o",
         type=str,
@@ -45,7 +45,7 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         type=str.lower,
         default="las",
         choices=["las", "laz"],
-        help="extension")
+        help="extension of the origin tile file")
     parser.add_argument(
         "--postprocessing", "-p",
         type=int,
@@ -76,13 +76,6 @@ The number of parallel processes can be limited using the CPU_COUNT environment 
         "--spatial_reference",
         default="EPSG:2154",
         help="Spatial reference to use to override the one from input las."
-    )
-    parser.add_argument(
-        "--buffer_width",
-        default=100,
-        type=int,
-        help="Width (in meter) for the buffer that is added to the tile before interpolation " +
-             "(to prevent artefacts)"
     )
     parser.add_argument(
         "--cpu_limit",
@@ -141,7 +134,7 @@ def ip_worker(args):
 
 
 def start_pool(origin_dir: str,
-               filtered_las_dir: str,
+               input_las_dir: str,
                output_dir: str,
                temp_dir: str='/tmp',
                filetype: str='las',
@@ -149,7 +142,6 @@ def start_pool(origin_dir: str,
                size: int=1,
                method: str='startin-Laplace',
                spatial_ref: str="EPSG:2154",
-               buffer_width: int=100,
                cpu_limit: int=-1):
     """Assembles and executes the multiprocessing pool.
     The interpolation variants/export formats are handled
@@ -161,8 +153,8 @@ def start_pool(origin_dir: str,
     if len(fnames) == 0:
         raise ValueError("No file names were input")
 
-    pre_map = [[os.path.join(origin_dir, fn), filtered_las_dir, temp_dir, output_dir, size, method,
-                postprocess, spatial_ref, buffer_width]
+    pre_map = [[os.path.join(origin_dir, fn), input_las_dir, temp_dir, output_dir, size, method,
+                postprocess, spatial_ref]
                for fn in fnames]
     with Pool(num_threads) as p:
         p.map(ip_worker, pre_map)
@@ -182,11 +174,11 @@ def main():
     # Create the severals folder if not exists
     os.makedirs(args.output_dir, exist_ok=True)
     os.makedirs(args.temp_dir, exist_ok=True)
-    start_pool(args.origin_dir, args.filtered_las_dir, args.output_dir, args.temp_dir, filetype=args.extension,
+    start_pool(args.origin_dir, args.input_las_dir, args.output_dir, args.temp_dir,
+               filetype=args.extension,
                postprocess=args.postprocessing, size=args.pixel_size,
                method=args.interpolation_method,
                spatial_ref=args.spatial_reference,
-               buffer_width=args.buffer_width,
                cpu_limit=args.cpu_limit)
 
 
