@@ -18,12 +18,10 @@ origin_file = os.path.join(
     "test_data_0001_0001_LA93_IGN69.laz"
 )
 
-input_las_dir = os.path.join(test_path, "data", "ground_with_buffer")
-
+input_las_dir = os.path.join(test_path, "data", "ground")
 
 spatial_reference = "EPSG:2154"
 output_dir = tmp_path
-ground_dir = os.path.join(test_path, "data", "ground")
 pixel_size = 1
 
 
