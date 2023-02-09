@@ -7,13 +7,14 @@ INPUT="/input/"
 OUTPUT="/output/"
 FORMAT="laz"
 PIXEL_SIZE=0.5
+CPU_LIMIT=-1
 
 USAGE="""
-Usage ./run.sh -i INPUT_DIR -o OUTPUT_DIR -f FORMAT \n
+Usage ./run.sh -i INPUT_DIR -o OUTPUT_DIR -f FORMAT -p PIXEL_SIZE -c CPU_LIMIT \n
 FORMAT should be las or laz (default is laz)
 """
 # Parse arguments in order to possibly overwrite paths
-while getopts "h?i:o:f:p:" opt; do
+while getopts "h?i:o:f:p:c:" opt; do
   case "$opt" in
     h|\?)
       echo -e ${USAGE}
@@ -27,6 +28,8 @@ while getopts "h?i:o:f:p:" opt; do
       ;;
     p)  PIXEL_SIZE=${OPTARG}
       ;;
+    c)  CPU_LIMIT=${OPTARG}
+      ;;
   esac
 done
 
@@ -39,6 +42,7 @@ echo "------------------"
 echo "RUN DTM GENERATION"
 echo "------------------"
 
+
 # Output filenames for each step
 FILTERED_DIR=${OUTPUT}/ground
 BUFFERED_DIR=${OUTPUT}/ground_with_buffer
@@ -46,22 +50,34 @@ TMP_DIR=${OUTPUT}/tmp/DTM
 DTM_DIR=${OUTPUT}/DTM
 
 # Step 1.1 : filter ground
+echo "------------------"
+echo "filter ground"
+echo "------------------"
 python -m produit_derive_lidar.filter_multiprocessing \
     -i ${INPUT} \
     -o ${FILTERED_DIR} \
     -e ${FORMAT} \
-    --keep_classes 2 9 66
+    --keep_classes 2 9 66 \
+    --cpu_limit ${CPU_LIMIT}
+
 
 # Step 1.2: Create las with buffer from its neighbors tiles
-#/!\ rasters generated from these las tiles will need to be cropped to match the input las area
+# /!\ rasters generated from these las tiles will need to be cropped to match the input las area
 # Extension is not provided as intermediate fles are las files
+echo "------------------"
+echo "add buffer"
+echo "------------------"
 python -m produit_derive_lidar.add_buffer_multiprocessing \
     -i ${FILTERED_DIR} \
     -o ${BUFFERED_DIR} \
-    -b 100
+    -b 100 \
+    --cpu_limit ${CPU_LIMIT}
 
 
 # # Step 1.3 ; create DTM with the severals method
+echo "------------------"
+echo "interpolation"
+echo "------------------"
 for METHOD in ${METHODS[@]}
 do
   python -m produit_derive_lidar.ip_multiprocessing \
@@ -71,7 +87,8 @@ do
       -m ${METHOD} \
       -t ${TMP_DIR} \
       -e ${FORMAT} \
-      -s ${PIXEL_SIZE}
+      -s ${PIXEL_SIZE} \
+      --cpu_limit ${CPU_LIMIT}
 done
 
 
@@ -91,7 +108,8 @@ python -m produit_derive_lidar.filter_multiprocessing \
     -i ${INPUT} \
     -o ${FILTERED_DIR} \
     -e ${FORMAT} \
-    --keep_classes 2 3 4 5 6 9 17
+    --keep_classes 2 3 4 5 6 9 17 \
+    --cpu_limit ${CPU_LIMIT}
 
 # Step 2.2: Create las with buffer from its neighbors tiles
 #/!\ rasters generated from these las tiles will need to be cropped to match the input las area
@@ -99,7 +117,8 @@ python -m produit_derive_lidar.filter_multiprocessing \
 python -m produit_derive_lidar.add_buffer_multiprocessing \
     -i ${FILTERED_DIR} \
     -o ${BUFFERED_DIR} \
-    -b 100
+    -b 100 \
+    --cpu_limit ${CPU_LIMIT}
 
 # # Step 2.3 ; create DTM with the severals method
 for METHOD in ${METHODS[@]}
@@ -111,7 +130,8 @@ do
       -m ${METHOD} \
       -t ${TMP_DIR} \
       -e ${FORMAT} \
-      -s ${PIXEL_SIZE}
+      -s ${PIXEL_SIZE} \
+    --cpu_limit ${CPU_LIMIT}
 done
 
 echo "------------------"
@@ -132,5 +152,6 @@ do
       -m ${METHOD} \
       -o ${DHM_DIR} \
       -e ${FORMAT} \
-      -s ${PIXEL_SIZE}
+      -s ${PIXEL_SIZE} \
+    --cpu_limit ${CPU_LIMIT}
 done
