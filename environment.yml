@@ -17,7 +17,7 @@ dependencies:
   - python-pdal>=3.2.1
   - pip:
       - startinpy==0.8.0
-      - -e ./ign_las_stitching
+      - -e pdalTools
       - --extra-index-url=https://qlf-nexus.ign.fr/repository/pypi-lidarhd-hosted/simple
       - ign-lidarutils
 

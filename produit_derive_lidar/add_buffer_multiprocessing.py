@@ -1,6 +1,6 @@
 import argparse
 from produit_derive_lidar.commons import commons
-from las_stitching.las_add_buffer import create_las_with_buffer
+from pdaltools.las_add_buffer import create_las_with_buffer
 import logging
 from multiprocessing import Pool
 import os
