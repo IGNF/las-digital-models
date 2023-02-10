@@ -56,13 +56,6 @@ def parse_args():
         default="EPSG:2154",
         help="Spatial reference to use to override the one from input las."
     )
-    parser.add_argument(
-        "--buffer_width",
-        default=100,
-        type=int,
-        help="Width (in meter) for the buffer that is added to the tile before interpolation " +
-             "(to prevent artefacts)"
-    )
 
     return parser.parse_args()
 
@@ -135,8 +128,7 @@ def main():
 
     run_ip_on_tile(args.origin_file, input_las_dir, args.temp_dir, args.output_dir,
         args.pixel_size, args.interpolation_method,
-        spatial_ref=args.spatial_reference,
-        buffer_width=args.buffer_width)
+        spatial_ref=args.spatial_reference)
 
 
 if __name__ == "__main__":

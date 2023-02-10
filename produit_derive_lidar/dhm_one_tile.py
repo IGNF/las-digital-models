@@ -79,10 +79,9 @@ def main():
     logging.basicConfig(level=logging.INFO)
     args = parse_args()
 
-    os.makedirs(args.temp_dir, exist_ok=True)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    run_dhm_on_tile(args.origin_file, args.dsm_dir, args.dtm_dir,
+    run_dhm_on_tile(args.origin_las_file, args.dsm_dir, args.dtm_dir,
                    args.output_dir, args.pixel_size, args.interpolation_method)
 
 
