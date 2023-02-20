@@ -6,6 +6,7 @@ from produit_derive_lidar.tasks.las_interpolation_deterministic import determini
 from produit_derive_lidar.tasks.las_raster_generation import export_and_clip_raster
 import logging
 import os
+import numpy as np
 
 
 log = commons.get_logger(__name__)
@@ -74,12 +75,15 @@ def interpolate(input_file: str,
         interpolation_method(str): interpolation method for raster generation
         spatial_ref(str): spatial reference to use when reading las file
     """
-    gnd_coords, res, origin = read_las_file_to_numpy(input_file, pixel_size)
+    points_np, res, origin = read_las_file_to_numpy(input_file, pixel_size)
 
-    _interpolation = deterministic_method(gnd_coords, res, origin, pixel_size, interpolation_method,
-                                          spatial_ref=spatial_ref)
+    if points_np.size > 0:
+        _interpolation = deterministic_method(points_np, res, origin, pixel_size, interpolation_method,
+                                            spatial_ref=spatial_ref)
+        ras = _interpolation.run(pdal_input=input_file, pdal_output=output_raster)
 
-    ras = _interpolation.run(pdal_input=input_file, pdal_output=output_raster)
+    else:
+        ras = None
 
     return ras, origin
 
@@ -106,14 +110,20 @@ def run_ip_on_tile(origin_file,
     geotiff_path = os.path.join(output_dir, geotiff_filename)
 
     ## process
-    ras, origin = interpolate(input_file,
+    ras, origin, = interpolate(input_file,
                               geotiff_path_temp,
                               pixel_size,
                               interpolation_method,
                               spatial_ref=spatial_ref)
 
+    force_save_ras = False
+    if ras is None:
+        _, res, origin = read_las_file_to_numpy(origin_file, pixel_size)
+        ras = commons.no_data_value * np.ones([res[1], res[0]])
+        force_save_ras = True
+
     export_and_clip_raster(origin_file, ras, origin, pixel_size, geotiff_path_temp,
-        geotiff_path, interpolation_method, spatial_ref)
+    geotiff_path, interpolation_method, spatial_ref, force_save_ras=force_save_ras)
 
     return
 

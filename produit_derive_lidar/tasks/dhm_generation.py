@@ -3,6 +3,7 @@
 # version : v.0.1.0 02/02/2023
 # Calculate DHM
 import lidarutils.gdal_calc as gdal_calc
+from produit_derive_lidar.commons import commons
 
 
 def calculate_dhm(input_image_dsm, input_image_dtm, output_image):
@@ -19,4 +20,4 @@ def calculate_dhm(input_image_dsm, input_image_dtm, output_image):
                    outfile=output_image,
                    A=input_image_dsm, A_band=1,
                    B=input_image_dtm, B_band=1,
-                   NoDataValue=-9999, type="Float32", quiet=True,)
+                   NoDataValue=commons.no_data_value, type="Float32", quiet=True,)

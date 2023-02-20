@@ -40,7 +40,7 @@ class deterministic_method:
     @commons.eval_time
     def execute_startin(self):
         """Takes the grid parameters and the ground points. Interpolates
-        either using the TIN-linear or the Laplace method. Uses a -9999 no-data value.
+        either using the TIN-linear or the Laplace method. Uses a no-data value set in commons
         Fully based on the startin package (https://startinpy.readthedocs.io/en/latest/api.html)
 
         Returns:
@@ -65,12 +65,12 @@ class deterministic_method:
             for x in np.arange(self.origin[0], self.origin[0] + self.res[0] * self.size, self.size):
                 ch = tin.is_inside_convex_hull(x, y) # check is the point [x, y] located inside  the convex hull of the DT
                 if ch == False:
-                    ras[yi, xi] = -9999 # no-data value
+                    ras[yi, xi] = commons.no_data_value
                 else:
                     tri = tin.locate(x, y) # locate the triangle containing the point [x,y]. An error is thrown if it is outside the convex hull
                     if tri != [] and 0 not in tri:
                         ras[yi, xi] = interpolant(x, y)
-                    else: ras[yi, xi] = -9999 # no-data value
+                    else: ras[yi, xi] = commons.no_data_value
                 xi += 1
             yi += 1
         return ras
@@ -115,7 +115,7 @@ class deterministic_method:
                         z, w = zs[(nbr[0].x(), nbr[0].y())], nbr[1] / qry[0]
                         z_out += z * w
                     ras[yi, xi] = z_out
-                else: ras[yi, xi] = -9999
+                else: ras[yi, xi] = commons.no_data_value
                 xi += 1
             yi += 1
         return ras
@@ -161,7 +161,7 @@ class deterministic_method:
                     #"radius": str(self.size * sqrt(2)),
                     "power": 2,
                     "window_size": 5,
-                    "nodata": -9999,
+                    "nodata": commons.no_data_value,
                     "data_type": "float32",
                     "filename": output_file
                 }
@@ -175,7 +175,7 @@ class deterministic_method:
     @commons.eval_time
     def execute_pdal_tin(self, fpath: str, output_file:str):
         """Sets up a PDAL pipeline that reads a ground filtered LAS
-        file, and interpolates either using "Delaunay", then " Faceraster" and writes it via RASTER. Uses a -9999 no-data value.
+        file, and interpolates either using "Delaunay", then " Faceraster" and writes it via RASTER. Uses a no-data value set in commons.
         More about these in the readme on GitHub.
 
         The Delaunay Filter creates a triangulated mesh fulfilling the Delaunay condition from a collection of points.
@@ -214,7 +214,7 @@ class deterministic_method:
                 {
                     "type": "writers.raster",
                     "gdaldriver":"GTiff",
-                    "nodata": -9999,
+                    "nodata": commons.no_data_value,
                     "data_type": "float32",
                     "filename": output_file
                 }

@@ -13,7 +13,7 @@ def read_las_file_to_numpy(input_file, size):
     Reads the LAS file and outputs the ground points as a numpy array.
     Also establishes some asic raster parameters:
     - the extents
-    - the resolution in coordinates
+    - the raster shape (sometimes resolution)
     - the coordinate location of the relative origin (bottom left)
         """
     in_file = laspy.read(input_file)

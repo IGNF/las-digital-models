@@ -12,6 +12,9 @@ from typing import Callable
 import sys
 
 
+no_data_value = -9999
+
+
 def select_num_threads(display_name="", cpu_limit=-1):
     """Select number of threads for multiprocessing from the number of cpu core and cpu_limit
     (maximum number of cores to use)"""

@@ -4,11 +4,13 @@ from produit_derive_lidar.commons import commons
 from produit_derive_lidar.tasks.raster_clip import clip_raster
 import numpy as np
 from osgeo import gdal
+import rasterio
+from rasterio.transform import Affine
 
 
-def write_geotiff_withbuffer(raster, origin, size, fpath):
+def write_geotiff(raster, origin, size, fpath):
     """Writes the interpolated TIN-linear and Laplace rasters
-    to disk using the GeoTIFF format with buffer (100 m). The header is based on
+    to disk using the GeoTIFF format. The header is based on
     the raster array and a manual definition of the coordinate
     system and an identity affine transform.
 
@@ -21,8 +23,6 @@ def write_geotiff_withbuffer(raster, origin, size, fpath):
     Returns:
         bool: If the output "DTM" saved in fpath is okay or not
     """
-    import rasterio
-    from rasterio.transform import Affine
     transform = (Affine.translation(origin[0], origin[1])
                  * Affine.scale(size, size))
     with rasterio.Env():
@@ -67,22 +67,25 @@ def patch(raster, res, origin, size, min_n):
           [0, 1], [1, -1], [1, 0], [1, 1]]
     for yi in range(res[1]):
         for xi in range(res[0]):
-            if raster[yi, xi] == -9999:
+            if raster[yi, xi] == commons.no_data_value:
                 vals = []
                 for m in range(8):
                     xw, yw = xi + mp[m][0], yi + mp[m][1]
                     if (xw >= 0 and xw < res[0]) and (yw >= 0 and yw < res[1]):
                         val = raster[yw, xw]
-                        if val != -9999: vals += [val]
+                        if val != commons.no_data_value: vals += [val]
                 if len(vals) > min_n: raster[yi, xi] = np.median(vals)
 
 
 @commons.eval_time_with_pid
 def export_and_clip_raster(las_file, ras, origin, size, geotiff_path_temp, geotiff_path, method,
-                  spatial_ref="EPSG:2154"):
-    """Write raster in the folder DTM with clipping from the LIDAR tile"""
-    if not method.startswith("PDAL"):
-        write_geotiff_withbuffer(ras, origin, size, geotiff_path_temp)
+                  spatial_ref="EPSG:2154", force_save_ras=False):
+    """Write raster in the folder DTM with clipping from the LIDAR tile."""
+    if not method.startswith("PDAL") or force_save_ras:
+        # Write geotiff (potentially with buffer)
+        write_geotiff(ras, origin, size, geotiff_path_temp)
 
     if check_raster(geotiff_path_temp) == True:
         clip_raster(las_file, geotiff_path_temp, geotiff_path, size, spatial_ref=spatial_ref)
+
+
