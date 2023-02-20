@@ -16,8 +16,8 @@ def calculate_dhm(input_image_dsm, input_image_dtm, output_image):
         fname (str): name of LIDAR tile
 
     """
-    gdal_calc.Calc("A-B",
+    # Calculate A - B where A and B have valid values, else return a no_data value
+    gdal_calc.Calc("(B - A) * (A > -9999) * (B > -9999) + (-9999) * (1 - (A > -9999) * (B > -9999))",
                    outfile=output_image,
                    A=input_image_dsm, A_band=1,
-                   B=input_image_dtm, B_band=1,
-                   NoDataValue=commons.no_data_value, type="Float32", quiet=True,)
+                   B=input_image_dtm, B_band=1, type="Float32", quiet=True)
