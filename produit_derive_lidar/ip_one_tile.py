@@ -74,10 +74,16 @@ def interpolate(input_file: str,
         pixel_size(int): pixel size for raster generation
         interpolation_method(str): interpolation method for raster generation
         spatial_ref(str): spatial reference to use when reading las file
+    Output:
+        ras: output raster (/!\ can be None for some methods)
+        origin: tile origin
+        can_interpolate (bool): false if there were no points to interpolate
     """
     points_np, res, origin = read_las_file_to_numpy(input_file, pixel_size)
 
-    if points_np.size > 0:
+    can_interpolate = points_np.size > 0
+
+    if can_interpolate:
         _interpolation = deterministic_method(points_np, res, origin, pixel_size, interpolation_method,
                                             spatial_ref=spatial_ref)
         ras = _interpolation.run(pdal_input=input_file, pdal_output=output_raster)
@@ -85,7 +91,7 @@ def interpolate(input_file: str,
     else:
         ras = None
 
-    return ras, origin
+    return ras, origin, can_interpolate
 
 
 def run_ip_on_tile(origin_file,
@@ -110,20 +116,18 @@ def run_ip_on_tile(origin_file,
     geotiff_path = os.path.join(output_dir, geotiff_filename)
 
     ## process
-    ras, origin, = interpolate(input_file,
+    ras, origin, success = interpolate(input_file,
                               geotiff_path_temp,
                               pixel_size,
                               interpolation_method,
                               spatial_ref=spatial_ref)
 
-    force_save_ras = False
-    if ras is None:
+    if not success:
         _, res, origin = read_las_file_to_numpy(origin_file, pixel_size)
         ras = commons.no_data_value * np.ones([res[1], res[0]])
-        force_save_ras = True
 
     export_and_clip_raster(origin_file, ras, origin, pixel_size, geotiff_path_temp,
-    geotiff_path, interpolation_method, spatial_ref, force_save_ras=force_save_ras)
+        geotiff_path, interpolation_method, spatial_ref, force_save_ras=(not success))
 
     return
 
