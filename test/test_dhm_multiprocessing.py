@@ -29,14 +29,13 @@ def setup_module(module):
 
 
 def test_dhm_multiprocessing():
-    filetype = "laz"
     # Create the severals folder if not exists
     os.makedirs(output_dir, exist_ok=True)
     start_pool(origin_dir, dsm_dir, dtm_dir, output_dir, pixel_size,
-             filetype=filetype, interpolation_method=interpolation_method)
+               interpolation_method=interpolation_method)
     # Check all files are generated
     for input_file in os.listdir(origin_dir):
-        if input_file.endswith(filetype):
+        if input_file.endswith(commons.point_cloud_extensions):
             _size = commons.give_name_resolution_raster(pixel_size)
             postfix = f"{_size}_{commons.method_postfix[interpolation_method]}.tif"
             output_filename = os.path.splitext(os.path.basename(input_file))[0] + postfix

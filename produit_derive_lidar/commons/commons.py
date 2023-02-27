@@ -13,6 +13,7 @@ import sys
 
 
 no_data_value = -9999
+point_cloud_extensions = ("las", "laz")
 
 
 def select_num_threads(display_name="", cpu_limit=-1):
@@ -128,7 +129,7 @@ method_postfix = {
 }
 
 
-def listPointclouds(folder: str, filetype: str):
+def listPointclouds(folder: str):
     """ Return list of pointclouds in the folder 'data'
 
     Args:
@@ -139,7 +140,7 @@ def listPointclouds(folder: str, filetype: str):
         li(List): List of pointclouds (name)
     """
     li = [f for f in os.listdir(folder)
-        if os.path.splitext(f)[1].lstrip(".").lower() == filetype]
+        if os.path.splitext(f)[1].lstrip(".").lower() in point_cloud_extensions]
 
     return li
 

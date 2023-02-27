@@ -19,7 +19,10 @@ expected_output_nb_points_building = 14908
 
 spatial_reference = "EPSG:2154"
 output_dir = os.path.join(tmp_path,  "ground")
-output_file = os.path.join(output_dir, "test_data_0001_0001_LA93_IGN69.las")
+
+output_default_file = os.path.join(output_dir, os.path.basename(input_file))
+
+output_las_file = os.path.join(output_dir,"test_data_0001_0001_LA93_IGN69.las")
 
 
 def setup_module(module):
@@ -33,16 +36,22 @@ def setup_module(module):
 
 def test_filter_one_tile():
     filter_one_tile.run_filter_on_tile(input_file, output_dir, spatial_ref=spatial_reference)
-    assert os.path.isfile(output_file)
-    assert pcu.get_nb_points(output_file) == expected_output_nb_points_ground
+    assert os.path.isfile(output_default_file)
+    assert pcu.get_nb_points(output_default_file) == expected_output_nb_points_ground
 
 
 def test_filter_one_tile_building_class():
     filter_one_tile.run_filter_on_tile(input_file, output_dir, spatial_ref=spatial_reference,
     keep_classes=[6])
-    assert os.path.isfile(output_file)
-    assert pcu.get_nb_points(output_file) == expected_output_nb_points_building
+    assert os.path.isfile(output_default_file)
+    assert pcu.get_nb_points(output_default_file) == expected_output_nb_points_building
 
+
+def test_filter_one_tile_force_output():
+    filter_one_tile.run_filter_on_tile(input_file, output_dir, spatial_ref=spatial_reference,
+                                       output_ext="las")
+    assert os.path.isfile(output_las_file)
+    assert pcu.get_nb_points(output_las_file) == expected_output_nb_points_ground
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

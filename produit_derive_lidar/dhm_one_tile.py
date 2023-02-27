@@ -59,8 +59,8 @@ def run_dhm_on_tile(input_file, input_folder_dsm, input_folder_dtm, output_dir,
                    pixel_size=1, interpolation_method='startin-Laplace'):
     ## infer input/output paths
     # split input file
-    input_dir, input_basename = os.path.split(input_file)
-    tilename, extension = os.path.splitext(input_basename) # here, extension is like ".LAS"
+    _, input_basename = os.path.split(input_file)
+    tilename, _ = os.path.splitext(input_basename)
 
     # for export
     # for export

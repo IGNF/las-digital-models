@@ -4,6 +4,7 @@ import os
 import pytest
 import shutil
 from produit_derive_lidar.add_buffer_multiprocessing import start_pool
+from produit_derive_lidar.commons import commons
 
 
 
@@ -25,18 +26,16 @@ def setup_module(module):
 
 
 def test_add_buffer_multiprocessing():
-    filetype = "laz"
     # Create the severals folder if not exists
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(tmp_path, exist_ok=True)
     start_pool(input_dir=input_dir,
                output_dir=output_dir,
                buffer_width=buffer_width,
-               filetype=filetype
     )
     # Check all files are generated
     for input_file in os.listdir(input_dir):
-        if input_file.endswith(filetype):
+        if input_file.endswith(commons.point_cloud_extensions):
             output_filename =os.path.basename(input_file)
             output_file = os.path.join(output_dir, output_filename)
             assert os.path.isfile(output_file)

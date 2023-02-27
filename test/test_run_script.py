@@ -29,7 +29,7 @@ def setup_module(module):
 
 
 def test_run_script():
-    cmd = ["./run.sh", "-i", input_dir, "-o", output_dir, "-f", file_ext, "-p", str(pixel_size)]
+    cmd = ["./run.sh", "-i", input_dir, "-o", output_dir, "-p", str(pixel_size)]
     r = sp.run(cmd, capture_output=True)
     logging.debug(f"Stdout is: {r.stdout.decode()}")
     logging.debug(f"Stderr is: {r.stderr.decode()}")
@@ -41,7 +41,7 @@ def test_run_script():
     # Check that all files are created (for all methods)
 
     for input_file in os.listdir(input_dir):
-        if input_file.endswith(file_ext):
+        if input_file.endswith(commons.point_cloud_extensions):
             tilename = os.path.splitext(input_file)[0]
             for method, m_postfix in commons.method_postfix.items():
                 if method == "IDWquad":

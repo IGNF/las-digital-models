@@ -14,6 +14,7 @@ input_dir = os.path.join(test_path, "data")
 spatial_reference = "EPSG:2154"
 output_dir = tmp_path
 ground_dir = os.path.join(test_path, "data", "ground")
+input_ext = "las"
 
 
 def setup_module(module):
@@ -26,15 +27,14 @@ def setup_module(module):
 
 
 def test_ip_multiprocessing():
-    filetype = "laz"
         # Create the severals folder if not exists
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(tmp_path, exist_ok=True)
-    start_pool(input_dir, ground_dir, output_dir, tmp_path, filetype=filetype,
-               spatial_ref=spatial_reference)
+    start_pool(input_dir, ground_dir, output_dir, tmp_path,
+               spatial_ref=spatial_reference, input_ext=input_ext)
     # Check all files are generated
     for input_file in os.listdir(input_dir):
-        if input_file.endswith(filetype):
+        if input_file.endswith(commons.point_cloud_extensions):
             postfix = f"_1M_{commons.method_postfix['startin-Laplace']}.tif"
             output_filename = os.path.splitext(os.path.basename(input_file))[0] + postfix
             output_file = os.path.join(output_dir, output_filename)

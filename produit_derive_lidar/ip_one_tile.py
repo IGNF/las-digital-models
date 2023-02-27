@@ -7,6 +7,7 @@ from produit_derive_lidar.tasks.las_raster_generation import export_and_clip_ras
 import logging
 import os
 import numpy as np
+from typing import Union
 
 
 log = commons.get_logger(__name__)
@@ -57,6 +58,12 @@ def parse_args():
         default="EPSG:2154",
         help="Spatial reference to use to override the one from input las."
     )
+    parser.add_argument(
+        "--force_input_ext",
+        choices=list(commons.point_cloud_extensions) + [None],
+        default=None,
+        help="Force input ext to .las or .laz. If None or not set, use origin extension"
+    )
 
     return parser.parse_args()
 
@@ -94,20 +101,42 @@ def interpolate(input_file: str,
     return ras, origin, can_interpolate
 
 
-def run_ip_on_tile(origin_file,
-                   input_dir,
-                   temp_dir,
-                   output_dir,
-                   pixel_size=1,
-                   interpolation_method='startin-Laplace',
-                   spatial_ref="EPSG:2154"):
+def run_ip_on_tile(origin_file: str,
+                   input_dir :str,
+                   temp_dir: str,
+                   output_dir: str,
+                   pixel_size: float=1,
+                   interpolation_method: str='startin-Laplace',
+                   spatial_ref: str="EPSG:2154",
+                   input_ext: Union[str, None] =None):
+    """Run interpolation on single tile
+    Args:
+        origin_file(str): path to the origin tile (used to define the output bounding box)
+        input_file(str): Directory where to find the files on which to run the interpolation
+            (can be different of origin_dir in case there has been preprocessing)
+        output_dir(str): output folder for raster images
+        pixel_size(int): pixel size for raster generation
+        interpolation_method(str): interpolation method for raster generation
+        spatial_ref(str): spatial reference to use when reading las file
+        input_ext (str or None): In case input_file has not the same extension as origin file,
+            defines input file extension
+    Output:
+        ras: output raster (/!\ can be None for some methods)
+        origin: tile origin
+        can_interpolate (bool): false if there were no points to interpolate
+
+
+    """
     ## infer input/output paths
     # split origin file (used for bounds retrieval)
-    origin_dir, origin_basename = os.path.split(origin_file)
-    tilename, extension = os.path.splitext(origin_basename) # here, extension is like ".las"
+    _, origin_basename = os.path.split(origin_file)
+    tilename, _ = os.path.splitext(origin_basename)
 
     # input file (already filtered and potentially with a buffer)
-    input_file = os.path.join(input_dir, f"{tilename}.las")
+    if input_ext is None:
+        input_file = os.path.join(input_dir, origin_basename)
+    else:
+        input_file = os.path.join(input_dir, f"{tilename}.{input_ext}")
 
     # for export
     _size = commons.give_name_resolution_raster(pixel_size)
@@ -142,7 +171,7 @@ def main():
 
     run_ip_on_tile(args.origin_file, input_las_dir, args.temp_dir, args.output_dir,
         args.pixel_size, args.interpolation_method,
-        spatial_ref=args.spatial_reference)
+        spatial_ref=args.spatial_reference, input_ext=args.force_input_ext)
 
 
 if __name__ == "__main__":

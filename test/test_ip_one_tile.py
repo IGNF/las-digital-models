@@ -19,6 +19,7 @@ origin_file = os.path.join(
 )
 
 input_las_dir = os.path.join(test_path, "data", "ground")
+input_ext = "las"
 
 spatial_reference = "EPSG:2154"
 output_dir = tmp_path
@@ -43,7 +44,7 @@ def compute_test_ip_one_tile(interpolation_method):
 
     ip_one_tile.run_ip_on_tile(origin_file, input_las_dir, tmp_path, output_dir,
         pixel_size, interpolation_method,
-        spatial_ref=spatial_reference)
+        spatial_ref=spatial_reference, input_ext="las")
     assert os.path.isfile(output_file)
 
     raster_bounds = ru.get_tif_extent(output_file)

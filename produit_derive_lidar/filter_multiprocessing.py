@@ -26,12 +26,6 @@ def parse_args():
         type=str,
         required=True,
         help="Directory folder for saving the filtered tiles")
-    parser.add_argument(
-        "--extension", "-e",
-        type=str.lower,
-        default="las",
-        choices=["las", "laz"],
-        help="extension")
     # Optional parameters
     parser.add_argument(
         "--spatial_reference",
@@ -63,7 +57,6 @@ def filter_worker(args):
 
 def start_pool(input_dir: str,
                output_dir: str,
-               filetype:str='las',
                spatial_ref: str="EPSG:2154",
                keep_classes: List=[2, 66],
                cpu_limit: int=-1):
@@ -71,7 +64,7 @@ def start_pool(input_dir: str,
     The pre-processing are handled
     by the worker function (ip_worker(mapped)).
     """
-    fnames = commons.listPointclouds(input_dir, filetype)
+    fnames = commons.listPointclouds(input_dir)
     num_threads = commons.select_num_threads(display_name="ground filtering", cpu_limit=cpu_limit)
     if len(fnames) == 0:
         raise ValueError("No file names were input.")
@@ -95,7 +88,6 @@ def main():
     # Create the severals folder if not exists
     os.makedirs(args.output_dir, exist_ok=True)
     start_pool(args.input_dir, args.output_dir,
-               filetype=args.extension,
                spatial_ref=args.spatial_reference,
                keep_classes=args.keep_classes,
                cpu_limit=args.cpu_limit)

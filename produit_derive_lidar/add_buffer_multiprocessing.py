@@ -21,13 +21,6 @@ def parse_args():
         help="Directory folder for saving the outputs"
     )
     parser.add_argument(
-        "--extension", "-e",
-        type=str.lower,
-        default="las",
-        choices=["las", "laz"],
-        help="extension of the files to process"
-    )
-    parser.add_argument(
         "--buffer_width", "-b",
         default=100,
         type=int,
@@ -58,14 +51,13 @@ def ip_worker(args):
 
 def start_pool(input_dir: str,
                output_dir: str,
-               filetype="las",
                buffer_width=100,
                spatial_ref="EPSG:2154",
                cpu_limit: int=-1,
                ):
     """Assembles and executes the multiprocessing pool.
     """
-    fnames = commons.listPointclouds(input_dir, filetype)
+    fnames = commons.listPointclouds(input_dir)
     num_threads = commons.select_num_threads(display_name="add_buffer", cpu_limit=cpu_limit)
 
     if len(fnames) == 0:

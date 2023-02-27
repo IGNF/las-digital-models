@@ -41,19 +41,29 @@ def parse_args():
         default=[2, 66],
         help="Classes to keep when filtering. Default: ground + virtual points"
     )
+    parser.add_argument(
+        "--force_output_ext",
+        choices=list(commons.point_cloud_extensions) + [None],
+        default=None,
+        help="Force output ext to .las or .laz. If None or not set, use input extension"
+    )
 
     return parser.parse_args()
 
 
-def run_filter_on_tile(input_file, output_dir, spatial_ref="EPSG:2154", keep_classes=[2, 66]):
+def run_filter_on_tile(input_file, output_dir, spatial_ref="EPSG:2154", keep_classes=[2, 66],
+                       output_ext=None):
     ## infer input/output paths
     # split input file
     _, input_basename = os.path.split(input_file)
-    tilename, _ = os.path.splitext(input_basename) # here, extension is like ".las"
+    if output_ext is None:
+        output_basename = input_basename
+    else:
+        tilename, _ = os.path.splitext(input_basename)
+        output_basename = f"{tilename}.{output_ext}"
 
-    # Export output to .las
     os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, f"{tilename}.las")
+    output_file = os.path.join(output_dir, output_basename)
 
     ## process
     filter_las_classes(input_file, output_file, spatial_ref=spatial_ref, keep_classes=keep_classes)
@@ -65,8 +75,11 @@ def main():
     logging.basicConfig(level=logging.INFO)
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
-    run_filter_on_tile(args.input_file, args.output_dir, spatial_ref=args.spatial_reference,
-                   keep_classes=args.keep_classes)
+    run_filter_on_tile(args.input_file,
+                       args.output_dir,
+                       spatial_ref=args.spatial_reference,
+                       keep_classes=args.keep_classes,
+                       output_ext=args.force_output_ext)
 
 
 if __name__ == "__main__":

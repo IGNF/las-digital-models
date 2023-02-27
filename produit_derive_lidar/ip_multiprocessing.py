@@ -10,6 +10,7 @@ from produit_derive_lidar.ip_one_tile import run_ip_on_tile
 import logging
 from multiprocessing import Pool
 import os
+from typing import Union
 
 
 def parse_args():
@@ -38,12 +39,6 @@ def parse_args():
         default = "/tmp",
         help="Directory folder for saving intermediate results")
     parser.add_argument(
-        "--extension", "-e",
-        type=str.lower,
-        default="las",
-        choices=["las", "laz"],
-        help="extension of the origin tile file")
-    parser.add_argument(
         "--pixel_size", "-s",
         type=float,
         default=1,
@@ -66,6 +61,12 @@ def parse_args():
         default=-1,
         help="Maximum number of cpus to use (Default: use cpu_count - 1)"
     )
+    parser.add_argument(
+        "--force_input_ext",
+        choices=list(commons.point_cloud_extensions) + [None],
+        default=None,
+        help="Force input ext to .las or .laz. If None or not set, use origin extension"
+    )
 
     return  parser.parse_args()
 
@@ -80,23 +81,23 @@ def start_pool(origin_dir: str,
                input_las_dir: str,
                output_dir: str,
                temp_dir: str='/tmp',
-               filetype: str='las',
                size: int=1,
                method: str='startin-Laplace',
                spatial_ref: str="EPSG:2154",
-               cpu_limit: int=-1):
+               cpu_limit: int=-1,
+               input_ext: Union[str, None]= None):
     """Assembles and executes the multiprocessing pool.
     The interpolation variants/export formats are handled
     by the worker function (ip_worker(mapped)).
     """
-    fnames = commons.listPointclouds(origin_dir, filetype)
+    fnames = commons.listPointclouds(origin_dir)
     num_threads = commons.select_num_threads(display_name="interpolation", cpu_limit=cpu_limit)
 
     if len(fnames) == 0:
         raise ValueError("No file names were input")
 
     pre_map = [[os.path.join(origin_dir, fn), input_las_dir, temp_dir, output_dir, size, method,
-                spatial_ref]
+                spatial_ref, input_ext]
                for fn in fnames]
     with Pool(num_threads) as p:
         p.map(ip_worker, pre_map)
@@ -117,11 +118,11 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     os.makedirs(args.temp_dir, exist_ok=True)
     start_pool(args.origin_dir, args.input_las_dir, args.output_dir, args.temp_dir,
-               filetype=args.extension,
                size=args.pixel_size,
                method=args.interpolation_method,
                spatial_ref=args.spatial_reference,
-               cpu_limit=args.cpu_limit)
+               cpu_limit=args.cpu_limit,
+               input_ext=args.force_input_ext)
 
 
 if __name__ == '__main__':

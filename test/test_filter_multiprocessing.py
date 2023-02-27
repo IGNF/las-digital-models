@@ -4,6 +4,7 @@ import os
 import pytest
 import shutil
 from produit_derive_lidar.filter_multiprocessing import start_pool
+from produit_derive_lidar.commons import commons
 
 
 test_path = os.path.dirname(os.path.abspath(__file__))
@@ -24,16 +25,14 @@ def setup_module(module):
 
 
 def test_filter_multiprocessing():
-    filetype = "laz"
     # Create the severals folder if not exists
     os.makedirs(output_dir, exist_ok=True)
-    start_pool(input_dir, output_dir, filetype=filetype,
+    start_pool(input_dir, output_dir,
                spatial_ref=spatial_reference)
     # Check all files are generated
     for input_file in os.listdir(input_dir):
-        if input_file.endswith(filetype):
-            output_filename = os.path.splitext(input_file)[0] + ".las"
-            output_file = os.path.join(output_dir, output_filename)
+        if input_file.endswith(commons.point_cloud_extensions):
+            output_file = os.path.join(output_dir, input_file)
             assert os.path.isfile(output_file)
 
 

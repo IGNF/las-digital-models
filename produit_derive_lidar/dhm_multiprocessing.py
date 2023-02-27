@@ -21,12 +21,6 @@ def parse_args():
         help="Path to the origin lidar tile (before filtering)." +
             "Used to retrieve the tile name.")
     parser.add_argument(
-        "--extension", "-e",
-        type=str.lower,
-        default="las",
-        choices=["las", "laz"],
-        help="extension of the origin lidar files")
-    parser.add_argument(
         "--dsm_dir", "-is",
         type=str,
         required=True,
@@ -74,12 +68,11 @@ def start_pool(origin_las_dir: str,
                output_dir: str,
                pixel_size: int,
                interpolation_method: str,
-               cpu_limit: int=-1,
-               filetype: str='las'):
+               cpu_limit: int=-1):
 
     """Assembles and executes the multiprocessing pool.
     """
-    fnames = commons.listPointclouds(origin_las_dir, filetype)
+    fnames = commons.listPointclouds(origin_las_dir)
     num_threads = commons.select_num_threads(display_name="interpolation", cpu_limit=cpu_limit)
 
     if len(fnames) == 0:
@@ -111,8 +104,7 @@ def main():
                args.output_dir,
                args.pixel_size,
                args.interpolation_method,
-               cpu_limit=args.cpu_limit,
-               filetype=args.extension)
+               cpu_limit=args.cpu_limit)
 
 
 if __name__ == '__main__':
