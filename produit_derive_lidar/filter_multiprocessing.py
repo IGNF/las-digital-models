@@ -8,7 +8,7 @@ from produit_derive_lidar.commons import commons
 from produit_derive_lidar.filter_one_tile import run_filter_on_tile
 import argparse
 import logging
-from typing import List
+from typing import List, Union
 
 
 def parse_args():
@@ -46,6 +46,12 @@ def parse_args():
         default=-1,
         help="Maximum number of cpus to use (Default: use cpu_count - 1)"
     )
+    parser.add_argument(
+        "--force_output_ext",
+        choices=list(commons.point_cloud_extensions),
+        default=None,
+        help="Force output ext to .las or .laz. If None or not set, use input extension"
+    )
     return  parser.parse_args()
 
 
@@ -59,7 +65,8 @@ def start_pool(input_dir: str,
                output_dir: str,
                spatial_ref: str="EPSG:2154",
                keep_classes: List=[2, 66],
-               cpu_limit: int=-1):
+               cpu_limit: int=-1,
+               output_ext: Union[str, None]=None):
     """Assembles and executes the multiprocessing pool.
     The pre-processing are handled
     by the worker function (ip_worker(mapped)).
@@ -69,7 +76,7 @@ def start_pool(input_dir: str,
     if len(fnames) == 0:
         raise ValueError("No file names were input.")
 
-    pre_map = [[os.path.join(input_dir, fn), output_dir, spatial_ref, keep_classes]
+    pre_map = [[os.path.join(input_dir, fn), output_dir, spatial_ref, keep_classes, output_ext]
                for fn in fnames]
 
     with Pool(num_threads) as p:
@@ -90,7 +97,8 @@ def main():
     start_pool(args.input_dir, args.output_dir,
                spatial_ref=args.spatial_reference,
                keep_classes=args.keep_classes,
-               cpu_limit=args.cpu_limit)
+               cpu_limit=args.cpu_limit,
+               output_ext=args.force_output_ext)
 
 
 if __name__ == '__main__':
