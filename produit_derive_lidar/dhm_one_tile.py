@@ -63,7 +63,6 @@ def run_dhm_on_tile(input_file, input_folder_dsm, input_folder_dtm, output_dir,
     tilename, _ = os.path.splitext(input_basename)
 
     # for export
-    # for export
     _size = commons.give_name_resolution_raster(pixel_size)
     geotiff_filename = f"{tilename}{_size}_{commons.method_postfix[interpolation_method]}.tif"
     geotiff_dsm = os.path.join(input_folder_dsm, geotiff_filename)

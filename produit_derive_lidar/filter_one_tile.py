@@ -43,7 +43,7 @@ def parse_args():
     )
     parser.add_argument(
         "--force_output_ext",
-        choices=list(commons.point_cloud_extensions) + [None],
+        choices=list(commons.point_cloud_extensions),
         default=None,
         help="Force output ext to .las or .laz. If None or not set, use input extension"
     )

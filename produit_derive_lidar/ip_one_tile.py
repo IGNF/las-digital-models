@@ -60,7 +60,7 @@ def parse_args():
     )
     parser.add_argument(
         "--force_input_ext",
-        choices=list(commons.point_cloud_extensions) + [None],
+        choices=list(commons.point_cloud_extensions),
         default=None,
         help="Force input ext to .las or .laz. If None or not set, use origin extension"
     )
