@@ -17,7 +17,11 @@ def calculate_dhm(input_image_dsm, input_image_dtm, output_image):
 
     """
     # Calculate A - B where A and B have valid values, else return a no_data value
-    gdal_calc.Calc("(A - B) * (A > -9999) * (B > -9999) + (-9999) * (1 - (A > -9999) * (B > -9999))",
+    no_data = commons.no_data_value
+    gdal_calc.Calc(f"(A - B) * (A != {no_data}) * (B != {no_data})" +
+                   f" + ({no_data}) * (1 - (A != {no_data}) * (B != {no_data}))",
                    outfile=output_image,
                    A=input_image_dsm, A_band=1,
-                   B=input_image_dtm, B_band=1, type="Float32", quiet=True)
+                   B=input_image_dtm, B_band=1,
+                   type="Float32", quiet=True,
+                   NoDataValue=no_data)

@@ -18,7 +18,7 @@ def parse_args():
         type=str,
         required=True,
         help="Path to the origin lidar tile (before filtering)." +
-            "Used to retrieve the tile bounding box.")
+            "Used to retrieve the tile filename.")
     parser.add_argument(
         "--dsm_dir", "-is",
         type=str,

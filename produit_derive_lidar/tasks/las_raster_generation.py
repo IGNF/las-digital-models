@@ -8,7 +8,7 @@ import rasterio
 from rasterio.transform import Affine
 
 
-def write_geotiff(raster, origin, size, fpath):
+def write_geotiff(raster, origin, size, fpath, spatial_ref='EPSG:2154'):
     """Writes the interpolated TIN-linear and Laplace rasters
     to disk using the GeoTIFF format. The header is based on
     the raster array and a manual definition of the coordinate
@@ -27,12 +27,13 @@ def write_geotiff(raster, origin, size, fpath):
                  * Affine.scale(size, size))
     with rasterio.Env():
         with rasterio.open(fpath, 'w', driver = 'GTiff',
-                           height = raster.shape[0],
-                           width = raster.shape[1],
-                           count = 1,
-                           dtype = rasterio.float32,
-                           crs='EPSG:2154',
-                           transform = transform
+                           height=raster.shape[0],
+                           width=raster.shape[1],
+                           count=1,
+                           dtype=rasterio.float32,
+                           crs=spatial_ref,
+                           transform=transform,
+                           nodata=commons.no_data_value,
                            ) as out_file:
             out_file.write(raster.astype(rasterio.float32), 1)
 
@@ -83,7 +84,7 @@ def export_and_clip_raster(las_file, ras, origin, size, geotiff_path_temp, geoti
     """Write raster in the folder DTM with clipping from the LIDAR tile."""
     if not method.startswith("PDAL") or force_save_ras:
         # Write geotiff (potentially with buffer)
-        write_geotiff(ras, origin, size, geotiff_path_temp)
+        write_geotiff(ras, origin, size, geotiff_path_temp, spatial_ref=spatial_ref)
 
     if check_raster(geotiff_path_temp) == True:
         clip_raster(las_file, geotiff_path_temp, geotiff_path, size, spatial_ref=spatial_ref)
