@@ -1,3 +1,6 @@
 __pycache__
-test/tmp  # folder for test results
+
+# folder for test results
+test/tmp/
+
 *.log
