@@ -13,8 +13,8 @@ input_dir = os.path.join(test_path, "data")
 
 spatial_reference = "EPSG:2154"
 output_dir = tmp_path
-ground_dir = os.path.join(test_path, "data", "ground")
-input_ext = "las"
+ground_dir = os.path.join(test_path, "tmp", "output_run_script", "ground_with_buffer")  #"data", "ground")
+input_ext = "laz"
 
 
 def setup_module(module):
@@ -29,8 +29,7 @@ def setup_module(module):
 def test_ip_multiprocessing():
         # Create the severals folder if not exists
     os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(tmp_path, exist_ok=True)
-    start_pool(input_dir, ground_dir, output_dir, tmp_path,
+    start_pool(input_dir, ground_dir, output_dir,
                spatial_ref=spatial_reference, input_ext=input_ext)
     # Check all files are generated
     for input_file in os.listdir(input_dir):

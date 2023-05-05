@@ -11,7 +11,7 @@ tmp_path = os.path.join(test_path, "tmp")
 input_file = os.path.join(
     test_path,
     "data",
-    "test_data_0001_0001_LA93_IGN69.laz"
+    "test_data_77055_627760_LA93_IGN69.laz"
 )
 input_nb_points = 60653
 expected_output_nb_points_ground = 22343
@@ -22,7 +22,7 @@ output_dir = os.path.join(tmp_path,  "ground")
 
 output_default_file = os.path.join(output_dir, os.path.basename(input_file))
 
-output_las_file = os.path.join(output_dir,"test_data_0001_0001_LA93_IGN69.las")
+output_las_file = os.path.join(output_dir,"test_data_77055_627760_LA93_IGN69.las")
 
 
 def setup_module(module):

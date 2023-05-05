@@ -34,11 +34,6 @@ def parse_args():
         required=True,
         help="Directory folder for saving the outputs.")
     parser.add_argument(
-        "--temp_dir", "-t",
-        type=str,
-        default = "/tmp",
-        help="Directory folder for saving intermediate results")
-    parser.add_argument(
         "--pixel_size", "-s",
         type=float,
         default=1,
@@ -80,7 +75,6 @@ def ip_worker(args):
 def start_pool(origin_dir: str,
                input_las_dir: str,
                output_dir: str,
-               temp_dir: str='/tmp',
                size: int=1,
                method: str='startin-Laplace',
                spatial_ref: str="EPSG:2154",
@@ -96,7 +90,7 @@ def start_pool(origin_dir: str,
     if len(fnames) == 0:
         raise ValueError("No file names were input")
 
-    pre_map = [[os.path.join(origin_dir, fn), input_las_dir, temp_dir, output_dir, size, method,
+    pre_map = [[os.path.join(origin_dir, fn), input_las_dir, output_dir, size, method,
                 spatial_ref, input_ext]
                for fn in fnames]
     with Pool(num_threads) as p:
@@ -116,8 +110,8 @@ def main():
 
     # Create the severals folder if not exists
     os.makedirs(args.output_dir, exist_ok=True)
-    os.makedirs(args.temp_dir, exist_ok=True)
-    start_pool(args.origin_dir, args.input_las_dir, args.output_dir, args.temp_dir,
+
+    start_pool(args.origin_dir, args.input_las_dir, args.output_dir,
                size=args.pixel_size,
                method=args.interpolation_method,
                spatial_ref=args.spatial_reference,

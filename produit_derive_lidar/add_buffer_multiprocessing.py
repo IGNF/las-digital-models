@@ -64,7 +64,8 @@ def start_pool(input_dir: str,
         raise ValueError("No file names were input")
 
     pre_map = [[input_dir, os.path.join(input_dir, fn),
-                os.path.join(output_dir, fn), buffer_width, spatial_ref]
+                os.path.join(output_dir, fn), buffer_width, spatial_ref,
+                commons.tile_width, commons.tile_coord_scale]
                for fn in fnames]
     with Pool(num_threads) as p:
         p.map(ip_worker, pre_map)

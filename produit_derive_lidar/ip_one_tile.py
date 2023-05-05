@@ -3,7 +3,8 @@ import argparse
 from produit_derive_lidar.commons import commons
 from produit_derive_lidar.commons.laspy_io import read_las_file_to_numpy
 from produit_derive_lidar.tasks.las_interpolation_deterministic import deterministic_method
-from produit_derive_lidar.tasks.las_raster_generation import export_and_clip_raster
+# from produit_derive_lidar.tasks.las_raster_generation import export_and_clip_raster
+from pdaltools.las_info import parse_filename
 import logging
 import os
 import numpy as np
@@ -65,6 +66,7 @@ def parse_args():
         help="Force input ext to .las or .laz. If None or not set, use origin extension"
     )
 
+
     return parser.parse_args()
 
 
@@ -86,24 +88,17 @@ def interpolate(input_file: str,
         origin: tile origin
         can_interpolate (bool): false if there were no points to interpolate
     """
-    points_np, res, origin = read_las_file_to_numpy(input_file, pixel_size)
+    _, coordX, coordY, _ = parse_filename(input_file)
+    origin = [float(coordX) * commons.tile_coord_scale, float(coordY) * commons.tile_coord_scale]
+    nb_pixels = [int(commons.tile_width / pixel_size), int(commons.tile_width / pixel_size)]
 
-    can_interpolate = points_np.size > 0
-
-    if can_interpolate:
-        _interpolation = deterministic_method(points_np, res, origin, pixel_size, interpolation_method,
-                                            spatial_ref=spatial_ref)
-        ras = _interpolation.run(pdal_input=input_file, pdal_output=output_raster)
-
-    else:
-        ras = None
-
-    return ras, origin, can_interpolate
+    _interpolation = deterministic_method(nb_pixels, origin, pixel_size, interpolation_method,
+                                        spatial_ref=spatial_ref)
+    _interpolation.run(input_file, output_raster)
 
 
 def run_ip_on_tile(origin_file: str,
                    input_dir :str,
-                   temp_dir: str,
                    output_dir: str,
                    pixel_size: float=1,
                    interpolation_method: str='startin-Laplace',
@@ -141,22 +136,14 @@ def run_ip_on_tile(origin_file: str,
     # for export
     _size = commons.give_name_resolution_raster(pixel_size)
     geotiff_filename = f"{tilename}{_size}_{commons.method_postfix[interpolation_method]}.tif"
-    geotiff_path_temp = os.path.join(temp_dir, geotiff_filename)
     geotiff_path = os.path.join(output_dir, geotiff_filename)
 
     ## process
-    ras, origin, success = interpolate(input_file,
-                              geotiff_path_temp,
-                              pixel_size,
-                              interpolation_method,
-                              spatial_ref=spatial_ref)
-
-    if not success:
-        _, res, origin = read_las_file_to_numpy(origin_file, pixel_size)
-        ras = commons.no_data_value * np.ones([res[1], res[0]])
-
-    export_and_clip_raster(origin_file, ras, origin, pixel_size, geotiff_path_temp,
-        geotiff_path, interpolation_method, spatial_ref, force_save_ras=(not success))
+    interpolate(input_file,
+                geotiff_path,
+                pixel_size,
+                interpolation_method,
+                spatial_ref=spatial_ref)
 
     return
 
@@ -166,10 +153,9 @@ def main():
     args = parse_args()
     input_las_dir = args.output_dir if args.input_las_dir is None else args.input_las_dir
 
-    os.makedirs(args.temp_dir, exist_ok=True)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    run_ip_on_tile(args.origin_file, input_las_dir, args.temp_dir, args.output_dir,
+    run_ip_on_tile(args.origin_file, input_las_dir, args.output_dir,
         args.pixel_size, args.interpolation_method,
         spatial_ref=args.spatial_reference, input_ext=args.force_input_ext)
 

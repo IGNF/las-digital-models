@@ -2,11 +2,12 @@
 # maintener : MDupays
 # version : v.0 10/10/2022
 # Clip raster with bouding box
-from pdaltools.las_info import las_get_xy_bounds
+from pdaltools.las_info import parse_filename
 from osgeo import gdal
+from produit_derive_lidar.commons import commons
 
 
-def clip_raster(input_las, input_image, output_image, size, spatial_ref="EPSG:2154"):
+def clip_raster(input_las, input_image, output_image, size):
     """ Clip the rasters with the boudnign box
 
     Args:
@@ -20,8 +21,15 @@ def clip_raster(input_las, input_image, output_image, size, spatial_ref="EPSG:21
 
     """
     # Extract the bounding box
-    (minX, maxX), (minY, maxY) = las_get_xy_bounds(input_las, buffer_width=0,
-                                                   spatial_ref=spatial_ref)
+    _, coordX, coordY, _ = parse_filename(input_las)
+    coordX = float(coordX)
+    coordY = float(coordY)
+    # Coordinates in the filenames are x_min and y_max
+    minX = coordX * commons.tile_coord_scale - PixelRes/2
+    maxX = coordX * commons.tile_coord_scale - PixelRes/2 + commons.tile_width
+    maxY = coordY * commons.tile_coord_scale + PixelRes/2
+    minY = coordY * commons.tile_coord_scale + PixelRes/2 - commons.tile_width
+
     # Parameters
     RasterFormat = 'GTiff'
     PixelRes = float(size)

@@ -14,7 +14,7 @@ tmp_path = os.path.join(test_path, "tmp")
 origin_file = os.path.join(
     test_path,
     "data",
-    "test_data_0001_0001_LA93_IGN69.laz"
+    "test_data_77055_627760_LA93_IGN69.laz"
 )
 dtm_dir = os.path.join(test_path, "data", "DTM")
 dsm_dir = os.path.join(test_path, "data", "DSM")

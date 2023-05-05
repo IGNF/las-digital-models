@@ -4,9 +4,13 @@
 # LAS INTERPOLATION
 import logging
 from produit_derive_lidar.commons import commons
+from produit_derive_lidar.commons.laspy_io import read_las_file_to_numpy
 import pdal
 import json
 import numpy as np
+import rasterio
+from rasterio.transform import from_origin
+from typing import List
 
 
 class deterministic_method:
@@ -15,7 +19,7 @@ class deterministic_method:
 
     Args:
         pts : ground points clouds
-        res(list): resolution in coordinates
+        nb_pixels(list): number of pixels on each axis
         origin(list): coordinate location of the relative origin (bottom left)
         size (int): raster cell size
         method(str): spatial interpolation
@@ -23,22 +27,32 @@ class deterministic_method:
 
     def __init__(
         self,
-        pts,
-        res: list,
-        origin: list,
+        nb_pixels: List[int],
+        origin: List[float],
         size: float,
         method: str,
         spatial_ref: str
     ):
-        self.pts = pts
-        self.res = res
+        self.nb_pixels = nb_pixels
         self.origin = origin
-        self.size = size
+        self.pixel_size = size
         self.method = method
         self.spatial_ref=spatial_ref
 
+
+    def run_method_with_standard_io(self, fn, input_file, output_file):
+        points_np = read_las_file_to_numpy(input_file)
+        logging.debug(f"Read {len(points_np)} points from {input_file}.")
+        if len(points_np) > 0:
+            raster = fn(points_np)
+        else :
+            raster = commons.no_data_value * np.ones([self.nb_pixels[1], self.nb_pixels[0]])
+        write_geotiff(raster, self.origin, self.pixel_size, output_file, self.spatial_ref)
+        logging.debug(f"Saved to {output_file}")
+
+
     @commons.eval_time
-    def execute_startin(self):
+    def execute_startin(self, pts):
         """Takes the grid parameters and the ground points. Interpolates
         either using the TIN-linear or the Laplace method. Uses a no-data value set in commons
         Fully based on the startin package (https://startinpy.readthedocs.io/en/latest/api.html)
@@ -50,8 +64,8 @@ class deterministic_method:
         import numpy as np
 
         # # Startin
-        tin = startinpy.DT(); tin.insert(self.pts) # # Insert each points in the array of points (a 2D array)
-        ras = np.zeros([self.res[1], self.res[0]]) # # returns a new array of given shape and type, filled with zeros
+        tin = startinpy.DT(); tin.insert(pts) # # Insert each points in the array of points (a 2D array)
+        ras = np.zeros([self.nb_pixels[1], self.nb_pixels[0]]) # # returns a new array of given shape and type, filled with zeros
         # # Interpolate method
         if self.method == 'startin-TINlinear':
             def interpolant(x, y): return tin.interpolate_tin_linear(x, y)
@@ -59,24 +73,29 @@ class deterministic_method:
             def interpolant(x, y): return tin.interpolate_laplace(x, y)
         else:
             raise NotImplementedError(f"Method {self.method} not impplemented for execute_startin")
-        yi = 0
-        for y in np.arange(self.origin[1], self.origin[1] + self.res[1] * self.size, self.size):
-            xi = 0
-            for x in np.arange(self.origin[0], self.origin[0] + self.res[0] * self.size, self.size):
-                ch = tin.is_inside_convex_hull(x, y) # check is the point [x, y] located inside  the convex hull of the DT
+
+        for yi in range(self.nb_pixels[1]):
+            for xi in range(self.nb_pixels[0]):
+                x = self.origin[0] + xi * self.pixel_size
+                y = self.origin[1] - yi * self.pixel_size
+                try:
+                    ch = tin.is_inside_convex_hull(x, y) # check is the point [x, y] located inside  the convex hull of the DT
+                except Exception as e:
+                    raise ValueError(f"x: {x}, y: {y}, xi: {xi}, yi: {yi}")
+                    raise e
                 if ch == False:
                     ras[yi, xi] = commons.no_data_value
                 else:
                     tri = tin.locate(x, y) # locate the triangle containing the point [x,y]. An error is thrown if it is outside the convex hull
                     if tri != [] and 0 not in tri:
                         ras[yi, xi] = interpolant(x, y)
-                    else: ras[yi, xi] = commons.no_data_value
-                xi += 1
-            yi += 1
+                    else:
+                        ras[yi, xi] = commons.no_data_value
+
         return ras
 
     @commons.eval_time
-    def execute_cgal(self):
+    def execute_cgal(self, pts):
         """Performs CGAL-NN on the input points.
         First it removes any potential duplicates from the
         input points, as these would cause issues with the
@@ -94,7 +113,7 @@ class deterministic_method:
         from CGAL.CGAL_Triangulation_2 import Delaunay_triangulation_2
         from CGAL.CGAL_Interpolation import natural_neighbor_coordinates_2
 
-        s_idx = np.lexsort(self.pts.T); s_data = self.pts[s_idx,:]
+        s_idx = np.lexsort(pts.T); s_data = pts[s_idx,:]
         mask = np.append([True], np.any(np.diff(s_data[:,:2], axis = 0), 1))
         deduped = s_data[mask]
         cpts = list(map(lambda x: Point_2(*x), deduped[:,:2].tolist()))
@@ -102,11 +121,11 @@ class deterministic_method:
 
         tin = Delaunay_triangulation_2()
         for pt in cpts: tin.insert(pt)
-        ras = np.zeros([self.res[1], self.res[0]])
-        yi = 0
-        for y in np.arange(self.origin[1], self.origin[1] + self.res[1] * self.size, self.size):
-            xi = 0
-            for x in np.arange(self.origin[0], self.origin[0] + self.res[0] * self.size, self.size):
+        ras = np.zeros([self.nb_pixels[1], self.nb_pixels[0]])
+        for yi in range(self.nb_pixels[1]):
+            for xi in range(self.nb_pixels[0]):
+                x = self.origin[0] + xi * self.pixel_size
+                y = self.origin[1] - yi * self.pixel_size
                 nbrs = []
                 qry = natural_neighbor_coordinates_2(tin, Point_2(x, y), nbrs)
                 if qry[1] == True:
@@ -115,9 +134,9 @@ class deterministic_method:
                         z, w = zs[(nbr[0].x(), nbr[0].y())], nbr[1] / qry[0]
                         z_out += z * w
                     ras[yi, xi] = z_out
-                else: ras[yi, xi] = commons.no_data_value
-                xi += 1
-            yi += 1
+                else:
+                    ras[yi, xi] = commons.no_data_value
+
         return ras
 
     @commons.eval_time
@@ -156,9 +175,13 @@ class deterministic_method:
                     # "NOSRS" = Don’t read the SRS VLRs. The data will not be assigned an SRS.
                 },
                 {
+                    "type":"writers.gdal",
                     "output_type": method,
-                    "resolution": str(self.size),
-                    #"radius": str(self.size * sqrt(2)),
+                    "resolution": str(self.pixel_size),
+                    "origin_x": str(self.origin[0] - self.pixel_size / 2),  # lower left corner
+                    "origin_y": str(self.origin[1] + self.pixel_size / 2 - commons.tile_width),  # lower left corner
+                    "width": str(self.nb_pixels[0]),
+                    "height": str(self.nb_pixels[1]),
                     "power": 2,
                     "window_size": 5,
                     "nodata": commons.no_data_value,
@@ -209,7 +232,11 @@ class deterministic_method:
                 },
                 {
                     "type": "filters.faceraster",
-                    "resolution": str(self.size)
+                    "resolution": str(self.pixel_size),
+                    "origin_x": str(self.origin[0] - self.pixel_size / 2),  # lower left corner
+                    "origin_y": str(self.origin[1] + self.pixel_size / 2 - commons.tile_width),  # lower left corner
+                    "width": str(self.nb_pixels[0]),
+                    "height": str(self.nb_pixels[1]),
                 },
                 {
                     "type": "writers.raster",
@@ -224,7 +251,7 @@ class deterministic_method:
         pipeline = pdal.Pipeline(las_mnt)
         pipeline.execute()
 
-    def run(self, pdal_input: str, pdal_output: str):
+    def run(self, input_file: str, output_file: str):
         """Lauch the deterministic method
         Args:
             input_dir: folder to look for las file (usually temp_dir)
@@ -232,16 +259,45 @@ class deterministic_method:
         Returns:
             ras(list): Z interpolation
         """
-        if self.method == 'PDAL-IDW':
-            self.execute_pdal(pdal_input, pdal_output, method='idw')
-            return
-        elif self.method == 'PDAL-TIN':
-            self.execute_pdal_tin(pdal_input, pdal_output)
-            return
-        if self.method == 'startin-TINlinear' or self.method == 'startin-Laplace':
-            ras = self.execute_startin()
-        elif self.method == 'CGAL-NN':
-            ras = self.execute_cgal()
-        else:
-            raise ValueError(f"Method {self.method} not recognized")
-        return ras
+        def exec_startin_with_io(inpf, outf):
+            return self.run_method_with_standard_io(self.execute_startin, inpf, outf)
+
+        methods_map = {
+            'PDAL-IDW': (lambda inpf, outf : self.execute_pdal(inpf, outf, method='idw')),
+            'PDAL-TIN': self.execute_pdal_tin,
+            'startin-TINlinear': exec_startin_with_io,
+            'startin-Laplace': exec_startin_with_io,
+            'CGAL-NN': (lambda inpf, outf : self.run_method_with_standard_io(
+                        self.execute_cgal, inpf, outf)),
+        }
+
+        # run method
+        methods_map[self.method](input_file, output_file)
+
+
+def write_geotiff(raster, origin, size, fpath, spatial_ref='EPSG:2154'):
+    """Writes the interpolated TIN-linear and Laplace rasters
+    to disk using the GeoTIFF format. The header is based on
+    the raster array and a manual definition of the coordinate
+    system and an identity affine transform.
+
+    Args:
+        raster(array) : Z interpolation
+        origin(list): coordinate location of the relative origin (bottom left)
+        size (float): raster cell size
+        fpath(str): path to the output geotiff file
+
+    Returns:
+        bool: If the output "DTM" saved in fpath is okay or not
+    """
+    with rasterio.Env():
+        with rasterio.open(fpath, 'w', driver = 'GTiff',
+                           height=raster.shape[0],
+                           width=raster.shape[1],
+                           count=1,
+                           dtype=rasterio.float32,
+                           crs=spatial_ref,
+                           transform=from_origin(origin[0] - size/2, origin[1] + size/2, size, size),
+                           nodata=commons.no_data_value,
+                           ) as out_file:
+            out_file.write(raster.astype(rasterio.float32), 1)

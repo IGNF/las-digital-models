@@ -42,7 +42,6 @@ echo "------------------"
 # Output filenames for each step
 FILTERED_DIR=${OUTPUT}/ground
 BUFFERED_DIR=${OUTPUT}/ground_with_buffer
-TMP_DIR=${OUTPUT}/tmp/DTM
 DTM_DIR=${OUTPUT}/DTM
 
 # Step 1.1 : filter ground
@@ -79,7 +78,6 @@ do
       -i ${BUFFERED_DIR} \
       -o ${DTM_DIR} \
       -m ${METHOD} \
-      -t ${TMP_DIR} \
       -s ${PIXEL_SIZE} \
       --cpu_limit ${CPU_LIMIT}
 done
@@ -93,7 +91,6 @@ echo "------------------"
 # Output filenames for each step
 FILTERED_DIR=${OUTPUT}/upground
 BUFFERED_DIR=${OUTPUT}/upground_with_buffer
-TMP_DIR=${OUTPUT}/tmp/DSM
 DSM_DIR=${OUTPUT}/DSM
 
 # Step 2.1 : filter ground + upground
@@ -119,7 +116,6 @@ do
       -i ${BUFFERED_DIR} \
       -o ${DSM_DIR} \
       -m ${METHOD} \
-      -t ${TMP_DIR} \
       -s ${PIXEL_SIZE} \
     --cpu_limit ${CPU_LIMIT}
 done
