@@ -8,21 +8,31 @@ import shutil
 import test.utils.point_cloud_utils as pcu
 import test.utils.raster_utils as ru
 
+from hydra import initialize, compose
+
+
+coordX = 77055
+coordY = 627760
+tile_coord_scale = 10
+tile_width = 50
+pixel_size = 0.5
+interpolation_method = "pdal-tin"
+
 
 test_path = os.path.dirname(os.path.abspath(__file__))
 tmp_path = os.path.join(test_path, "tmp")
-origin_file = os.path.join(
-    test_path,
-    "data",
-    "test_data_77055_627760_LA93_IGN69.laz"
-)
-dtm_dir = os.path.join(test_path, "data", "DTM")
-dsm_dir = os.path.join(test_path, "data", "DSM")
 
 output_dir = os.path.join(tmp_path, "DHM")
+expected_output_file = os.path.join(
+    output_dir,
+    f"test_data_{coordX}_{coordY}_LA93_IGN69_50CM_TIN.tif"
+)
 
-pixel_size = 0.5
-interpolation_method = "PDAL-TIN"
+expected_xmin = coordX * tile_coord_scale - pixel_size/2
+expected_ymax = coordY * tile_coord_scale  + pixel_size/2
+expected_raster_bounds = (expected_xmin, expected_ymax - tile_width), (expected_xmin + tile_width, expected_ymax)
+
+
 
 def setup_module(module):
     try:
@@ -34,19 +44,21 @@ def setup_module(module):
 
 
 def test_mnh_one_tile():
-    os.makedirs(output_dir, exist_ok=True)
-    _size = commons.give_name_resolution_raster(pixel_size)
-    postfix = f"{_size}_{commons.method_postfix[interpolation_method]}.tif"
-    output_filename = os.path.splitext(os.path.basename(origin_file))[0] + postfix
-    output_file = os.path.join(output_dir, output_filename)
+    with initialize(version_base="1.2", config_path="../configs"):
+        # config is relative to a module
+        cfg = compose(config_name="config",
+                      overrides=["io=test", "tile_geometry=test",
+                                 f"io.output_dir={output_dir}",
+                                 f"interpolation={interpolation_method}",
+                                 "dhm=test"])
 
-    dhm_one_tile.run_dhm_on_tile(origin_file, dsm_dir, dtm_dir, output_dir,
-        pixel_size, interpolation_method)
-    assert os.path.isfile(output_file)
+    assert cfg.interpolation.algo_name == interpolation_method  # Check that the correct method is used
 
-    raster_bounds = ru.get_tif_extent(output_file)
-    pcd_bounds = pcu.get_2d_bounding_box(origin_file)
-    assert np.allclose(raster_bounds, pcd_bounds, rtol=1e-06)
+    dhm_one_tile.run_dhm_on_tile(cfg)
+    assert os.path.isfile(expected_output_file)
+
+    raster_bounds = ru.get_tif_extent(expected_output_file)
+    assert np.allclose(raster_bounds, expected_raster_bounds, rtol=1e-06)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,2 @@
+input_dsm_dir: ./test/data/DSM
+input_dtm_dir: ./test/data/DTM
