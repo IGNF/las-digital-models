@@ -10,6 +10,8 @@ work_dir: ${hydra:runtime.cwd}
 defaults:
   - _self_  # for hydra legacy reasons
 
+  - buffer: default.yaml
+  - filter: dtm.yaml
   - interpolation: startin-laplace.yaml
   - io: default.yaml
   - tile_geometry: default.yaml  # describes input features and classes

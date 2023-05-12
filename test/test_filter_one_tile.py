@@ -4,25 +4,28 @@ import os
 import pytest
 import shutil
 import test.utils.point_cloud_utils as pcu
+from hydra import initialize, compose
 
+
+coordX = 77055
+coordY = 627760
+tile_coord_scale = 10
+tile_width = 50
+pixel_size = 0.5
 
 test_path = os.path.dirname(__file__)
 tmp_path = os.path.join(test_path, "tmp")
-input_file = os.path.join(
-    test_path,
-    "data",
-    "test_data_77055_627760_LA93_IGN69.laz"
-)
+
 input_nb_points = 60653
 expected_output_nb_points_ground = 22343
 expected_output_nb_points_building = 14908
 
-spatial_reference = "EPSG:2154"
+
 output_dir = os.path.join(tmp_path,  "ground")
 
-output_default_file = os.path.join(output_dir, os.path.basename(input_file))
+output_default_file = os.path.join(output_dir, f"test_data_{coordX}_{coordY}_LA93_IGN69.laz")
 
-output_las_file = os.path.join(output_dir,"test_data_77055_627760_LA93_IGN69.las")
+output_las_file = os.path.join(output_dir,f"test_data_{coordX}_{coordY}_LA93_IGN69.las")
 
 
 def setup_module(module):
@@ -35,23 +38,42 @@ def setup_module(module):
 
 
 def test_filter_one_tile():
-    filter_one_tile.run_filter_on_tile(input_file, output_dir, spatial_ref=spatial_reference)
+    with initialize(version_base="1.2", config_path="../configs"):
+        # config is relative to a module
+        cfg = compose(config_name="config",
+                      overrides=["io=test", "tile_geometry=test",
+                                 f"io.output_dir={output_dir}",
+                                 f"filter=default_test"])
+
+    filter_one_tile.run_filter_on_tile(cfg)
     assert os.path.isfile(output_default_file)
     assert pcu.get_nb_points(output_default_file) == expected_output_nb_points_ground
 
 
 def test_filter_one_tile_building_class():
-    filter_one_tile.run_filter_on_tile(input_file, output_dir, spatial_ref=spatial_reference,
-    keep_classes=[6])
+    with initialize(version_base="1.2", config_path="../configs"):
+        # config is relative to a module
+        cfg = compose(config_name="config",
+                      overrides=["io=test", "tile_geometry=test",
+                                 f"io.output_dir={output_dir}",
+                                  f"filter.keep_classes=[6]"])
+    filter_one_tile.run_filter_on_tile(cfg)
     assert os.path.isfile(output_default_file)
     assert pcu.get_nb_points(output_default_file) == expected_output_nb_points_building
 
 
 def test_filter_one_tile_force_output():
-    filter_one_tile.run_filter_on_tile(input_file, output_dir, spatial_ref=spatial_reference,
-                                       output_ext="las")
+    with initialize(version_base="1.2", config_path="../configs"):
+        # config is relative to a module
+        cfg = compose(config_name="config",
+                        overrides=["io=test", "tile_geometry=test",
+                                    f"io.output_dir={output_dir}",
+                                    f"filter=default_test",
+                                    "io.forced_intermediate_ext=las"])
+    filter_one_tile.run_filter_on_tile(cfg)
     assert os.path.isfile(output_las_file)
     assert pcu.get_nb_points(output_las_file) == expected_output_nb_points_ground
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

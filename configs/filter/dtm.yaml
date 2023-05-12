@@ -1,0 +1,1 @@
+keep_classes: [2, 9, 66]   # Classes to keep when running DTM

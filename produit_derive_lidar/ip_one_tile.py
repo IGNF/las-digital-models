@@ -52,23 +52,8 @@ def interpolate(input_file: str,
 
 @hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
 def run_ip_on_tile(config: DictConfig):
-    """Run interpolation on single tile
-    Args:
-        origin_file(str): path to the origin tile (used to define the output bounding box)
-        input_file(str): Directory where to find the files on which to run the interpolation
-            (can be different of origin_dir in case there has been preprocessing)
-        output_dir(str): output folder for raster images
-        pixel_size(int): pixel size for raster generation
-        interpolation_method(str): interpolation method for raster generation
-        spatial_ref(str): spatial reference to use when reading las file
-        input_ext (str or None): In case input_file has not the same extension as origin file,
-            defines input file extension
-    Output:
-        ras: output raster (/!\ can be None for some methods)
-        origin: tile origin
-        can_interpolate (bool): false if there were no points to interpolate
-
-
+    """Run interpolation on single tile useing hydra config
+    config parameters are explained in the default.yaml files
     """
     if config.io.input_dir is None:
         input_dir = config.io.output_dir
@@ -79,7 +64,7 @@ def run_ip_on_tile(config: DictConfig):
     tilename, _ = os.path.splitext(config.io.input_filename)
 
     # input file (already filtered and potentially with a buffer)
-    if config.io.forced_input_ext is None:
+    if config.io.forced_intermediate_ext is None:
         input_file = os.path.join(input_dir, config.io.input_filename)
     else:
         input_file = os.path.join(input_dir, f"{tilename}.{config.io.forced_input_ext}")

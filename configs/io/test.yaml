@@ -1,9 +1,8 @@
 input_dir: ./test/data/
-input_filename: test_data_77050_627760_LA93_IGN69.laz
+input_filename: test_data_77055_627760_LA93_IGN69.laz
 
-forced_input_ext: null  
+forced_intermediate_ext: null
 
 spatial_reference: EPSG:2154
-point_cloud_extensions: ["las", "laz"]
 
 output_dir: ./test/tmp/hydra_ip

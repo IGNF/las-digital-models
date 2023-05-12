@@ -1,0 +1,39 @@
+"""Add a buffer around the queried tile from its neighbors
+The script assumes that the neighbor tiles are located in the same folder as
+the queried tile
+
+"""
+
+from pdaltools.las_add_buffer import create_las_with_buffer
+import logging
+import os
+import hydra
+from omegaconf import DictConfig
+
+
+@hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
+def run_add_buffer_one_tile(config: DictConfig):
+    """
+    The script assumes that the neighbor tiles are located in the same folder as
+    the queried tile
+    """
+    os.makedirs(config.io.output_dir, exist_ok=True)
+
+    create_las_with_buffer(
+        input_dir=config.io.input_dir,
+        tile_filename=config.io.input_filename,
+        output_filename=os.path.join(config.io.output_dir, config.io.input_filename),
+        buffer_width=config.buffer.size,
+        spatial_ref=config.io.spatial_reference,
+        tile_width=config.tile_geometry.tile_width,
+        tile_coord_scale=config.tile_geometry.tile_coord_scale
+    )
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    run_add_buffer_one_tile()
+
+
+if __name__ == '__main__':
+    main()

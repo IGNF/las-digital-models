@@ -1,4 +1,3 @@
-from osgeo import gdal
 from produit_derive_lidar import ip_one_tile
 import logging
 import numpy as np
@@ -9,7 +8,7 @@ import test.utils.raster_utils as ru
 from hydra import initialize, compose
 
 
-coordX = 77050
+coordX = 77055
 coordY = 627760
 tile_coord_scale = 10
 tile_width = 50
