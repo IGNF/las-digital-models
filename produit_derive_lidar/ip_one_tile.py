@@ -67,7 +67,7 @@ def run_ip_on_tile(config: DictConfig):
     if config.io.forced_intermediate_ext is None:
         input_file = os.path.join(input_dir, config.io.input_filename)
     else:
-        input_file = os.path.join(input_dir, f"{tilename}.{config.io.forced_input_ext}")
+        input_file = os.path.join(input_dir, f"{tilename}.{config.io.forced_intermediate_ext}")
 
     # for export
     _size = commons.give_name_resolution_raster(config.tile_geometry.pixel_size)

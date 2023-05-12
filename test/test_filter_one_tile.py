@@ -76,6 +76,6 @@ def test_filter_one_tile_force_output():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     test_filter_one_tile()
     test_filter_one_tile_building_class()

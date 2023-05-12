@@ -26,6 +26,7 @@ def run_filter_on_tile(config: DictConfig):
     output_file = os.path.join(config.io.output_dir, output_basename)
 
     ## process
+    log.debug(f"Keep classes: {config.filter.keep_classes}")
     filter_las_classes(input_full_path,
                        output_file,
                        spatial_ref=config.io.spatial_reference,
@@ -35,7 +36,7 @@ def run_filter_on_tile(config: DictConfig):
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     run_filter_on_tile()
 
 
