@@ -1,0 +1,2 @@
+algo_name: pdal-idw
+method_postfix: "IDW"  # postfix for output file generation

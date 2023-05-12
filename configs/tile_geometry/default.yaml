@@ -1,0 +1,6 @@
+
+tile_coord_scale: 1000  # coords in tile names are in km
+tile_width: 1000
+
+pixel_size: 1  # pixel size (in metres) for interpolation
+no_data_value: -9999

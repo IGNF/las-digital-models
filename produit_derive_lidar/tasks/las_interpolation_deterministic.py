@@ -29,15 +29,21 @@ class deterministic_method:
         self,
         nb_pixels: List[int],
         origin: List[float],
-        size: float,
+        pixel_size: float,
         method: str,
-        spatial_ref: str
+        spatial_ref: str,
+        no_data_value: int,
+        tile_width: int,
+        tile_coord_scale:int
     ):
         self.nb_pixels = nb_pixels
         self.origin = origin
-        self.pixel_size = size
+        self.pixel_size = pixel_size
         self.method = method
-        self.spatial_ref=spatial_ref
+        self.spatial_ref = spatial_ref
+        self.no_data_value = no_data_value
+        self.tile_width = tile_width
+        self.tile_coord_scale = tile_coord_scale
 
 
     def run_method_with_standard_io(self, fn, input_file, output_file):
@@ -46,8 +52,8 @@ class deterministic_method:
         if len(points_np) > 0:
             raster = fn(points_np)
         else :
-            raster = commons.no_data_value * np.ones([self.nb_pixels[1], self.nb_pixels[0]])
-        write_geotiff(raster, self.origin, self.pixel_size, output_file, self.spatial_ref)
+            raster = self.no_data_value * np.ones([self.nb_pixels[1], self.nb_pixels[0]])
+        write_geotiff(raster, self.origin, self.pixel_size, output_file, self.spatial_ref, self.no_data_value)
         logging.debug(f"Saved to {output_file}")
 
 
@@ -67,12 +73,12 @@ class deterministic_method:
         tin = startinpy.DT(); tin.insert(pts) # # Insert each points in the array of points (a 2D array)
         ras = np.zeros([self.nb_pixels[1], self.nb_pixels[0]]) # # returns a new array of given shape and type, filled with zeros
         # # Interpolate method
-        if self.method == 'startin-TINlinear':
+        if self.method.lower() == 'startin-tinlinear':
             def interpolant(x, y): return tin.interpolate_tin_linear(x, y)
-        elif self.method == 'startin-Laplace':
+        elif self.method.lower() == 'startin-laplace':
             def interpolant(x, y): return tin.interpolate_laplace(x, y)
         else:
-            raise NotImplementedError(f"Method {self.method} not impplemented for execute_startin")
+            raise NotImplementedError(f"Method {self.method} not implemented for execute_startin")
 
         for yi in range(self.nb_pixels[1]):
             for xi in range(self.nb_pixels[0]):
@@ -84,13 +90,13 @@ class deterministic_method:
                     raise ValueError(f"x: {x}, y: {y}, xi: {xi}, yi: {yi}")
                     raise e
                 if ch == False:
-                    ras[yi, xi] = commons.no_data_value
+                    ras[yi, xi] = self.no_data_value
                 else:
                     tri = tin.locate(x, y) # locate the triangle containing the point [x,y]. An error is thrown if it is outside the convex hull
                     if tri != [] and 0 not in tri:
                         ras[yi, xi] = interpolant(x, y)
                     else:
-                        ras[yi, xi] = commons.no_data_value
+                        ras[yi, xi] = self.no_data_value
 
         return ras
 
@@ -135,7 +141,7 @@ class deterministic_method:
                         z_out += z * w
                     ras[yi, xi] = z_out
                 else:
-                    ras[yi, xi] = commons.no_data_value
+                    ras[yi, xi] = self.no_data_value
 
         return ras
 
@@ -179,12 +185,12 @@ class deterministic_method:
                     "output_type": method,
                     "resolution": str(self.pixel_size),
                     "origin_x": str(self.origin[0] - self.pixel_size / 2),  # lower left corner
-                    "origin_y": str(self.origin[1] + self.pixel_size / 2 - commons.tile_width),  # lower left corner
+                    "origin_y": str(self.origin[1] + self.pixel_size / 2 - self.tile_width),  # lower left corner
                     "width": str(self.nb_pixels[0]),
                     "height": str(self.nb_pixels[1]),
                     "power": 2,
                     "window_size": 5,
-                    "nodata": commons.no_data_value,
+                    "nodata": self.no_data_value,
                     "data_type": "float32",
                     "filename": output_file
                 }
@@ -234,14 +240,14 @@ class deterministic_method:
                     "type": "filters.faceraster",
                     "resolution": str(self.pixel_size),
                     "origin_x": str(self.origin[0] - self.pixel_size / 2),  # lower left corner
-                    "origin_y": str(self.origin[1] + self.pixel_size / 2 - commons.tile_width),  # lower left corner
+                    "origin_y": str(self.origin[1] + self.pixel_size / 2 - self.tile_width),  # lower left corner
                     "width": str(self.nb_pixels[0]),
                     "height": str(self.nb_pixels[1]),
                 },
                 {
                     "type": "writers.raster",
                     "gdaldriver":"GTiff",
-                    "nodata": commons.no_data_value,
+                    "nodata": self.no_data_value,
                     "data_type": "float32",
                     "filename": output_file
                 }
@@ -263,19 +269,19 @@ class deterministic_method:
             return self.run_method_with_standard_io(self.execute_startin, inpf, outf)
 
         methods_map = {
-            'PDAL-IDW': (lambda inpf, outf : self.execute_pdal(inpf, outf, method='idw')),
-            'PDAL-TIN': self.execute_pdal_tin,
-            'startin-TINlinear': exec_startin_with_io,
-            'startin-Laplace': exec_startin_with_io,
-            'CGAL-NN': (lambda inpf, outf : self.run_method_with_standard_io(
+            'pdal-idw': (lambda inpf, outf : self.execute_pdal(inpf, outf, method='idw')),
+            'pdal-tin': self.execute_pdal_tin,
+            'startin-tinlinear': exec_startin_with_io,
+            'startin-laplace': exec_startin_with_io,
+            'cgal-nn': (lambda inpf, outf : self.run_method_with_standard_io(
                         self.execute_cgal, inpf, outf)),
         }
 
         # run method
-        methods_map[self.method](input_file, output_file)
+        methods_map[self.method.lower()](input_file, output_file)
 
 
-def write_geotiff(raster, origin, size, fpath, spatial_ref='EPSG:2154'):
+def write_geotiff(raster, origin, size, fpath, spatial_ref='EPSG:2154', no_data_value=-9999):
     """Writes the interpolated TIN-linear and Laplace rasters
     to disk using the GeoTIFF format. The header is based on
     the raster array and a manual definition of the coordinate
@@ -298,6 +304,6 @@ def write_geotiff(raster, origin, size, fpath, spatial_ref='EPSG:2154'):
                            dtype=rasterio.float32,
                            crs=spatial_ref,
                            transform=from_origin(origin[0] - size/2, origin[1] + size/2, size, size),
-                           nodata=commons.no_data_value,
+                           nodata=no_data_value,
                            ) as out_file:
             out_file.write(raster.astype(rasterio.float32), 1)

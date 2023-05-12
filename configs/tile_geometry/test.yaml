@@ -1,0 +1,5 @@
+tile_coord_scale: 10
+tile_width: 50
+
+pixel_size: 0.5
+no_data_value: -9999

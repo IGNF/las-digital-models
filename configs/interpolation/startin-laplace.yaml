@@ -1,0 +1,2 @@
+algo_name: startin-laplace
+method_postfix: "Laplace"  # postfix for output file generation

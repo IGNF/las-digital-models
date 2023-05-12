@@ -10,23 +10,6 @@ from typing import Callable
 import sys
 
 
-point_cloud_extensions = ("las", "laz")
-
-no_data_value = -9999
-
-tile_coord_scale = 10  # replace by 10 for tests  # coords in tile names are in km
-tile_width = 50  # replace by 50 for tests
-
-# Dictionnary used for postfix choice in filenames generation
-method_postfix = {
-    # "startin-TINlinear": "TINlinear",
-    # "startin-Laplace": "Laplace",
-    "CGAL-NN": "NN",
-    "PDAL-IDW": "IDW",
-    "PDAL-TIN": "TIN"
-}
-
-
 def select_num_threads(display_name="", cpu_limit=-1):
     """Select number of threads for multiprocessing from the number of cpu core and cpu_limit
     (maximum number of cores to use)"""

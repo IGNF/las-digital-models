@@ -1,0 +1,15 @@
+# Folder containing the input tiles (filtered and potentially with buffer added).
+# (set to `--output_dir` if not provided).
+input_dir: /path/to/origin/las/folder
+input_filename: filename.las
+# Force input ext to .las or .laz. If None or not set, use origin extension
+forced_input_ext: null  # can be "las", "laz" or null.
+
+# Spatial reference to use to override the one from input las.
+spatial_reference: EPSG:2154
+point_cloud_extensions: ["las", "laz"]  # Accepted point cloud extensions
+
+output_dir: /path/to/output/folder  # Directory folder for saving the outputs
+
+
+
