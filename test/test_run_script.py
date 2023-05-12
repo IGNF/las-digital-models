@@ -19,6 +19,9 @@ expected_output_dirs = {
     "dhm": os.path.join(output_dir, "DHM")
 }
 
+methods = ["cgal-nn", "pdal-idw", "pdal-tin", "startin-laplace", "startin-tinlinear"]
+postfixs = ["NN", "IDW", "TIN", "Laplace", "TINlinear"]
+
 def setup_module(module):
     try:
         shutil.rmtree(tmp_path)
@@ -42,11 +45,9 @@ def test_run_script():
     # Check that all files are created (for all methods)
 
     for input_file in os.listdir(input_dir):
-        if input_file.endswith(commons.point_cloud_extensions):
+        if input_file.endswith(("las", "laz")):
             tilename = os.path.splitext(input_file)[0]
-            for method, m_postfix in commons.method_postfix.items():
-                if method == "IDWquad":
-                    continue
+            for method, m_postfix in zip(methods, postfixs):
                 for od in expected_output_dirs.keys():
                     _size = commons.give_name_resolution_raster(pixel_size)
                     out_filename = f"{tilename}{_size}_{m_postfix}.tif"
