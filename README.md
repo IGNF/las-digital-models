@@ -1,161 +1,209 @@
-# Filter LIDAR (keep only ground) + Interpolation
+# Generate DXM from LAS point cloud files
+This repo contains code to generate different kinds of digital models from LAS inputs:
+* DSM: digital surface model (model of the ground surface including natural and built features such as trees or buildings)
+* DTM: digital terrain model (model of the ground surface without natural and built features such as trees or buildings)
+* DHM: digital height model (model of the height of natural and built features from the ground)
+# Overview
 
-**This is the Python repo of the filter LIDAR, then ground interpolation**
+## Workflow
 
-## In repo:
+The overall workflow to create DXM from a classified LAS point cloud is:
 
-* `README.md` _(this readme file)_
-* `filter_one_tile.py` _(main file for filtering LIDAR by classes: eg. keep only ground for a single tile)_
-* `filter_multiprocessing.py` _(main file for filtering LIDAR by classes: eg. keep only ground for a whole folder using multiprocessing to run faster)_
-* `ip_one_tile.py` _(main file for interpolation on a single tile)_
-* `ip_multiprocessing.py` _(main file for interpolation on a whole folder using multiprocessing to run faster)_
-* folder `docker` _(contains tools to run each step in a docker container)_
-* folder `tasks` _(severals tasks)_
-* folder `commons` _(common tools)_
+To generate a Digital Terrain Model (DTM):
+* filter: filter the point cloud to keep only ground points
+* buffer: add points from a buffer around the tile (from neighbor tiles) to limit border effects
+* interpolation : generate a DTM from the buffered + filtered point cloud
 
-The testing environment so far includes multiprocessing pool-based implementations TIN-linear and Laplace interpolation via startin, constrained Delaunay-based (CDT) TIN-linear and natural neighbour (NN) interpolation via CGAL, radial IDW via GDAL/PDAL and quadrant-based IDW via scipy cKDTree and our own code.
-
-## How to run
-
-The code in this repo can be executed either after being installed on your computer or via a docker image.
-
-### Run With docker
-_Tested on Linux only for the moment_
-Build docker image by running:
-
-```bash
-bash docker/build.sh
+```
+LAS -> filter -> buffer -> interpolation -> DTM
 ```
 
-- Run preprocessing on one tile by editing and running `docker/run_filter.sh`
-- Run interpolation on one tile by editing and running `docker/run_ip.sh`
+To generate a Digital Surface Model (DSM):
+* filter: filter the point cloud to keep the points that you want to include
+* buffer: add points from a buffer around the tile (from neighbor tiles) to limit border effects
+* interpolation : generate a DSM from the buffered + filtered point cloud
 
-To run on a whole folder, use gpao to manage the process with http://gitlab.forge-idi.ign.fr/Lidar/ProduitDeriveLidarGpao (work in progress as of january 2023)
+```
+LAS -> filter -> buffer -> interpolation -> DSM
+```
 
+To generate a Digital Height Model (DHM):
+* Compute a DSM and a DTM with the same interpolation method
+* Compute DHM as DSM - DTM
 
-### Run with direct installation
+```
+DTM - DSM -> DHM
+```
+
+## In this repo
+
+This repo contains:
+* code to compute the interpolation step on one tile
+* code to compute the DHM from DSM and DTM on one tile
+* scripts to compute the filter and buffer step  on one tile,
+using the [ign-pdal-tools](http://gitlab.forge-idi.ign.fr/Lidar/pdalTools) library
+* a script to run all steps together on a folder containing several tiles
+
+## Interpolation
+
+The testing environment so far includes implementations for:
+* TIN-linear and Laplace interpolation via startin
+* constrained Delaunay-based (CDT) TIN-linear and natural neighbour (NN) interpolation via CGAL
+* radial IDW via GDAL/PDAL and quadrant-based IDW via scipy cKDTree and our own code.
+
+More information on IDW in [More about the IDW algorithms](#more-about-the-idw-algorithms).
+
+## Output format
+
+**TODO**
+
+# Installation
+
 Install the conda environment for this repo:
+
 ```bash
-bash setup_env/setup_env.sh
+conda env create -n produit_derive_lidar -f environment.yml --force
+conda activate produit_derive_lidar
 ```
-You can run ground filtering and interpolation on a single tile with:
-* `python -m produit_derive_lidar.filter_one_tile [YOUR ARGUMENTS]`
-* `python -m produit_derive_lidar.ip_one_tile [YOUR ARGUMENTS]`
-(cf. `python -m produit_derive_lidar.filter_one_tile` for the arguments list)
+# Usage
 
-You can run on a whole folder, using multiprocessing by following the instructions below
+The code in this repo can be executed either after being installed on your computer or via a
+docker image (see the [Docker section](#docker) for this use case).
 
-### Run with multiprocessing
+This code uses hydra to manage configuration and parameters. All configurations are available in
+the `configs` folder.
 
-You can find examples in `example_run_dsm.sh` and `example_run_dtm.sh`
-#### Primary (filter pointcloud by classes)
-You are advised to run `filter_multiprocessing` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+> **Warning** In all steps, the tiles are supposed to be named following this syntax:
+> `prefix1_prefix2_{coord_x}_{coord_y}_suffix` where
+> `coord_x` and `coord_y` are the coordinates of the top-left corner of the tile.
+> By default, they are given in km, and the tile width is 1km. Otherwise, you must override the
+> values of `tile_geomerty.tile_width` and `tile_geomerty.tile_coord_scale`
 
-Run `python -m produit_derive_lidar.filter_multiprocessing -h` to get the whole signature of the script
+## Whole pipeline
 
-Here is an example:
+To run the whole pipeline (DSM + DTM + DHM) on all the LAS files in a folder, using all the
+available interpolation method, use `run.sh`.
+
 ```bash
-python -m produit_derive_lidar.filter_multiprocessing -i ${origin_dir} -o ${filtered_las_dir} --keep_classes 2 66
-optional arguments:
-  -h, --help            show this help message and exit
-  --input_dir INPUT_DIR, -i INPUT_DIR
-                        Input file on which to run the pipeline (most likely located in PDAL folder 'data'). The script assumes that the neighbor tiles are located in the same folder
-                        as the queried tile
-  --output_dir OUTPUT_DIR, -o OUTPUT_DIR
-                        Directory folder for saving the filtered tiles
-  --extension {las,laz}, -e {las,laz}
-                        extension
-  --spatial_reference SPATIAL_REFERENCE
-                        Spatial reference to use to override the one from input las.
-
-  --keep_classes KEEP_CLASSES [KEEP_CLASSES ...]
-                        Classes to keep when filtering. Default: ground + virtual points. To provide a list, follow this example : '--keep_classes 2 66 291'
-  --cpu_limit CPU_LIMIT
-                        Maximum number of cpus to use (Default: use cpu_count - 1)
+./run.sh -i INPUT_DIR -o OUTPUT_DIR -p PIXEL_SIZE -j PARALLEL_JOBS
 ```
 
-#### Secondary entry point (interpolation + post-processing)
+with:
+* INPUT_DIR: folder that contains the input point clouds
+* OUTPUT_DIR: folder where the output will be saved
+* PIXEL_SIZE: The desired pixel size of the output (in meters)
+* PARALLEL_JOBS: the number of jobs to run in parallel, 0 is as many as possible (cf. parallel command)
 
-You are advised to run `ip_multiprocessing` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+It will generate:
+* Temporary files (you can delete them manually when the result looks good):
+  * ${OUTPUT_DIR}/ground : filtered las for DTM generation
+  * ${OUTPUT_DIR}/ground_with_buffer : buffered las for DTM generation
+  * ${OUTPUT_DIR}/upground : filtered las for DSM generation
+  * ${OUTPUT_DIR}/upground_with_buffer : buffered las for DSM generation
+* Output folders:
+  * ${OUTPUT_DIR}/DTM
+  * ${OUTPUT_DIR}/DSM
+  * ${OUTPUT_DIR}/DHM
 
-Run `python -m produit_derive_lidar.ip_multiprocessing  -h` to get the whole signature of the script
+## Filter
 
-Here is an example:
+To filter a pointcloud in order to keep only the desired classes using `ign-pdal-tools`:
+
 ```bash
-python -m produit_derive_lidar.ip_multiprocessing -i ${origin_dir} -f ${filtered_las_dir} -o ${output_dir}
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --origin_dir ORIGIN_DIR, -i ORIGIN_DIR
-                        Folder containing the origin lidar tiles (before filtering).Used to retrieve the tile bounding box.
-  --filtered_las_dir FILTERED_LAS_DIR, -f FILTERED_LAS_DIR
-                        Folder containing the input filtered tiles.
-  --output_dir OUTPUT_DIR, -o OUTPUT_DIR
-                        Directory folder for saving the outputs.
-  --temp_dir TEMP_DIR, -t TEMP_DIR
-                        Directory folder for saving intermediate results
-  --extension {las,laz}, -e {las,laz}
-                        extension
-  --postprocessing {0,1,2,3,4}, -p {0,1,2,3,4}
-                        post-processing mode, currently these ones are available: - 0 (default, does not run post-processing) - 1 (runs missing pixel value patching only) - 2 (runs
-                        basic flattening only) - 3 (runs both patching and basic flattening) - 4 (runs patching, basic flattening and hydro-flattening)
-  --pixel_size PIXEL_SIZE, -s PIXEL_SIZE
-                        pixel size (in metres) for interpolation
-  --interpolation_method {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}, -m {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}
-                        interpolation method)
-  --spatial_reference SPATIAL_REFERENCE
-                        Spatial reference to use to override the one from input las.
-  --buffer_width BUFFER_WIDTH
-                        Width (in meter) for the buffer that is added to the tile before interpolation (to prevent artefacts)
-  --cpu_limit CPU_LIMIT
-                        Maximum number of cpus to use (Default: use cpu_count - 1)
-
-All IDW parameters are optional, but it is assumed the user will fine-tune them, hence the defaults are not listed. Output files will be written to the target folder, tagged with
-thename of the interpolation method that was used.
-
+python -m produit_derive_lidar.filter_one_tile \
+  io.input_dir=INPUT_DIR \
+  io.input_filename=INPUT_FILENAME \
+  io.output_dir=OUTPUT_DIR \
+  filter.keep_classes=[2,66]
 ```
 
-#### Thirty entry point (calculate DHM = DSM - DTM)
+`filter.keep_classes` must be a list inside `[]`, separated by `,` without spaces.
 
-You are advised to run `dhm_multiprocessing` **from the console**, preferably from Anaconda Prompt. If you run it from an IDE, it will probably not fork the processes properly.
+Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
+[hydra](https://hydra.cc/) for more details on usage)
 
-Run `python -m produit_derive_lidar.dhm_multiprocessing  -h` to get the whole signature of the script
+## Buffer
 
-Here is an example:
+To add a buffer to a point cloud using `ign-pdal-tools`:
+
 ```bash
-python -m produit_derive_lidar.dhm_multiprocessing -i ${origin_dir} -i_s ${geotiff_dsm} -i_t ${geotiff_dsm} -o ${output_dir}
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --origin_dir ORIGIN_DIR, -i ORIGIN_DIR
-                        Folder containing the origin lidar tiles (before filtering).Used to retrieve the tile bounding box.
-  --origin_file_dsm ORIGIN_FILE_MNS, -i_s ORIGIN_FILE_MNS
-                        Directory folder for creating DSM.
-  --origin_file_dtm ORIGIN_FILE_DTM, -i_s ORIGIN_FILE_MNT
-                        Directory folder for creating DTM.
-  --output_dir OUTPUT_DIR, -o OUTPUT_DIR
-                        Directory folder for saving the outputs.
-  --temp_dir TEMP_DIR, -t TEMP_DIR
-                        Directory folder for saving intermediate results
-  --extension {las,laz}, -e {las,laz}
-                        extension
-  --postprocessing {0,1}, -p {0,1}
-                        post-processing mode, currently these ones are available: - 0 (default, does not run post-processing) - 1 (runs missing pixel value patching only)
-  --pixel_size PIXEL_SIZE, -s PIXEL_SIZE
-                        pixel size (in metres) for interpolation
-  --interpolation_method {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}, -m {startin-TINlinear,startin-Laplace,CGAL-NN,PDAL-IDW,IDWquad}
-                        interpolation method)
-  --spatial_reference SPATIAL_REFERENCE
-                        Spatial reference to use to override the one from input las.
-  --cpu_limit CPU_LIMIT
-                        Maximum number of cpus to use (Default: use cpu_count - 1)
-
-All IDW parameters are optional, but it is assumed the user will fine-tune them, hence the defaults are not listed. Output files will be written to the target folder, tagged with
-thename of the interpolation method that was used.
-
+python -m produit_derive_lidar.filter_one_tile \
+  io.input_dir=INPUT_DIR \
+  io.input_filename=INPUT_FILENAME \
+  io.output_dir=OUTPUT_DIR \
+  buffer.size=10
 ```
 
-## A word of caution
+Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
+[hydra](https://hydra.cc/) for more details on usage)
+
+## Interpolation
+
+To run interpolation (DXM generation) using a given method:
+
+```bash
+python -m produit_derive_lidar.ip_one_tile \
+    io.input_dir=${BUFFERED_DIR} \
+    io.input_filename={} \
+    io.output_dir=${DTM_DIR} \
+    interpolation=${METHOD} \
+    tile_geometry.pixel_size=${PIXEL_SIZE}
+```
+
+`interpolation` must be the stem of one of the filenames in `configs/interpolation`
+
+Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
+[hydra](https://hydra.cc/) for more details on usage)
+
+
+## DHM
+
+To generate DHM:
+```bash
+    python -m produit_derive_lidar.dhm_one_tile \
+        dhm.input_dsm_dir=${DSM_DIR} \
+        dhm.input_dtm_dir=${DTM_DIR} \
+        io.input_filename={} \
+        io.output_dir=${DHM_DIR} \
+        interpolation=${METHOD} \
+        tile_geometry.pixel_size=${PIXEL_SIZE}
+
+```
+`dhm.input_dsm_dir` and `dhm.input_dtm_dir` must contained DSM and DTM generated with
+`produit_derive_lidar.ip_one_tile` using the same interpolation method an pixel_size as given in
+arguments.
+
+Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
+[hydra](https://hydra.cc/) for more details on usage)
+
+
+
+# Docker
+
+This codebase can be used in a docker image.
+
+To generate the docker image, run `bash docker/build.sh`
+
+To deploy it on nexus, run `bash docker/deploy.sh`
+
+To run any of the methods cited in the [Usage section](#usage):
+```bash
+# Example for interpolation
+docker run -t --rm --userns=host --shm-size=2gb \
+    -v $INPUT_DIR:/input
+    -v $OUTPUT_DIR:/output
+    lidar_hd/produits_derives_lidar:$VERSION
+    python -m produit_derive_lidar.ip_one_tile \
+        io.input_dir=/input \
+        io.input_filename=$FILENAME \
+        io.output_dir=/output \
+        interpolation=$METHOD \
+        tile_geometry.pixel_size=$PIXEL_SIZE
+```
+
+The version number is in `VERSION.md`
+
+# A word of caution
 
 If you are using an Anaconda virtual environment for PDAL/CGAL, you should first activate the environment in Anaconda prompt and _then_ run the relevant script
 from the same prompt. So, for example:
@@ -169,7 +217,7 @@ Another word of caution with the outputs is that they all use a fixed no-data va
 
 **Another note:** You are advised to configure the IDWquad parametrisation **with performance in mind** when first getting started. Otherwise it might take _veeeeeery long_ to finish.
 
-## More about the IDW algorithms
+# More about the IDW algorithms
 
 ### PDAL-IDW
 The PDAL-IDW workflow is actually built on top of GDAL, but since GDAL does not play well with Python data structures, I used the interface that is provided within PDAL's pipeline framework to implement it. No part of the program currently uses the Python bindings of GDAL directly, but we might need to eventually start working with it. The ellipsoidal IDW features cannot be accessed through PDAL's interface for GDAL, hence they cannot be used here (hence PDAL-IDW only accepts one radius). There is a neat extra feature in the PDAL interface though, it allows a fallback method to be used. If you specify a value for an interpolation window (IDW argument 3 above), wherever radial IDW fails, the program will look for values within a square kernel of pixels around the pixel that is being interpolated (presumably after the first round of true IDW interpolation). For example, if you provide a value of 10 for this argument, it will look for values in a 10x10 square kernel around the pixel for values, weighting them based on their distance from the pixel that is being interpolated. This can theoretically make the result more or less continuous (a bit more like the Voronoi and TIN-based methods).
