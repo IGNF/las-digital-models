@@ -5,13 +5,15 @@ from produit_derive_lidar.tasks import las_filter
 import test.utils.point_cloud_utils as pcu
 import logging
 
+coordX = 77055
+coordY = 627760
 
 test_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 tmp_path = os.path.join(test_path, "tmp")
 input_file = os.path.join(
     test_path,
     "data",
-    "test_data_0001_0001_LA93_IGN69.laz"
+    f"test_data_{coordX}_{coordY}_LA93_IGN69.laz"
 )
 input_nb_points = 60653
 expected_output_nb_points = 22343
