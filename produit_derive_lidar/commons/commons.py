@@ -63,22 +63,6 @@ def eval_time_with_pid(function: Callable):
     return timed
 
 
-def listPointclouds(folder: str):
-    """ Return list of pointclouds in the folder 'data'
-
-    Args:
-        folder (str): 'data' directory who contains severals pointclouds (tile)
-        filetype (str): pointcloud's type in folder 'data : LAS or LAZ ?
-
-    Returns:
-        li(List): List of pointclouds (name)
-    """
-    li = [f for f in os.listdir(folder)
-        if os.path.splitext(f)[1].lstrip(".").lower() in point_cloud_extensions]
-
-    return li
-
-
 def give_name_resolution_raster(size):
     """
     Give a resolution from raster
@@ -95,7 +79,7 @@ def give_name_resolution_raster(size):
     elif int(size_cm) == float(size_cm):
         _size = f"_{int(size_cm)}CM"
     else :
-        raise ValueError(f"Cell size ({size}) has a precision smaller than centimeters: " +
-                         "output name not implemented for this case")
+        raise ValueError(f"Cell size is subcentimetric ({size}m) i.e raster resolution is " +
+                         "too high : output name not implemented for this case")
 
     return _size
