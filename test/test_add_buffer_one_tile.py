@@ -9,9 +9,6 @@ from hydra import initialize, compose
 
 coordX = 77055
 coordY = 627760
-tile_coord_scale = 10
-tile_width = 50
-pixel_size = 0.5
 
 test_path = os.path.dirname(__file__)
 tmp_path = os.path.join(test_path, "tmp")
