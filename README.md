@@ -65,6 +65,14 @@ Install the conda environment for this repo:
 conda env create -n produit_derive_lidar -f environment.yml --force
 conda activate produit_derive_lidar
 ```
+
+The `run.sh` command uses `gnu-parallel` to implement multiprocessing.
+To install it :
+
+```bash
+sudo apt install parallel
+```
+
 # Usage
 
 The code in this repo can be executed either after being installed on your computer or via a
