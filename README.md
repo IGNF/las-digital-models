@@ -32,7 +32,7 @@ To generate a Digital Height Model (DHM):
 * Compute DHM as DSM - DTM
 
 ```
-DTM - DSM -> DHM
+DSM - DTM -> DHM
 ```
 
 ## In this repo
@@ -40,7 +40,7 @@ DTM - DSM -> DHM
 This repo contains:
 * code to compute the interpolation step on one tile
 * code to compute the DHM from DSM and DTM on one tile
-* scripts to compute the filter and buffer step  on one tile,
+* scripts to compute the filter and buffer step on one tile,
 using the [ign-pdal-tools](http://gitlab.forge-idi.ign.fr/Lidar/pdalTools) library
 * a script to run all steps together on a folder containing several tiles
 
@@ -85,7 +85,7 @@ the `configs` folder.
 > `prefix1_prefix2_{coord_x}_{coord_y}_suffix` where
 > `coord_x` and `coord_y` are the coordinates of the top-left corner of the tile.
 > By default, they are given in km, and the tile width is 1km. Otherwise, you must override the
-> values of `tile_geomerty.tile_width` and `tile_geomerty.tile_coord_scale`
+> values of `tile_geometry.tile_width` and `tile_geometry.tile_coord_scale`
 
 ## Whole pipeline
 
@@ -115,7 +115,7 @@ It will generate:
 
 ## Filter
 
-To filter a pointcloud in order to keep only the desired classes using `ign-pdal-tools`:
+To filter a point cloud in order to keep only the desired classes using `ign-pdal-tools`:
 
 ```bash
 python -m produit_derive_lidar.filter_one_tile \
@@ -153,7 +153,7 @@ To run interpolation (DXM generation) using a given method:
 python -m produit_derive_lidar.ip_one_tile \
     io.input_dir=${BUFFERED_DIR} \
     io.input_filename={} \
-    io.output_dir=${DTM_DIR} \
+    io.output_dir=${DXM_DIR} \
     interpolation=${METHOD} \
     tile_geometry.pixel_size=${PIXEL_SIZE}
 ```
