@@ -1,4 +1,7 @@
 # dev:
+
+# v0.2.3:
+- Continuous Integration with Jenkins
 - Use "standard" grid for TIF output. This implies using the las tiles filenames to get the
 expected extent of the las data, and modifying the interpolation parameters to use that grid
 - Use hydra to handle parameters
