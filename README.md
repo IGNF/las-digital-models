@@ -211,6 +211,21 @@ docker run -t --rm --userns=host --shm-size=2gb \
 
 The version number is in `VERSION.md`
 
+
+# Build and deploy as python package
+
+## Build the library
+
+```
+make build
+```
+
+## Deploy on IGN's Nexus
+
+```
+make deploy
+```
+
 # A word of caution
 
 If you are using an Anaconda virtual environment for PDAL/CGAL, you should first activate the environment in Anaconda prompt and _then_ run the relevant script
