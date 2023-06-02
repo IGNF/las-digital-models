@@ -8,8 +8,8 @@ authors = [
     { name = "Malvina Dupays", email = "malvina.dupays@ign.fr" },
     { name = "Léa Vauchier", email = "lea.vauchier@ign.fr" }
 ]
-[tool.setuptools]
-packages = [ "produit_derive_lidar" ]
+[tool.setuptools.packages]
+find = {}
 
 [tool.setuptools.dynamic]
-version = {file = ["VERSION"]}
+version = {file = ["VERSION.md"]}
