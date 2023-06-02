@@ -4,3 +4,7 @@ __pycache__
 test/tmp/
 
 *.log
+
+# Library deployment
+ign_mnx.egg-info
+dist

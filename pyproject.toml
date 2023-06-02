@@ -1,0 +1,15 @@
+[project]
+name = "ign-mnx"
+dynamic = ["version"]
+
+description = "Library for creation of DEM, DSM and DTM from lidar point cloud"
+readme = "README.md"
+authors = [
+    { name = "Malvina Dupays", email = "malvina.dupays@ign.fr" },
+    { name = "Léa Vauchier", email = "lea.vauchier@ign.fr" }
+]
+[tool.setuptools]
+packages = [ "produit_derive_lidar" ]
+
+[tool.setuptools.dynamic]
+version = {file = ["VERSION"]}
