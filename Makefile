@@ -14,7 +14,7 @@ check: dist/ign-mnx*.tar.gz
 dist/ign-mnx*.tar.gz:
 	python -m build
 
-build:
+build: clean
 	python -m build
 
 testing:
@@ -22,3 +22,7 @@ testing:
 	--log-cli-level=INFO --log-format="%(asctime)s %(levelname)s %(message)s" \
 	--log-date-format="%Y-%m-%d %H:%M:%S"
 
+clean:
+	rm -rf tmp
+	rm -rf ign-mnx.egg-info
+	rm -rf dist
