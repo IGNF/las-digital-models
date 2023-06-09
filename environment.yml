@@ -11,6 +11,7 @@ dependencies:
   - laspy
   - numpy
   - scipy
+  - fiona
   - rasterio
   - pyproj
   - pdal>=2.4.3

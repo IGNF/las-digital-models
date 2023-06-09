@@ -1,5 +1,6 @@
 input_dir: ./test/data/
 input_filename: test_data_77055_627760_LA93_IGN69.laz
+no_data_mask_shapefile: null
 
 forced_intermediate_ext: null
 

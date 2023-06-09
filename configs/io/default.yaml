@@ -2,6 +2,10 @@
 # (set to `--output_dir` if not provided).
 input_dir: /path/to/origin/las/folder
 input_filename: filename.las
+
+# Shapefile used to burn no-data value (inside its polygons)
+no_data_mask_shapefile: /path/to/mask.shp
+
 # Force input/output files extension to .las or .laz. If None or not set, use original extension
 # Used for output for filter
 # Used for input + output in buffer
@@ -12,6 +16,7 @@ forced_intermediate_ext: null  # can be "las", "laz" or null. (intermediate resu
 spatial_reference: EPSG:2154
 
 output_dir: /path/to/output/folder  # Directory folder for saving the outputs
+
 
 
 

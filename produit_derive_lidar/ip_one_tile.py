@@ -3,16 +3,16 @@ Output files will be written to the target folder, tagged with the name of the i
 method that was used.
 """
 
-import argparse
-from produit_derive_lidar.commons import commons
-from produit_derive_lidar.tasks.las_interpolation_deterministic import deterministic_method
-# from produit_derive_lidar.tasks.las_raster_generation import export_and_clip_raster
-from pdaltools.las_info import parse_filename
-
+import tempfile
 import hydra
 from omegaconf import DictConfig, OmegaConf
 import logging
 import os
+
+from produit_derive_lidar.commons import commons
+from produit_derive_lidar.tasks.las_interpolation_deterministic import deterministic_method
+from produit_derive_lidar.tasks.las_raster_generation import mask_with_no_data_shapefile
+from pdaltools.las_info import parse_filename
 
 
 log = commons.get_logger(__name__)
@@ -79,14 +79,25 @@ def run_ip_on_tile(config: DictConfig):
 
     # for export
     _size = commons.give_name_resolution_raster(config.tile_geometry.pixel_size)
-    geotiff_filename = f"{tilename}{_size}_{config.interpolation.method_postfix}.tif"
+    geotiff_stem = f"{tilename}{_size}_{config.interpolation.method_postfix}"
+    geotiff_filename = f"{geotiff_stem}.tif"
     geotiff_path = os.path.join(config.io.output_dir, geotiff_filename)
 
     ## process
     dico_config = OmegaConf.to_container(config)
     interpolate(input_file, geotiff_path, dico_config)
 
-    return
+    if config.io.no_data_mask_shapefile:
+        with tempfile.NamedTemporaryFile(suffix=".tif", prefix=f"{geotiff_stem}_raw") as tmp_geotiff:
+            ## process interpolation
+            interpolate(input_file, tmp_geotiff.name, config)
+            mask_with_no_data_shapefile(config.io.no_data_mask_shapefile,
+                                        tmp_geotiff.name,
+                                        geotiff_path,
+                                        config.tile_geometry.no_data_value)
+
+    else:
+        interpolate(input_file, geotiff_path, config)
 
 
 def main():
@@ -96,3 +107,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -21,6 +21,8 @@ expected_xmin = coordX * tile_coord_scale - pixel_size/2
 expected_ymax = coordY * tile_coord_scale  + pixel_size/2
 expected_raster_bounds = (expected_xmin, expected_ymax - tile_width), (expected_xmin + tile_width, expected_ymax)
 
+shapefile = os.path.join(test_path, "data", "mask_shapefile", "test_multipolygon_shapefile.shp")
+
 
 def setup_module(module):
     try:
@@ -62,6 +64,25 @@ def test_ip_one_tile_all_methods():
 
         logging.debug(f"Test for method: {method}")
         compute_test_ip_one_tile(method)
+
+
+def test_ip_with_no_data_mask():
+    with initialize(version_base="1.2", config_path="../configs"):
+        # config is relative to a module
+        cfg = compose(config_name="config",
+                      overrides=["io=test", "tile_geometry=test", "interpolation=pdal-tin",
+                                 f"io.no_data_mask_shapefile={shapefile}"])
+
+        output_file = get_expected_output_file(cfg.interpolation.method_postfix)
+
+        ip_one_tile.run_ip_on_tile(cfg)
+        assert os.path.isfile(output_file)
+
+        raster_bounds = ru.get_tif_extent(output_file)
+        assert np.allclose(raster_bounds, expected_raster_bounds, rtol=1e-06)
+
+
+# TODO: check values of outputs vs data/DTM (ou DSM) especially for test with shapefile
 
 
 if __name__ == "__main__":
