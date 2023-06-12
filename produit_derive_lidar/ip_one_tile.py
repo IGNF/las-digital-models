@@ -21,7 +21,7 @@ log = commons.get_logger(__name__)
 @commons.eval_time_with_pid
 def interpolate(input_file: str,
                 output_raster: str,
-                config: DictConfig):
+                config: dict):
     """Run interpolation
     Args:
         input_file(str): File on which to run the interpolation
@@ -35,18 +35,18 @@ def interpolate(input_file: str,
         can_interpolate (bool): false if there were no points to interpolate
     """
     _, coordX, coordY, _ = parse_filename(input_file)
-    origin = [float(coordX) * config.tile_geometry.tile_coord_scale,
-              float(coordY) * config.tile_geometry.tile_coord_scale]
-    nb_pixels = [int(config.tile_geometry.tile_width / config.tile_geometry.pixel_size),
-                 int(config.tile_geometry.tile_width / config.tile_geometry.pixel_size)]
+    origin = [float(coordX) * config["tile_geometry"]["tile_coord_scale"],
+              float(coordY) * config["tile_geometry"]["tile_coord_scale"]]
+    nb_pixels = [int(config["tile_geometry"]["tile_width"] / config["tile_geometry"]["pixel_size"]),
+                 int(config["tile_geometry"]["tile_width"] / config["tile_geometry"]["pixel_size"])]
 
     _interpolation = deterministic_method(nb_pixels, origin,
-                                          config.tile_geometry.pixel_size,
-                                          config.interpolation.algo_name,
-                                          config.io.spatial_reference,
-                                          config.tile_geometry.no_data_value,
-                                          config.tile_geometry.tile_width,
-                                          config.tile_geometry.tile_coord_scale)
+                                          config["tile_geometry"]["pixel_size"],
+                                          config["interpolation"]["algo_name"],
+                                          config["io"]["spatial_reference"],
+                                          config["tile_geometry"]["no_data_value"],
+                                          config["tile_geometry"]["tile_width"],
+                                          config["tile_geometry"]["tile_coord_scale"])
     _interpolation.run(input_file, output_raster)
 
 
@@ -75,7 +75,14 @@ def run_ip_on_tile(config: DictConfig):
     geotiff_path = os.path.join(config.io.output_dir, geotiff_filename)
 
     ## process
-    interpolate(input_file, geotiff_path, config)
+    dico_io = { "spatial_reference" : config.io.spatial_reference }
+    dico_ip = { "algo_name" : config.interpolation.algo_name }
+    dico_tile_geom = { "pixel_size" : config.tile_geometry.pixel_size, 
+                        "tile_width" : config.tile_geometry.tile_width, 
+                        "tile_coord_scale" : config.tile_geometry.tile_coord_scale,
+                        "no_data_value" : config.tile_geometry.no_data_value }
+    dico_config = { "io" : dico_io, "interpolation" : dico_ip, "tile_geometry" : dico_tile_geom }
+    interpolate(input_file, geotiff_path, dico_config)
 
     return
 
