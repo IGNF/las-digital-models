@@ -12,7 +12,7 @@ CPU_LIMIT=-1
 SOURCE_DIR=$(dirname ${BASH_SOURCE[0]})
 
 USAGE="""
-Usage ./run.sh -i INPUT_DIR -o OUTPUT_DIR -p PIXEL_SIZE -j PARALLEL_JOBS \n
+Usage ./run.sh -i INPUT_DIR -o OUTPUT_DIR -p PIXEL_SIZE -j PARALLEL_JOBS -c SHAPEFILE\n
 For PARALLEL_JOBS, 0 is : use as many as possible (cf. parallel command)
 """
 # Parse arguments in order to possibly overwrite paths
@@ -28,7 +28,7 @@ while getopts "h?i:o:p:c:" opt; do
       ;;
     p)  PIXEL_SIZE=${OPTARG}
       ;;
-    c)  CPU_LIMIT=${OPTARG}
+    j)  PARALLEL_JOBS=${OPTARG}
       ;;
   esac
 done
