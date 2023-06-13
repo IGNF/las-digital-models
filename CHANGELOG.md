@@ -1,4 +1,5 @@
 # dev:
+- only use hydra on main function of ip_one_tile / add_buffer_one_tile / filter_one_tile
 
 # v0.2.3:
 - Continuous Integration with Jenkins
