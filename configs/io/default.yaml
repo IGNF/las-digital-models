@@ -4,7 +4,7 @@ input_dir: /path/to/origin/las/folder
 input_filename: filename.las
 
 # Shapefile used to burn no-data value (inside its polygons)
-no_data_mask_shapefile: /path/to/mask.shp
+no_data_mask_shapefile: null  # /path/to/mask.shp
 
 # Force input/output files extension to .las or .laz. If None or not set, use original extension
 # Used for output for filter

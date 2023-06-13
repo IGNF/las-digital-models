@@ -1,4 +1,6 @@
 from osgeo import gdal
+import rasterio
+import numpy as np
 
 
 # https://gis.stackexchange.com/questions/57834/how-to-get-raster-corner-coordinates-using-python-gdal-bindings
@@ -14,3 +16,14 @@ def get_tif_extent(filename):
     ds = None  # close gdal dataset (cf. https://gis.stackexchange.com/questions/80366/why-close-a-dataset-in-gdal-python)
 
     return (xmin, ymin), (xmax, ymax)
+
+
+def tif_values_all_close(filename1, filename2):
+    with rasterio.Env():
+        src1 = rasterio.open(filename1)
+        data1 = src1.read(1)
+
+        src2 = rasterio.open(filename2)
+        data2 = src2.read(1)
+
+    return np.allclose(data1, data2)

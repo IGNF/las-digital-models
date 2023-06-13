@@ -16,12 +16,16 @@ pixel_size = 0.5
 
 test_path = os.path.dirname(os.path.abspath(__file__))
 tmp_path = os.path.join(test_path, "tmp")
+ground_truth_folder = os.path.join(test_path, "data", "interpolation")
 
 expected_xmin = coordX * tile_coord_scale - pixel_size/2
 expected_ymax = coordY * tile_coord_scale  + pixel_size/2
 expected_raster_bounds = (expected_xmin, expected_ymax - tile_width), (expected_xmin + tile_width, expected_ymax)
 
 shapefile = os.path.join(test_path, "data", "mask_shapefile", "test_multipolygon_shapefile.shp")
+expected_output_using_shapefile = os.path.join(
+    ground_truth_folder,
+    'test_data_77055_627760_LA93_IGN69_50CM_TIN_no_data.tif')
 
 
 def setup_module(module):
@@ -58,6 +62,11 @@ def compute_test_ip_one_tile(method):
         raster_bounds = ru.get_tif_extent(output_file)
         assert np.allclose(raster_bounds, expected_raster_bounds, rtol=1e-06)
 
+        assert ru.tif_values_all_close(
+            output_file,
+            os.path.join(ground_truth_folder, os.path.basename(output_file)))
+
+
 
 def test_ip_one_tile_all_methods():
     for method in ["cgal-nn", "pdal-idw", "pdal-tin", "startin-laplace", "startin-tinlinear"]:
@@ -81,6 +90,8 @@ def test_ip_with_no_data_mask():
         raster_bounds = ru.get_tif_extent(output_file)
         assert np.allclose(raster_bounds, expected_raster_bounds, rtol=1e-06)
 
+        assert ru.tif_values_all_close(output_file, expected_output_using_shapefile)
+
 
 # TODO: check values of outputs vs data/DTM (ou DSM) especially for test with shapefile
 
@@ -88,4 +99,5 @@ def test_ip_with_no_data_mask():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     test_ip_one_tile_all_methods()
+    test_ip_with_no_data_mask()
 
