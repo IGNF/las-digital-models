@@ -93,7 +93,7 @@ class deterministic_method:
                     ras[yi, xi] = self.no_data_value
                 else:
                     tri = tin.locate(x, y) # locate the triangle containing the point [x,y]. An error is thrown if it is outside the convex hull
-                    if tri != [] and 0 not in tri:
+                    if len(tri) and (0 not in tri):
                         ras[yi, xi] = interpolant(x, y)
                     else:
                         ras[yi, xi] = self.no_data_value
