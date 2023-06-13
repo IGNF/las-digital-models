@@ -10,7 +10,7 @@ from produit_derive_lidar.tasks.las_interpolation_deterministic import determini
 from pdaltools.las_info import parse_filename
 
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 import logging
 import os
 
@@ -75,13 +75,7 @@ def run_ip_on_tile(config: DictConfig):
     geotiff_path = os.path.join(config.io.output_dir, geotiff_filename)
 
     ## process
-    dico_io = { "spatial_reference" : config.io.spatial_reference }
-    dico_ip = { "algo_name" : config.interpolation.algo_name }
-    dico_tile_geom = { "pixel_size" : config.tile_geometry.pixel_size, 
-                        "tile_width" : config.tile_geometry.tile_width, 
-                        "tile_coord_scale" : config.tile_geometry.tile_coord_scale,
-                        "no_data_value" : config.tile_geometry.no_data_value }
-    dico_config = { "io" : dico_io, "interpolation" : dico_ip, "tile_geometry" : dico_tile_geom }
+    dico_config = OmegaConf.to_container(config)
     interpolate(input_file, geotiff_path, dico_config)
 
     return
