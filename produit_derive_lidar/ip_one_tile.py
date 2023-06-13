@@ -26,9 +26,17 @@ def interpolate(input_file: str,
     Args:
         input_file(str): File on which to run the interpolation
         output_raster(str): output file for raster image (with buffer)
-        pixel_size(int): pixel size for raster generation
-        interpolation_method(str): interpolation method for raster generation
-        spatial_ref(str): spatial reference to use when reading las file
+        config(dict): dictionary that must contain
+                { "tile_geometry": { "tile_coord_scale": #int, "tile_width": #int, "pixel_size": #float, "no_data_value": #int },
+                  "io": { "spatial_reference": #str},
+                  "interpolation": { "algo_name": #str }
+                }
+            with
+                tile_coord_scale value(int): coords in tile names are in km
+                tile_width value(int): tile width in meters
+                pixel_size value(float): pixel size for raster generation
+                spatial_ref value(str): spatial reference to use when reading las file
+                interpolation_method value(str): interpolation method for raster generation
     Output:
         ras: output raster (/!\ can be None for some methods)
         origin: tile origin
