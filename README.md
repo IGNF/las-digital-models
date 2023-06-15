@@ -14,6 +14,7 @@ To generate a Digital Terrain Model (DTM):
 * buffer: add points from a buffer around the tile (from neighbor tiles) to limit border effects
 * interpolation : generate a DTM from the buffered + filtered point cloud
 
+
 ```
 LAS -> filter -> buffer -> interpolation -> DTM
 ```
@@ -50,6 +51,8 @@ The testing environment so far includes implementations for:
 * TIN-linear and Laplace interpolation via startin
 * constrained Delaunay-based (CDT) TIN-linear and natural neighbour (NN) interpolation via CGAL
 * radial IDW via GDAL/PDAL and quadrant-based IDW via scipy cKDTree and our own code.
+
+During the interpolation step, a shapefile can be provided to mask polygons using a nodata value.
 
 More information on IDW in [More about the IDW algorithms](#more-about-the-idw-algorithms).
 
@@ -163,6 +166,8 @@ python -m produit_derive_lidar.ip_one_tile \
 Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
 [hydra](https://hydra.cc/) for more details on usage)
 
+During the interpolation step, a shapefile can be provided to mask polygons using `tile_geometry.no_data_value`.
+To use it, provide the shapefile path with the `io.no_data_mask_shapefile` argument.
 
 ## DHM
 
