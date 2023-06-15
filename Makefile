@@ -5,10 +5,27 @@
 # chain commands together with semicolon
 .ONESHELL:
 
+# --------------------
+# Environment creation
+# --------------------
+
+mamba-env-create:
+	mamba env create -n produits_derives_lidar -f environment.yml
+
+mamba-env-update:
+	mamba env update -n produits_derives_lidar -f environment.yml
+
+install: mamba-env-create
+	conda activate produits_derives_lidar
+
+# --------------------
+# pip library creation
+# --------------------
+
 deploy: check
 	twine upload --repository-url https://nexus.ign.fr/repository/pypi-lidarhd-hosted/ dist/*
 
-check: dist/ign-mnx*.tar.gz 
+check: dist/ign-mnx*.tar.gz
 	twine check dist/*
 
 dist/ign-mnx*.tar.gz:
@@ -17,12 +34,16 @@ dist/ign-mnx*.tar.gz:
 build: clean
 	python -m build
 
-testing:
-	python -m pytest -s \
-	--log-cli-level=INFO --log-format="%(asctime)s %(levelname)s %(message)s" \
-	--log-date-format="%Y-%m-%d %H:%M:%S"
-
 clean:
 	rm -rf tmp
 	rm -rf ign-mnx.egg-info
 	rm -rf dist
+
+# --------------------
+# Tests
+# --------------------
+
+testing:
+	python -m pytest -s \
+	--log-cli-level=INFO --log-format="%(asctime)s %(levelname)s %(message)s" \
+	--log-date-format="%Y-%m-%d %H:%M:%S"

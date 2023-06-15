@@ -1,36 +1,21 @@
-FROM continuumio/miniconda3
+FROM mambaorg/micromamba:latest
 
-# set the IGN proxy, otherwise apt-get and other applications don't work
-# Should be commented out outside of IGN
-ENV http_proxy 'http://192.168.4.9:3128/'
-ENV https_proxy 'http://192.168.4.9:3128/'
-
-# Remove any third-party apt sources to avoid issues with expiring keys.
+USER root
+# Remove any third-party apt sources to avoid issues with expiring keys
 RUN rm -f /etc/apt/sources.list.d/*.list
-
 # install required libs
 RUN apt-get update && apt-get install -y \
-        libtiff-dev \
+         libtiff-dev \
+         parallel \
         && rm -rf /var/lib/apt/lists/*
 
-# Create a working directory
-RUN mkdir /app
-
-
-# Copy the repository content in /app
-WORKDIR /app
+WORKDIR /ProduitDeriveLIDAR
 COPY . .
 
-# Set up the Conda environment
-RUN conda env update -n base -f /app/environment.yml \
-        && rm -r /app/environment.yml \
-        && conda clean -ya
+# # Set up the Conda environment: cf https://github.com/mamba-org/micromamba-docker
+COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/env.yaml
+RUN micromamba install -y -n base -f /tmp/env.yaml && \
+    micromamba clean --all --yes
 
-# Set the default command to bash for image inspection.
-CMD ["bash"]
-
-# Not adding this entrypoint raises (with ):
-# RuntimeError: Could not import coordinate system '...':
-# PROJ: proj_create_from_database: Open of /opt/conda/share/proj failed.
-ENTRYPOINT ["conda", "run", "-n", "base"]
-
+ENV ENV_NAME base
+ARG MAMBA_DOCKERFILE_ACTIVATE=1

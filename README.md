@@ -62,10 +62,11 @@ More information on IDW in [More about the IDW algorithms](#more-about-the-idw-a
 
 # Installation
 
-Install the conda environment for this repo:
+Install the conda environment for this repo using [mamba](https://github.com/mamba-org/mamba) (faster
+reimplementation of conda):
 
 ```bash
-conda env create -n produit_derive_lidar -f environment.yml --force
+mamba env create -n produit_derive_lidar -f environment.yml --force
 conda activate produit_derive_lidar
 ```
 
