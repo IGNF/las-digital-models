@@ -18,6 +18,15 @@ def get_tif_extent(filename):
     return (xmin, ymin), (xmax, ymax)
 
 
+def allclose_mm(a, b):
+    """Check that values are similar with milimeter precision
+    Use this nstead of np.allclose to use only an absolute tolerance"""
+    if isinstance(a, tuple) or isinstance(b, tuple):
+        a = np.array(a)
+        b = np.array(b)
+    return np.all(np.less(np.abs(b - a), 1e-3))
+
+
 def tif_values_all_close(filename1, filename2):
     with rasterio.Env():
         src1 = rasterio.open(filename1)
@@ -26,4 +35,4 @@ def tif_values_all_close(filename1, filename2):
         src2 = rasterio.open(filename2)
         data2 = src2.read(1)
 
-    return np.allclose(data1, data2)
+    return allclose_mm(data1, data2)

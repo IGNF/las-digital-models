@@ -60,7 +60,7 @@ def compute_test_ip_one_tile(method):
         assert os.path.isfile(output_file)
 
         raster_bounds = ru.get_tif_extent(output_file)
-        assert np.allclose(raster_bounds, expected_raster_bounds, rtol=1e-06)
+        assert ru.allclose_mm(raster_bounds, expected_raster_bounds)
 
         assert ru.tif_values_all_close(
             output_file,
@@ -88,7 +88,7 @@ def test_ip_with_no_data_mask():
         assert os.path.isfile(output_file)
 
         raster_bounds = ru.get_tif_extent(output_file)
-        assert np.allclose(raster_bounds, expected_raster_bounds, rtol=1e-06)
+        assert ru.allclose_mm(raster_bounds, expected_raster_bounds)
 
         assert ru.tif_values_all_close(output_file, expected_output_using_shapefile)
 

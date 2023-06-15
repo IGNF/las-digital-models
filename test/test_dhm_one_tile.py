@@ -58,7 +58,7 @@ def test_mnh_one_tile():
     assert os.path.isfile(expected_output_file)
 
     raster_bounds = ru.get_tif_extent(expected_output_file)
-    assert np.allclose(raster_bounds, expected_raster_bounds, rtol=1e-06)
+    assert ru.allclose_mm(raster_bounds, expected_raster_bounds)
 
 
 if __name__ == "__main__":

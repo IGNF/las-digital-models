@@ -32,7 +32,7 @@ def setup_module(module):
 
 
 def test_run_script():
-    cmd = ["./run.sh", "-i", input_dir, "-o", output_dir, "-p", str(pixel_size)]
+    cmd = ["./run.sh", "-i", input_dir, "-o", output_dir, "-p", str(pixel_size), "-c", "test"]
     print(cmd)
     r = sp.run(cmd, capture_output=True)
     logging.debug(f"Stdout is: {r.stdout.decode()}")

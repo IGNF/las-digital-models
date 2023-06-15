@@ -8,15 +8,18 @@ OUTPUT="/output/"
 PIXEL_SIZE=0.5
 PARALLEL_JOBS=0
 CPU_LIMIT=-1
+SHAPEFILE=""
 
 SOURCE_DIR=$(dirname ${BASH_SOURCE[0]})
+CONFIG_NAME="config"
 
 USAGE="""
-Usage ./run.sh -i INPUT_DIR -o OUTPUT_DIR -p PIXEL_SIZE -j PARALLEL_JOBS -c SHAPEFILE\n
-For PARALLEL_JOBS, 0 is : use as many as possible (cf. parallel command)
+Usage ./run.sh -i INPUT_DIR -o OUTPUT_DIR -p PIXEL_SIZE -j PARALLEL_JOBS -s SHAPEFILE -c CONFIG_NAME\n
+For PARALLEL_JOBS, 0 is : use as many as possible (cf. parallel command)\n
+CONFIG_NAME (for test use only: override default hydra config)
 """
 # Parse arguments in order to possibly overwrite paths
-while getopts "h?i:o:p:c:" opt; do
+while getopts "h?i:o:p:j:s:c:" opt; do
   case "$opt" in
     h|\?)
       echo -e ${USAGE}
@@ -29,6 +32,10 @@ while getopts "h?i:o:p:c:" opt; do
     p)  PIXEL_SIZE=${OPTARG}
       ;;
     j)  PARALLEL_JOBS=${OPTARG}
+      ;;
+    s) SHAPEFILE=${OPTARG}
+      ;;
+    c) CONFIG_NAME=${OPTARG}
       ;;
   esac
 done
@@ -62,6 +69,7 @@ echo "filter ground"
 echo "------------------"
 parallel --jobs ${PARALLEL_JOBS} \
     python -m produit_derive_lidar.filter_one_tile \
+        --config-name=${CONFIG_NAME} \
         io.input_dir=${INPUT} \
         io.input_filename={} \
         io.output_dir=${FILTERED_DIR} \
@@ -76,6 +84,7 @@ echo "add buffer"
 echo "------------------"
 parallel --jobs ${PARALLEL_JOBS} \
     python -m produit_derive_lidar.add_buffer_one_tile \
+        --config-name=${CONFIG_NAME} \
         io.input_dir=${FILTERED_DIR} \
         io.input_filename={} \
         io.output_dir=${BUFFERED_DIR} \
@@ -90,11 +99,13 @@ for METHOD in ${METHODS[@]}
 do
   parallel --jobs ${PARALLEL_JOBS} \
       python -m produit_derive_lidar.ip_one_tile \
+          --config-name=${CONFIG_NAME} \
           io.input_dir=${BUFFERED_DIR} \
           io.input_filename={} \
           io.output_dir=${DTM_DIR} \
           interpolation=${METHOD} \
           tile_geometry.pixel_size=${PIXEL_SIZE} \
+          io.no_data_mask_shapefile=${SHAPEFILE} \
           ::: "${FILENAMES[@]}"
 done
 
@@ -112,6 +123,7 @@ DSM_DIR=${OUTPUT}/DSM
 # Step 2.1 : filter ground + upground
 parallel --jobs ${PARALLEL_JOBS} \
     python -m produit_derive_lidar.filter_one_tile \
+        --config-name=${CONFIG_NAME} \
         io.input_dir=${INPUT} \
         io.input_filename={} \
         io.output_dir=${FILTERED_DIR} \
@@ -122,6 +134,7 @@ parallel --jobs ${PARALLEL_JOBS} \
 #/!\ rasters generated from these las tiles will need to be cropped to match the input las area
 parallel --jobs ${PARALLEL_JOBS} \
     python -m produit_derive_lidar.add_buffer_one_tile \
+        --config-name=${CONFIG_NAME} \
         io.input_dir=${FILTERED_DIR} \
         io.input_filename={} \
         io.output_dir=${BUFFERED_DIR} \
@@ -132,11 +145,13 @@ for METHOD in ${METHODS[@]}
 do
   parallel --jobs ${PARALLEL_JOBS} \
       python -m produit_derive_lidar.ip_one_tile \
+          --config-name=${CONFIG_NAME} \
           io.input_dir=${BUFFERED_DIR} \
           io.input_filename={} \
           io.output_dir=${DSM_DIR} \
           interpolation=${METHOD} \
           tile_geometry.pixel_size=${PIXEL_SIZE} \
+          io.no_data_mask_shapefile=${SHAPEFILE} \
           ::: "${FILENAMES[@]}"
 done
 
@@ -153,6 +168,7 @@ for METHOD in ${METHODS[@]}
 do
 parallel --jobs ${PARALLEL_JOBS} \
     python -m produit_derive_lidar.dhm_one_tile \
+        --config-name=${CONFIG_NAME} \
         dhm.input_dsm_dir=${DSM_DIR} \
         dhm.input_dtm_dir=${DTM_DIR} \
         io.input_filename={} \

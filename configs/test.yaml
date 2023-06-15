@@ -1,0 +1,24 @@
+# @package _global_
+
+# Special config used for tests (test_run_script.py)
+work_dir: ${hydra:runtime.cwd}
+
+defaults:
+  - _self_  # for hydra legacy reasons
+
+  - buffer: test.yaml
+  - filter: default_test.yaml
+  - interpolation: pdal-tin.yaml
+  - io: test.yaml
+  - tile_geometry: test.yaml  # describes input features and classes
+  - dhm: test.yaml
+
+  # enable color logging
+  - override hydra/hydra_logging: colorlog
+  - override hydra/job_logging: disabled
+
+
+# hydra:
+#   # job.chdir: False
+#   hydra_logging: colorlog
+#   job_logging: colorlog
