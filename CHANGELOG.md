@@ -1,4 +1,4 @@
-# dev:
+# v0.3.0:
 - only use hydra on main function of ip_one_tile / add_buffer_one_tile / filter_one_tile
 - add possibility to overwrite no-data in polygons from a shapefile after interpolation (eg. for ZICAD)
 - use Mamba for python environment generation in docker
