@@ -9,12 +9,9 @@
 # Environment creation
 # --------------------
 
-# mamba env update also works when environment does not exist ext
-mamba-env-update:
+# mamba env update also works when environment does not exist yet
+install:
 	mamba env update -n produits_derives_lidar -f environment.yml
-
-install: mamba-env-update
-	conda activate produits_derives_lidar
 
 # --------------------
 # pip library creation

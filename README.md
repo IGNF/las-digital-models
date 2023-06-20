@@ -67,11 +67,6 @@ reimplementation of conda):
 
 ```bash
 make install
-```
-or
-
-```bash
-mamba env update -n produit_derive_lidar -f environment.yml
 conda activate produit_derive_lidar
 ```
 
