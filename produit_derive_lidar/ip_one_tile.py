@@ -10,7 +10,7 @@ import logging
 import os
 
 from produit_derive_lidar.commons import commons
-from produit_derive_lidar.tasks.las_interpolation_deterministic import deterministic_method
+from produit_derive_lidar.tasks.las_interpolation_deterministic import Interpolator
 from produit_derive_lidar.tasks.las_raster_generation import mask_with_no_data_shapefile
 from pdaltools.las_info import parse_filename
 
@@ -48,13 +48,14 @@ def interpolate(input_file: str,
     nb_pixels = [int(config["tile_geometry"]["tile_width"] / config["tile_geometry"]["pixel_size"]),
                  int(config["tile_geometry"]["tile_width"] / config["tile_geometry"]["pixel_size"])]
 
-    _interpolation = deterministic_method(nb_pixels, origin,
-                                          config["tile_geometry"]["pixel_size"],
-                                          config["interpolation"]["algo_name"],
-                                          config["io"]["spatial_reference"],
-                                          config["tile_geometry"]["no_data_value"],
-                                          config["tile_geometry"]["tile_width"],
-                                          config["tile_geometry"]["tile_coord_scale"])
+    _interpolation = Interpolator(nb_pixels, origin,
+                                  config["tile_geometry"]["pixel_size"],
+                                  config["interpolation"]["algo_name"],
+                                  config["io"]["spatial_reference"],
+                                  config["tile_geometry"]["no_data_value"],
+                                  config["tile_geometry"]["tile_width"],
+                                  config["tile_geometry"]["tile_coord_scale"],
+                                  config["filter"]["keep_classes"])
     _interpolation.run(input_file, output_raster)
 
 

@@ -4,7 +4,7 @@
 # LAS INTERPOLATION
 import logging
 from produit_derive_lidar.commons import commons
-from produit_derive_lidar.commons.laspy_io import read_las_file_to_numpy
+from produit_derive_lidar.commons.laspy_io import read_las_and_extract_points_and_classifs
 import pdal
 import json
 import numpy as np
@@ -13,29 +13,48 @@ from rasterio.transform import from_origin
 from typing import List
 
 
-class deterministic_method:
-    """Takes the grid parameters and the ground points. Interpolates
-    either using the severals interpolations methods
+class Interpolator:
+    """Interpolator class
 
-    Args:
-        pts : ground points clouds
-        nb_pixels(list): number of pixels on each axis
-        origin(list): coordinate location of the relative origin (bottom left)
-        size (int): raster cell size
-        method(str): spatial interpolation
+    Create an interpolator that can generate a raster data from a LAS point cloud file.
+    The interpolator can be one of:
+
+    'pdal-idw'
+    'pdal-tin'
+    'startin-tinlinear'
+    'startin-laplace'
+    'cgal-nn'
     """
 
     def __init__(
-        self,
-        nb_pixels: List[int],
-        origin: List[float],
-        pixel_size: float,
-        method: str,
-        spatial_ref: str,
-        no_data_value: int,
-        tile_width: int,
-        tile_coord_scale:int
+            self,
+            nb_pixels: List[int],
+            origin: List[float],
+            pixel_size: float,
+            method: str,
+            spatial_ref: str,
+            no_data_value: int,
+            tile_width: int,
+            tile_coord_scale: int,
+            classes: List[int]
     ):
+        """Initialize the interpolator
+
+        Args:
+            nb_pixels (List[int]): number of pixels (nodes) on each axis of the output raster grid
+            origin (List[float]): spatial coordinate of the upper-left corner of the raster
+                (center of the upper-left pixel)
+            pixel_size (float): distance between each node of the raster grid (in meters)
+            method (str): interpolation method
+            spatial_ref (str): spatial reference of the input LAS file
+            no_data_value (int): no-data value for the output raster
+            tile_width (int): width of the tile in meters (used to infer the lower-left corner for
+                pdal-based interpolators)
+            tile_coord_scale (int): scale of the coordinate value contained in the LAS filename
+                (used to infer the coordinates of the raster grid)
+            classes (List[int]): List of classes to use for the interpolation (points with other
+                classification values are ignored). If empty, all classes are kept
+        """
         self.nb_pixels = nb_pixels
         self.origin = origin
         self.pixel_size = pixel_size
@@ -44,13 +63,19 @@ class deterministic_method:
         self.no_data_value = no_data_value
         self.tile_width = tile_width
         self.tile_coord_scale = tile_coord_scale
+        self.classes = classes
 
 
     def run_method_with_standard_io(self, fn, input_file, output_file):
-        points_np = read_las_file_to_numpy(input_file)
+        _, points_np, classifs = read_las_and_extract_points_and_classifs(input_file)
+        if self.classes:
+            filtered_points = points_np[np.isin(classifs, self.classes), :]
+        else:
+            filtered_points = points_np
+
         logging.debug(f"Read {len(points_np)} points from {input_file}.")
-        if len(points_np) > 0:
-            raster = fn(points_np)
+        if len(filtered_points) > 0:
+            raster = fn(filtered_points)
         else :
             raster = self.no_data_value * np.ones([self.nb_pixels[1], self.nb_pixels[0]])
         write_geotiff(raster, self.origin, self.pixel_size, output_file, self.spatial_ref, self.no_data_value)
@@ -169,35 +194,29 @@ class deterministic_method:
             pwr(float): Exponent of the distance when computing IDW. Close points have higher significance than far points. [Default: 1.0]
             wnd(float): The maximum distance from donor cell to a target cell when applying the fallback interpolation method. [default:0]
         """
+        pipeline = pdal.Reader.las(
+            filename=fpath,
+            override_srs=self.spatial_ref,
+            nosrs=True
+        )
+        if self.classes:
+            pipeline |= pdal.Filter.range(
+                limits=",".join(f"Classification[{c}:{c}]" for c in self.classes)
+            )
+        pipeline |= pdal.Writer.gdal(
+            output_type=method,
+            resolution=str(self.pixel_size),
+            origin_x=str(self.origin[0] - self.pixel_size / 2),  # lower left corner
+            origin_y=str(self.origin[1] + self.pixel_size / 2 - self.tile_width),  # lower left corner
+            width=str(self.nb_pixels[0]),
+            height=str(self.nb_pixels[1]),
+            power=2,
+            window_size=5,
+            nodata=self.no_data_value,
+            data_type="float32",
+            filename=output_file
+        )
 
-        information = {}
-        information = {
-            "pipeline": [
-                {
-                    "type":"readers.las",
-                    "filename":fpath,
-                    "override_srs": self.spatial_ref,
-                    "nosrs": True
-                    # "NOSRS" = Don’t read the SRS VLRs. The data will not be assigned an SRS.
-                },
-                {
-                    "type":"writers.gdal",
-                    "output_type": method,
-                    "resolution": str(self.pixel_size),
-                    "origin_x": str(self.origin[0] - self.pixel_size / 2),  # lower left corner
-                    "origin_y": str(self.origin[1] + self.pixel_size / 2 - self.tile_width),  # lower left corner
-                    "width": str(self.nb_pixels[0]),
-                    "height": str(self.nb_pixels[1]),
-                    "power": 2,
-                    "window_size": 5,
-                    "nodata": self.no_data_value,
-                    "data_type": "float32",
-                    "filename": output_file
-                }
-            ]
-        }
-        las_mnt = json.dumps(information, sort_keys=True, indent=4)
-        pipeline = pdal.Pipeline(las_mnt)
         pipeline.execute()
 
 
@@ -222,40 +241,34 @@ class deterministic_method:
             fpath(str):  input file for the pdal pipeliine
             output_file(str): output file for the pdal pipeliine
         """
+        pipeline = pdal.Reader.las(
+            filename=fpath,
+            override_srs=self.spatial_ref,
+            nosrs=True
+        )
+        if self.classes:
+            pipeline |= pdal.Filter.range(
+                limits=",".join(f"Classification[{c}:{c}]" for c in self.classes)
+            )
 
-        information = {}
-        information = {
-            "pipeline": [
-                {
-                    "type":"readers.las",
-                    "filename":fpath,
-                    "override_srs": self.spatial_ref,
-                    "nosrs": True
-                    # "NOSRS" = Don’t read the SRS VLRs. The data will not be assigned an SRS.
-                },
-                {
-                    "type": "filters.delaunay"
-                },
-                {
-                    "type": "filters.faceraster",
-                    "resolution": str(self.pixel_size),
-                    "origin_x": str(self.origin[0] - self.pixel_size / 2),  # lower left corner
-                    "origin_y": str(self.origin[1] + self.pixel_size / 2 - self.tile_width),  # lower left corner
-                    "width": str(self.nb_pixels[0]),
-                    "height": str(self.nb_pixels[1]),
-                },
-                {
-                    "type": "writers.raster",
-                    "gdaldriver":"GTiff",
-                    "nodata": self.no_data_value,
-                    "data_type": "float32",
-                    "filename": output_file
-                }
-            ]
-        }
-        las_mnt = json.dumps(information, sort_keys=True, indent=4)
-        pipeline = pdal.Pipeline(las_mnt)
+        pipeline |= pdal.Filter.delaunay()
+
+        pipeline |= pdal.Filter.faceraster(
+            resolution=str(self.pixel_size),
+            origin_x=str(self.origin[0] - self.pixel_size / 2),  # lower left corner
+            origin_y=str(self.origin[1] + self.pixel_size / 2 - self.tile_width),  # lower left corner
+            width=str(self.nb_pixels[0]),
+            height=str(self.nb_pixels[1]),
+        )
+        pipeline |= pdal.Writer.raster(
+            gdaldriver="GTiff",
+            nodata=self.no_data_value,
+            data_type="float32",
+            filename=output_file
+        )
+
         pipeline.execute()
+
 
     def run(self, input_file: str, output_file: str):
         """Lauch the deterministic method

@@ -54,44 +54,33 @@ FILENAMES=($(cd ${INPUT} && find .  -maxdepth 1 -type f \( -iname \*.las -o -ina
 echo "GENERATE DSM/DTM/DHM FOR METHODS: ${METHODS[@]} ON ${#FILENAMES[@]} FILES"
 echo ""
 
-echo "------------------"
-echo "RUN DTM GENERATION"
-echo "------------------"
 
-# Output filenames for each step
-FILTERED_DIR=${OUTPUT}/ground
-BUFFERED_DIR=${OUTPUT}/ground_with_buffer
-DTM_DIR=${OUTPUT}/DTM
-
-# Step 1.1 : filter ground
-echo "------------------"
-echo "filter ground"
-echo "------------------"
-parallel --jobs ${PARALLEL_JOBS} \
-    python -m produit_derive_lidar.filter_one_tile \
-        --config-name=${CONFIG_NAME} \
-        io.input_dir=${INPUT} \
-        io.input_filename={} \
-        io.output_dir=${FILTERED_DIR} \
-        "filter.keep_classes=[2,9,66]" \
-        ::: "${FILENAMES[@]}"
-
-
-# Step 1.2: Create las with buffer from its neighbors tiles
+# Step 0: Create las with buffer from its neighbors tiles
 # /!\ rasters generated from these las tiles will need to be cropped to match the input las area
+BUFFERED_DIR=${OUTPUT}/las_with_buffer
+
 echo "------------------"
 echo "add buffer"
 echo "------------------"
 parallel --jobs ${PARALLEL_JOBS} \
     python -m produit_derive_lidar.add_buffer_one_tile \
         --config-name=${CONFIG_NAME} \
-        io.input_dir=${FILTERED_DIR} \
+        io.input_dir=${INPUT} \
         io.input_filename={} \
         io.output_dir=${BUFFERED_DIR} \
         ::: "${FILENAMES[@]}"
 
 
-# Step 1.3 ; create DTM with the severals method
+
+echo "------------------"
+echo "RUN DTM GENERATION"
+echo "------------------"
+
+# Output filenames for each step
+DTM_DIR=${OUTPUT}/DTM
+
+
+# Step 1 ; create DTM with each of the methods
 echo "------------------"
 echo "interpolation"
 echo "------------------"
@@ -102,6 +91,7 @@ do
           --config-name=${CONFIG_NAME} \
           io.input_dir=${BUFFERED_DIR} \
           io.input_filename={} \
+          filter=dtm \
           io.output_dir=${DTM_DIR} \
           interpolation=${METHOD} \
           tile_geometry.pixel_size=${PIXEL_SIZE} \
@@ -114,33 +104,9 @@ echo "------------------"
 echo "RUN DSM GENERATION"
 echo "------------------"
 
-
-# Output filenames for each step
-FILTERED_DIR=${OUTPUT}/upground
-BUFFERED_DIR=${OUTPUT}/upground_with_buffer
 DSM_DIR=${OUTPUT}/DSM
 
-# Step 2.1 : filter ground + upground
-parallel --jobs ${PARALLEL_JOBS} \
-    python -m produit_derive_lidar.filter_one_tile \
-        --config-name=${CONFIG_NAME} \
-        io.input_dir=${INPUT} \
-        io.input_filename={} \
-        io.output_dir=${FILTERED_DIR} \
-        "filter.keep_classes=[2,3,4,5,6,9,17]" \
-        ::: "${FILENAMES[@]}"
-
-# Step 2.2: Create las with buffer from its neighbors tiles
-#/!\ rasters generated from these las tiles will need to be cropped to match the input las area
-parallel --jobs ${PARALLEL_JOBS} \
-    python -m produit_derive_lidar.add_buffer_one_tile \
-        --config-name=${CONFIG_NAME} \
-        io.input_dir=${FILTERED_DIR} \
-        io.input_filename={} \
-        io.output_dir=${BUFFERED_DIR} \
-        ::: "${FILENAMES[@]}"
-
-# # Step 2.3 ; create DTM with the severals method
+# Step 2; create DSM with each of the methods
 for METHOD in ${METHODS[@]}
 do
   parallel --jobs ${PARALLEL_JOBS} \
@@ -148,6 +114,7 @@ do
           --config-name=${CONFIG_NAME} \
           io.input_dir=${BUFFERED_DIR} \
           io.input_filename={} \
+          filter=dsm \
           io.output_dir=${DSM_DIR} \
           interpolation=${METHOD} \
           tile_geometry.pixel_size=${PIXEL_SIZE} \
@@ -160,7 +127,7 @@ echo "RUN DHM GENERATION"
 echo "------------------"
 
 
-# # Step 4 ; create DHM with the severals method
+# Step 3 ; create DHM with each of the methods
 # Output filenames for each step
 DHM_DIR=${OUTPUT}/DHM
 

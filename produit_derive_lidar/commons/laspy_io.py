@@ -6,17 +6,23 @@
 import math
 import numpy as np
 import laspy
+from typing import Tuple
 
 
-def read_las_file_to_numpy(input_file):
-    """Takes the filepath to an input LAS (crop) file and the desired output raster cell size
-    Reads the LAS file and outputs the ground points as a numpy array.
-    Also establishes some asic raster parameters:
-    - the extents
-    - the raster shape (sometimes resolution)
-    - the coordinate location of the relative origin (bottom left)
-        """
-    in_file = laspy.read(input_file)
-    in_np = np.vstack((in_file.x, in_file.y, in_file.z)).transpose()
+def read_las_and_extract_points_and_classifs(input_file: str) -> Tuple[laspy.lasdata.LasData, np.array, np.array]:
+    """Read las file with laspy and extract points coordinates and classifications
 
-    return in_np
+    Args:
+        input_file (str): path to las file
+
+    Returns:
+        Tuple[laspy.lasdata.LasData, np.array, np.array]:
+            las: las file object (laspy)
+            pcd: points coordinates as an array of shape (nb_points, 3)
+            classigs : points classifications as an array of shape (nb_points)
+    """
+    las = laspy.read(input_file)
+    pcd = np.vstack((las.x, las.y, las.z)).transpose()
+    classifs = np.copy(las.classification)
+
+    return las, pcd, classifs

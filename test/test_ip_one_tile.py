@@ -1,6 +1,5 @@
 from produit_derive_lidar import ip_one_tile
 import logging
-import numpy as np
 import os
 import pytest
 import shutil
@@ -49,7 +48,8 @@ def compute_test_ip_one_tile(method):
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
         cfg = compose(config_name="config",
-                      overrides=["io=test", "tile_geometry=test", f"interpolation={method}"])
+                      overrides=["io=test", "tile_geometry=test", f"interpolation={method}",
+                                 "filter.keep_classes=[]"])
         assert cfg.interpolation.algo_name == method  # Check that the correct method is used
 
         output_file = get_expected_output_file(cfg.interpolation.method_postfix)
@@ -80,6 +80,7 @@ def test_ip_with_no_data_mask():
         # config is relative to a module
         cfg = compose(config_name="config",
                       overrides=["io=test", "tile_geometry=test", "interpolation=pdal-tin",
+                                 "filter.keep_classes=[]",
                                  f"io.no_data_mask_shapefile={shapefile}"])
 
         output_file = get_expected_output_file(cfg.interpolation.method_postfix)
@@ -93,7 +94,24 @@ def test_ip_with_no_data_mask():
         assert ru.tif_values_all_close(output_file, expected_output_using_shapefile)
 
 
-# TODO: check values of outputs vs data/DTM (ou DSM) especially for test with shapefile
+def test_ip_dtm_classes_tin():
+    expected_output = os.path.join(test_path, "data", "interpolation",
+                                   "test_data_77055_627760_LA93_IGN69_50CM_TIN_dtm_classes.tif")
+    with initialize(version_base="1.2", config_path="../configs"):
+        # config is relative to a module
+        cfg = compose(config_name="config",
+                      overrides=["io=test", "tile_geometry=test", "interpolation=pdal-tin",
+                                 "filter=dtm", "io.output_dir=./test/tmp/hydra_ip/DTM"])
+
+        output_file = get_expected_output_file(cfg.interpolation.method_postfix)
+
+        ip_one_tile.run_ip_on_tile(cfg)
+        assert os.path.isfile(output_file)
+
+        raster_bounds = ru.get_tif_extent(output_file)
+        assert ru.allclose_mm(raster_bounds, expected_raster_bounds)
+
+        assert ru.tif_values_all_close(output_file, expected_output)
 
 
 if __name__ == "__main__":
