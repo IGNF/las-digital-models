@@ -1,58 +1,61 @@
 from produit_derive_lidar import ip_one_tile
 import logging
 import os
-import pytest
 import shutil
 import test.utils.raster_utils as ru
 from hydra import initialize, compose
+from pathlib import Path
 
 
-coordX = 77055
-coordY = 627760
-tile_coord_scale = 10
-tile_width = 50
-pixel_size = 0.5
+COORD_X = 77055
+COORD_Y = 627760
+TILE_COORD_SCALE = 10
+TILE_WIDTH = 50
+PIXEL_SIZE = 0.5
 
-test_path = os.path.dirname(os.path.abspath(__file__))
-tmp_path = os.path.join(test_path, "tmp")
-ground_truth_folder = os.path.join(test_path, "data", "interpolation")
+TEST_PATH = Path(__file__).resolve().parent
+TMP_PATH = TEST_PATH / "tmp"
+GROUND_TRUTH_FOLDER = TEST_PATH / "data" / "interpolation"
 
-expected_xmin = coordX * tile_coord_scale - pixel_size/2
-expected_ymax = coordY * tile_coord_scale  + pixel_size/2
-expected_raster_bounds = (expected_xmin, expected_ymax - tile_width), (expected_xmin + tile_width, expected_ymax)
+EXPECTED_XMIN = COORD_X * TILE_COORD_SCALE - PIXEL_SIZE/2
+EXPECTED_XMAX = COORD_Y * TILE_COORD_SCALE  + PIXEL_SIZE/2
+EXPECTED_RASTER_BOUNDS = (EXPECTED_XMIN, EXPECTED_XMAX - TILE_WIDTH), (EXPECTED_XMIN + TILE_WIDTH, EXPECTED_XMAX)
 
-shapefile = os.path.join(test_path, "data", "mask_shapefile", "test_multipolygon_shapefile.shp")
-expected_output_using_shapefile = os.path.join(
-    ground_truth_folder,
-    'test_data_77055_627760_LA93_IGN69_50CM_TIN_no_data.tif')
+SHAPEFILE = TEST_PATH / "data" / "mask_shapefile" / "test_multipolygon_shapefile.shp"
+EXPECTED_OUTPUT_USING_SHAPEFILE = GROUND_TRUTH_FOLDER / 'test_data_77055_627760_LA93_IGN69_50CM_TIN_no_data.tif'
 
 
-def setup_module(module):
+def setup_module():
     try:
-        shutil.rmtree(tmp_path)
+        shutil.rmtree(TMP_PATH)
 
     except (FileNotFoundError):
         pass
-    os.mkdir(tmp_path)
+    os.mkdir(TMP_PATH)
 
 
-def get_expected_output_file(method_postfix):
+def get_expected_output_file(method_postfix, base_dir=None):
+    if base_dir is None:
+        base_dir = TMP_PATH / "hydra_ip"
     expected_output_file = os.path.join(
-        tmp_path, "hydra_ip",
-        f"test_data_{coordX}_{coordY}_LA93_IGN69_50CM_{method_postfix}.tif")
+        base_dir,
+        f"test_data_{COORD_X}_{COORD_Y}_LA93_IGN69_50CM_{method_postfix}.tif")
 
     return expected_output_file
 
 
 def compute_test_ip_one_tile(method):
+    output_dir = os.path.join(TMP_PATH, "compute_test_ip_one_tile")
+    os.makedirs(output_dir, exist_ok=True)
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
         cfg = compose(config_name="config",
-                      overrides=["io=test", "tile_geometry=test", f"interpolation={method}",
-                                 "filter.keep_classes=[]"])
+                      overrides=["io=test", f"io.output_dir={output_dir}", "tile_geometry=test",
+                                 f"interpolation={method}", "filter.keep_classes=[]"])
+
         assert cfg.interpolation.algo_name == method  # Check that the correct method is used
 
-        output_file = get_expected_output_file(cfg.interpolation.method_postfix)
+        output_file = get_expected_output_file(cfg.interpolation.method_postfix, base_dir=output_dir)
         logging.debug(output_file)
         logging.debug(f"Pixel size: {cfg.tile_geometry.pixel_size}")
 
@@ -60,11 +63,11 @@ def compute_test_ip_one_tile(method):
         assert os.path.isfile(output_file)
 
         raster_bounds = ru.get_tif_extent(output_file)
-        assert ru.allclose_mm(raster_bounds, expected_raster_bounds)
+        assert ru.allclose_mm(raster_bounds, EXPECTED_RASTER_BOUNDS)
 
         assert ru.tif_values_all_close(
             output_file,
-            os.path.join(ground_truth_folder, os.path.basename(output_file)))
+            os.path.join(GROUND_TRUTH_FOLDER, os.path.basename(output_file)))
 
 
 
@@ -76,40 +79,46 @@ def test_ip_one_tile_all_methods():
 
 
 def test_ip_with_no_data_mask():
+    output_dir = os.path.join(TMP_PATH, "test_ip_with_no_data_mask")
+    os.makedirs(output_dir, exist_ok=True)
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
         cfg = compose(config_name="config",
                       overrides=["io=test", "tile_geometry=test", "interpolation=pdal-tin",
-                                 "filter.keep_classes=[]",
-                                 f"io.no_data_mask_shapefile={shapefile}"])
+                                 f"io.no_data_mask_shapefile={SHAPEFILE}",
+                                 f"io.output_dir={output_dir}",
+                                 "filter.keep_classes=[]"])
 
-        output_file = get_expected_output_file(cfg.interpolation.method_postfix)
+        output_file = get_expected_output_file(cfg.interpolation.method_postfix, base_dir=output_dir)
+        logging.debug(f"Write to {output_file}")
 
         ip_one_tile.run_ip_on_tile(cfg)
         assert os.path.isfile(output_file)
 
         raster_bounds = ru.get_tif_extent(output_file)
-        assert ru.allclose_mm(raster_bounds, expected_raster_bounds)
+        assert ru.allclose_mm(raster_bounds, EXPECTED_RASTER_BOUNDS)
 
-        assert ru.tif_values_all_close(output_file, expected_output_using_shapefile)
+        assert ru.tif_values_all_close(output_file, EXPECTED_OUTPUT_USING_SHAPEFILE)
 
 
 def test_ip_dtm_classes_tin():
-    expected_output = os.path.join(test_path, "data", "interpolation",
+    output_dir = os.path.join(TMP_PATH, "test_ip_dtm_classes_tin")
+    os.makedirs(output_dir, exist_ok=True)
+    expected_output = os.path.join(TEST_PATH, "data", "interpolation",
                                    "test_data_77055_627760_LA93_IGN69_50CM_TIN_dtm_classes.tif")
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
         cfg = compose(config_name="config",
                       overrides=["io=test", "tile_geometry=test", "interpolation=pdal-tin",
-                                 "filter=dtm", "io.output_dir=./test/tmp/hydra_ip/DTM"])
+                                 "filter=dtm", f"io.output_dir={output_dir}"])
 
-        output_file = get_expected_output_file(cfg.interpolation.method_postfix)
+        output_file = get_expected_output_file(cfg.interpolation.method_postfix, base_dir=output_dir)
 
         ip_one_tile.run_ip_on_tile(cfg)
         assert os.path.isfile(output_file)
 
         raster_bounds = ru.get_tif_extent(output_file)
-        assert ru.allclose_mm(raster_bounds, expected_raster_bounds)
+        assert ru.allclose_mm(raster_bounds, EXPECTED_RASTER_BOUNDS)
 
         assert ru.tif_values_all_close(output_file, expected_output)
 

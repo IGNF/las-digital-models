@@ -1,5 +1,6 @@
 # dev
 - refactor steps to create fewer intermediate results
+- bump to pdal 2.6.0 (should resolve [#2277](http://redmine.forge-idi.ign.fr/issues/2277)
 
 # v0.3.0:
 - only use hydra on main function of ip_one_tile / add_buffer_one_tile / filter_one_tile

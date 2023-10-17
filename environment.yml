@@ -3,10 +3,10 @@ channels:
   - conda-forge
   - anaconda
 dependencies:
-  - python==3.9.*
+  - python==3.10.*
   - pip
   - pytest
-  - cgal==5.4
+  - cgal
   - gdal
   - laspy
   - numpy
@@ -14,7 +14,7 @@ dependencies:
   - fiona
   - rasterio
   - pyproj
-  - pdal>=2.4.3
+  - pdal>=2.6
   - python-pdal>=3.2.1
     # --------- hydra configs --------- #
   - hydra-core==1.2.*
