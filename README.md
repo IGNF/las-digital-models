@@ -9,23 +9,23 @@ This repo contains code to generate different kinds of digital models from LAS i
 
 The overall workflow to create DXM from a classified LAS point cloud is:
 
-To generate a Digital Terrain Model (DTM):
-* filter: filter the point cloud to keep only ground points
+As a preprocessing step, a buffer is added to each tile:
 * buffer: add points from a buffer around the tile (from neighbor tiles) to limit border effects
-* interpolation : generate a DTM from the buffered + filtered point cloud
 
+This step can be mutualized when we generate several kinds of digital models.
+
+To generate a Digital Terrain Model (DTM):
+* interpolation : generate a DTM from the buffered point cloud. The point cloud is filtered (by classification) during the interpolation step
 
 ```
-LAS -> filter -> buffer -> interpolation -> DTM
+LAS -> buffer -> interpolation -> DTM
 ```
 
 To generate a Digital Surface Model (DSM):
-* filter: filter the point cloud to keep the points that you want to include
-* buffer: add points from a buffer around the tile (from neighbor tiles) to limit border effects
-* interpolation : generate a DSM from the buffered + filtered point cloud
+* interpolation : generate a DTM from the buffered point cloud. The point cloud is filtered (by classification) during the interpolation step
 
 ```
-LAS -> filter -> buffer -> interpolation -> DSM
+LAS -> buffer -> interpolation -> DSM
 ```
 
 To generate a Digital Height Model (DHM):
@@ -41,7 +41,7 @@ DSM - DTM -> DHM
 This repo contains:
 * code to compute the interpolation step on one tile
 * code to compute the DHM from DSM and DTM on one tile
-* scripts to compute the filter and buffer step on one tile,
+* scripts to compute the buffer step on one tile,
 using the [ign-pdal-tools](http://gitlab.forge-idi.ign.fr/Lidar/pdalTools) library
 * a script to run all steps together on a folder containing several tiles
 
@@ -90,6 +90,8 @@ the `configs` folder.
 > `coord_x` and `coord_y` are the coordinates of the top-left corner of the tile.
 > By default, they are given in km, and the tile width is 1km. Otherwise, you must override the
 > values of `tile_geometry.tile_width` and `tile_geometry.tile_coord_scale`
+> * `tile_geometry.tile_width` must contain the tile size in meters
+> * `tile_geometry.tile_coord_scale` must contain the `coord_x` and `coord_y` scale so that `coord_{x or y} * tile_geometry.tile_coord_scale` are the coordinates of the top-left corner in meters
 
 ## Whole pipeline
 
@@ -97,7 +99,7 @@ To run the whole pipeline (DSM + DTM + DHM) on all the LAS files in a folder, us
 available interpolation method, use `run.sh`.
 
 ```bash
-./run.sh -i INPUT_DIR -o OUTPUT_DIR -p PIXEL_SIZE -j PARALLEL_JOBS
+./run.sh -i INPUT_DIR -o OUTPUT_DIR -p PIXEL_SIZE -j PARALLEL_JOBS -s SHAPEFILE
 ```
 
 with:
@@ -105,6 +107,7 @@ with:
 * OUTPUT_DIR: folder where the output will be saved
 * PIXEL_SIZE: The desired pixel size of the output (in meters)
 * PARALLEL_JOBS: the number of jobs to run in parallel, 0 is as many as possible (cf. parallel command)
+* SHAPEFILE: a shapefile containing a mask to hide data from specific areas (the masked areas will contain no-data values)
 
 It will generate:
 * Temporary files (you can delete them manually when the result looks good):
@@ -117,22 +120,6 @@ It will generate:
   * ${OUTPUT_DIR}/DSM
   * ${OUTPUT_DIR}/DHM
 
-## Filter
-
-To filter a point cloud in order to keep only the desired classes using `ign-pdal-tools`:
-
-```bash
-python -m produits_derives_lidar.filter_one_tile \
-  io.input_dir=INPUT_DIR \
-  io.input_filename=INPUT_FILENAME \
-  io.output_dir=OUTPUT_DIR \
-  filter.keep_classes=[2,66]
-```
-
-`filter.keep_classes` must be a list inside `[]`, separated by `,` without spaces.
-
-Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
-[hydra](https://hydra.cc/) for more details on usage)
 
 ## Buffer
 
@@ -160,7 +147,10 @@ python -m produits_derives_lidar.ip_one_tile \
     io.output_dir=${DXM_DIR} \
     interpolation=${METHOD} \
     tile_geometry.pixel_size=${PIXEL_SIZE}
+    filter.keep_classes=[2,66]
 ```
+
+`filter.keep_classes` must be a list inside `[]`, separated by `,` without spaces.
 
 `interpolation` must be the stem of one of the filenames in `configs/interpolation`
 
