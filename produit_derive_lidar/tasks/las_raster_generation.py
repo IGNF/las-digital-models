@@ -4,17 +4,6 @@
 import fiona
 import rasterio
 import rasterio.mask
-from osgeo import gdal
-
-
-def check_raster(fpath):
-    """Check if raster has created"""
-    # Check if DTM has created
-    ds = gdal.Open(fpath)
-    if ds is None:
-        return False
-    ds = None  # Close dataset
-    return True
 
 
 def mask_with_no_data_shapefile(shapefile: str, input_raster: str, output_raster: str, no_data: int):
@@ -22,7 +11,6 @@ def mask_with_no_data_shapefile(shapefile: str, input_raster: str, output_raster
     # # Create raster
     # out = gdal.Rasterize(raster_file, shapefile, allTouched=True, burnValues=no_data)
     # print(out)
-    # 1/0
     with fiona.open(shapefile, "r") as fhandle:
         shapes = [feature["geometry"] for feature in fhandle]
 

@@ -4,6 +4,7 @@
 - remove hydra internal logs
 - fix jenkinsfile (continuous integration)
 - add (+ apply) linting and pre-commit
+- remove dead code
 
 # v0.4.0
 - refactor steps to create fewer intermediate results

@@ -6,22 +6,7 @@ import logging
 import os
 import sys
 import time
-from multiprocessing import cpu_count
 from typing import Callable
-
-
-def select_num_threads(display_name="", cpu_limit=-1):
-    """Select number of threads for multiprocessing from the number of cpu core and cpu_limit
-    (maximum number of cores to use)"""
-    cores = cpu_count()
-    logging.info(f"Found {cores} logical cores in this PC")
-    num_threads = cores - 1
-    if cpu_limit > 0 and num_threads > cpu_limit:
-        logging.info(f"Limit CPU usage to {cpu_limit} cores.")
-        num_threads = cpu_limit
-    logging.info(f"\nStarting {display_name} pool of processes on the {num_threads} logical cores.\n")
-
-    return num_threads
 
 
 def get_logger(name):
