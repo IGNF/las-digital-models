@@ -1,10 +1,11 @@
 import logging
 import os
-from produit_derive_lidar.commons import commons
-import pytest
 import shutil
 import subprocess as sp
 
+import pytest
+
+from produit_derive_lidar.commons import commons
 
 test_path = os.path.dirname(os.path.abspath(__file__))
 tmp_path = os.path.join(test_path, "tmp")
@@ -16,17 +17,18 @@ pixel_size = 0.5
 expected_output_dirs = {
     "dtm": os.path.join(output_dir, "DTM"),
     "dsm": os.path.join(output_dir, "DSM"),
-    "dhm": os.path.join(output_dir, "DHM")
+    "dhm": os.path.join(output_dir, "DHM"),
 }
 
 methods = ["cgal-nn", "pdal-idw", "pdal-tin", "startin-laplace", "startin-tinlinear"]
 postfixs = ["NN", "IDW", "TIN", "Laplace", "TINlinear"]
 
+
 def setup_module(module):
     try:
         shutil.rmtree(tmp_path)
 
-    except (FileNotFoundError):
+    except FileNotFoundError:
         pass
     os.mkdir(tmp_path)
 

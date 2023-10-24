@@ -3,14 +3,17 @@
 # version : v.1 06/12/2022
 # LAS INTERPOLATION
 import logging
-from produit_derive_lidar.commons import commons
-from produit_derive_lidar.commons.laspy_io import read_las_and_extract_points_and_classifs
-import pdal
-import json
+from typing import List
+
 import numpy as np
+import pdal
 import rasterio
 from rasterio.transform import from_origin
-from typing import List
+
+from produit_derive_lidar.commons import commons
+from produit_derive_lidar.commons.laspy_io import (
+    read_las_and_extract_points_and_classifs,
+)
 
 
 class Interpolator:
@@ -27,16 +30,16 @@ class Interpolator:
     """
 
     def __init__(
-            self,
-            nb_pixels: List[int],
-            origin: List[float],
-            pixel_size: float,
-            method: str,
-            spatial_ref: str,
-            no_data_value: int,
-            tile_width: int,
-            tile_coord_scale: int,
-            classes: List[int]
+        self,
+        nb_pixels: List[int],
+        origin: List[float],
+        pixel_size: float,
+        method: str,
+        spatial_ref: str,
+        no_data_value: int,
+        tile_width: int,
+        tile_coord_scale: int,
+        classes: List[int],
     ):
         """Initialize the interpolator
 
@@ -65,7 +68,6 @@ class Interpolator:
         self.tile_coord_scale = tile_coord_scale
         self.classes = classes
 
-
     def run_method_with_standard_io(self, fn, input_file, output_file):
         _, points_np, classifs = read_las_and_extract_points_and_classifs(input_file)
         if self.classes:
@@ -76,11 +78,10 @@ class Interpolator:
         logging.debug(f"Read {len(points_np)} points from {input_file}.")
         if len(filtered_points) > 0:
             raster = fn(filtered_points)
-        else :
+        else:
             raster = self.no_data_value * np.ones([self.nb_pixels[1], self.nb_pixels[0]])
         write_geotiff(raster, self.origin, self.pixel_size, output_file, self.spatial_ref, self.no_data_value)
         logging.debug(f"Saved to {output_file}")
-
 
     @commons.eval_time
     def execute_startin(self, pts):
@@ -91,17 +92,26 @@ class Interpolator:
         Returns:
             ras(list): Z interpolation
         """
-        import startinpy
         import numpy as np
+        import startinpy
 
         # # Startin
-        tin = startinpy.DT(); tin.insert(pts) # # Insert each points in the array of points (a 2D array)
-        ras = np.zeros([self.nb_pixels[1], self.nb_pixels[0]]) # # returns a new array of given shape and type, filled with zeros
+        tin = startinpy.DT()
+        tin.insert(pts)  # # Insert each points in the array of points (a 2D array)
+        ras = np.zeros(
+            [self.nb_pixels[1], self.nb_pixels[0]]
+        )  # # returns a new array of given shape and type, filled with zeros
         # # Interpolate method
-        if self.method.lower() == 'startin-tinlinear':
-            def interpolant(x, y): return tin.interpolate_tin_linear(x, y)
-        elif self.method.lower() == 'startin-laplace':
-            def interpolant(x, y): return tin.interpolate_laplace(x, y)
+        if self.method.lower() == "startin-tinlinear":
+
+            def interpolant(x, y):
+                return tin.interpolate_tin_linear(x, y)
+
+        elif self.method.lower() == "startin-laplace":
+
+            def interpolant(x, y):
+                return tin.interpolate_laplace(x, y)
+
         else:
             raise NotImplementedError(f"Method {self.method} not implemented for execute_startin")
 
@@ -110,14 +120,18 @@ class Interpolator:
                 x = self.origin[0] + xi * self.pixel_size
                 y = self.origin[1] - yi * self.pixel_size
                 try:
-                    ch = tin.is_inside_convex_hull(x, y) # check is the point [x, y] located inside  the convex hull of the DT
+                    ch = tin.is_inside_convex_hull(
+                        x, y
+                    )  # check is the point [x, y] located inside  the convex hull of the DT
                 except Exception as e:
                     raise ValueError(f"x: {x}, y: {y}, xi: {xi}, yi: {yi}")
                     raise e
-                if ch == False:
+                if ch is False:
                     ras[yi, xi] = self.no_data_value
                 else:
-                    tri = tin.locate(x, y) # locate the triangle containing the point [x,y]. An error is thrown if it is outside the convex hull
+                    # locate the triangle containing the point [x,y]. An error is thrown if it is outside the convex
+                    # hull
+                    tri = tin.locate(x, y)
                     if len(tri) and (0 not in tri):
                         ras[yi, xi] = interpolant(x, y)
                     else:
@@ -140,18 +154,20 @@ class Interpolator:
         Returns:
             ras(list): Z interpolation
         """
+        from CGAL.CGAL_Interpolation import natural_neighbor_coordinates_2
         from CGAL.CGAL_Kernel import Point_2
         from CGAL.CGAL_Triangulation_2 import Delaunay_triangulation_2
-        from CGAL.CGAL_Interpolation import natural_neighbor_coordinates_2
 
-        s_idx = np.lexsort(pts.T); s_data = pts[s_idx,:]
-        mask = np.append([True], np.any(np.diff(s_data[:,:2], axis = 0), 1))
+        s_idx = np.lexsort(pts.T)
+        s_data = pts[s_idx, :]
+        mask = np.append([True], np.any(np.diff(s_data[:, :2], axis=0), 1))
         deduped = s_data[mask]
-        cpts = list(map(lambda x: Point_2(*x), deduped[:,:2].tolist()))
-        zs = dict(zip([tuple(x) for x in deduped[:,:2]], deduped[:,2]))
+        cpts = list(map(lambda x: Point_2(*x), deduped[:, :2].tolist()))
+        zs = dict(zip([tuple(x) for x in deduped[:, :2]], deduped[:, 2]))
 
         tin = Delaunay_triangulation_2()
-        for pt in cpts: tin.insert(pt)
+        for pt in cpts:
+            tin.insert(pt)
         ras = np.zeros([self.nb_pixels[1], self.nb_pixels[0]])
         for yi in range(self.nb_pixels[1]):
             for xi in range(self.nb_pixels[0]):
@@ -159,7 +175,7 @@ class Interpolator:
                 y = self.origin[1] - yi * self.pixel_size
                 nbrs = []
                 qry = natural_neighbor_coordinates_2(tin, Point_2(x, y), nbrs)
-                if qry[1] == True:
+                if qry[1] is True:
                     z_out = 0
                     for nbr in nbrs:
                         z, w = zs[(nbr[0].x(), nbr[0].y())], nbr[1] / qry[0]
@@ -171,7 +187,7 @@ class Interpolator:
         return ras
 
     @commons.eval_time
-    def execute_pdal(self, fpath: str, output_file:str, method: str):
+    def execute_pdal(self, fpath: str, output_file: str, method: str):
         """Sets up a PDAL pipeline that reads a ground filtered LAS
         file, and writes it via GDAL. The GDAL writer has interpolation
         options, exposing the radius, power and a fallback kernel width
@@ -183,26 +199,24 @@ class Interpolator:
             - min : Give the cell the minimum value of all points within the given radius.
             - max : Give the cell the maximum value of all points within the given radius.
             - mean : Give the cell the mean value of all points within the given radius.
-            - idw: Cells are assigned a value based on Shepard’s inverse distance weighting algorithm, considering all points within the given radius.
+            - idw: Cells are assigned a value based on Shepard’s inverse distance weighting algorithm, considering all
+            points within the given radius.
 
         Args:
             fpath(str):  input file for the pdal pipeliine
             output_file(str): output file for the pdal pipeliine
             method(str): Chose of the method = min / max / mean / idw
 
-            rad(float): Radius about cell center bounding points to use to calculate a cell value. [Default: resolution * sqrt(2)]
-            pwr(float): Exponent of the distance when computing IDW. Close points have higher significance than far points. [Default: 1.0]
-            wnd(float): The maximum distance from donor cell to a target cell when applying the fallback interpolation method. [default:0]
+            rad(float): Radius about cell center bounding points to use to calculate a cell value.
+            [Default: resolution * sqrt(2)]
+            pwr(float): Exponent of the distance when computing IDW. Close points have higher significance than far
+            points. [Default: 1.0]
+            wnd(float): The maximum distance from donor cell to a target cell when applying the fallback interpolation
+            method. [default:0]
         """
-        pipeline = pdal.Reader.las(
-            filename=fpath,
-            override_srs=self.spatial_ref,
-            nosrs=True
-        )
+        pipeline = pdal.Reader.las(filename=fpath, override_srs=self.spatial_ref, nosrs=True)
         if self.classes:
-            pipeline |= pdal.Filter.range(
-                limits=",".join(f"Classification[{c}:{c}]" for c in self.classes)
-            )
+            pipeline |= pdal.Filter.range(limits=",".join(f"Classification[{c}:{c}]" for c in self.classes))
         pipeline |= pdal.Writer.gdal(
             output_type=method,
             resolution=str(self.pixel_size),
@@ -214,26 +228,30 @@ class Interpolator:
             window_size=5,
             nodata=self.no_data_value,
             data_type="float32",
-            filename=output_file
+            filename=output_file,
         )
 
         pipeline.execute()
 
-
     @commons.eval_time
-    def execute_pdal_tin(self, fpath: str, output_file:str):
+    def execute_pdal_tin(self, fpath: str, output_file: str):
         """Sets up a PDAL pipeline that reads a ground filtered LAS
-        file, and interpolates either using "Delaunay", then " Faceraster" and writes it via RASTER. Uses a no-data value set in commons.
+        file, and interpolates either using "Delaunay", then " Faceraster" and writes it via RASTER. Uses a no-data
+        value set in commons.
         More about these in the readme on GitHub.
 
         The Delaunay Filter creates a triangulated mesh fulfilling the Delaunay condition from a collection of points.
 
-        The FaceRaster filter creates a raster from a point cloud using an algorithm based on an existing triangulation.
-        Each raster cell is given a value that is an interpolation of the known values of the containing triangle. If the raster cell center is outside of the triangulation,
+        The FaceRaster filter creates a raster from a point cloud using an algorithm based on an existing
+        triangulation.
+        Each raster cell is given a value that is an interpolation of the known values of the containing triangle.
+        If the raster cell center is outside of the triangulation,
         it is assigned the nodata value. Use writers.raster to write the output.
-        The extent of the raster can be defined by using the origin_x, origin_y, width and height options. If these options aren’t provided the raster is sized to contain the input data.
+        The extent of the raster can be defined by using the origin_x, origin_y, width and height options.
+        If these options aren’t provided the raster is sized to contain the input data.
 
-        The Raster Writer writes an existing raster to a file. Output is produced using GDAL and can use any driver that supports creation of rasters.
+        The Raster Writer writes an existing raster to a file. Output is produced using GDAL and can use any driver
+        that supports creation of rasters.
         A data_type can be specified for the raster (double, float, int32, etc.).
         If no data type is specified, the data type with the largest range supported by the driver is used.
 
@@ -241,15 +259,9 @@ class Interpolator:
             fpath(str):  input file for the pdal pipeliine
             output_file(str): output file for the pdal pipeliine
         """
-        pipeline = pdal.Reader.las(
-            filename=fpath,
-            override_srs=self.spatial_ref,
-            nosrs=True
-        )
+        pipeline = pdal.Reader.las(filename=fpath, override_srs=self.spatial_ref, nosrs=True)
         if self.classes:
-            pipeline |= pdal.Filter.range(
-                limits=",".join(f"Classification[{c}:{c}]" for c in self.classes)
-            )
+            pipeline |= pdal.Filter.range(limits=",".join(f"Classification[{c}:{c}]" for c in self.classes))
 
         pipeline |= pdal.Filter.delaunay()
 
@@ -261,14 +273,10 @@ class Interpolator:
             height=str(self.nb_pixels[1]),
         )
         pipeline |= pdal.Writer.raster(
-            gdaldriver="GTiff",
-            nodata=self.no_data_value,
-            data_type="float32",
-            filename=output_file
+            gdaldriver="GTiff", nodata=self.no_data_value, data_type="float32", filename=output_file
         )
 
         pipeline.execute()
-
 
     def run(self, input_file: str, output_file: str):
         """Lauch the deterministic method
@@ -278,23 +286,23 @@ class Interpolator:
         Returns:
             ras(list): Z interpolation
         """
+
         def exec_startin_with_io(inpf, outf):
             return self.run_method_with_standard_io(self.execute_startin, inpf, outf)
 
         methods_map = {
-            'pdal-idw': (lambda inpf, outf : self.execute_pdal(inpf, outf, method='idw')),
-            'pdal-tin': self.execute_pdal_tin,
-            'startin-tinlinear': exec_startin_with_io,
-            'startin-laplace': exec_startin_with_io,
-            'cgal-nn': (lambda inpf, outf : self.run_method_with_standard_io(
-                        self.execute_cgal, inpf, outf)),
+            "pdal-idw": (lambda inpf, outf: self.execute_pdal(inpf, outf, method="idw")),
+            "pdal-tin": self.execute_pdal_tin,
+            "startin-tinlinear": exec_startin_with_io,
+            "startin-laplace": exec_startin_with_io,
+            "cgal-nn": (lambda inpf, outf: self.run_method_with_standard_io(self.execute_cgal, inpf, outf)),
         }
 
         # run method
         methods_map[self.method.lower()](input_file, output_file)
 
 
-def write_geotiff(raster, origin, size, fpath, spatial_ref='EPSG:2154', no_data_value=-9999):
+def write_geotiff(raster, origin, size, fpath, spatial_ref="EPSG:2154", no_data_value=-9999):
     """Writes the interpolated TIN-linear and Laplace rasters
     to disk using the GeoTIFF format. The header is based on
     the raster array and a manual definition of the coordinate
@@ -310,13 +318,16 @@ def write_geotiff(raster, origin, size, fpath, spatial_ref='EPSG:2154', no_data_
         bool: If the output "DTM" saved in fpath is okay or not
     """
     with rasterio.Env():
-        with rasterio.open(fpath, 'w', driver = 'GTiff',
-                           height=raster.shape[0],
-                           width=raster.shape[1],
-                           count=1,
-                           dtype=rasterio.float32,
-                           crs=spatial_ref,
-                           transform=from_origin(origin[0] - size/2, origin[1] + size/2, size, size),
-                           nodata=no_data_value,
-                           ) as out_file:
+        with rasterio.open(
+            fpath,
+            "w",
+            driver="GTiff",
+            height=raster.shape[0],
+            width=raster.shape[1],
+            count=1,
+            dtype=rasterio.float32,
+            crs=spatial_ref,
+            transform=from_origin(origin[0] - size / 2, origin[1] + size / 2, size, size),
+            nodata=no_data_value,
+        ) as out_file:
             out_file.write(raster.astype(rasterio.float32), 1)

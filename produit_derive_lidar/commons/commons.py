@@ -3,11 +3,11 @@
 # version : v.1 06/12/2022
 # COMMONS
 import logging
-from multiprocessing import cpu_count
 import os
-import time
-from typing import Callable
 import sys
+import time
+from multiprocessing import cpu_count
+from typing import Callable
 
 
 def select_num_threads(display_name="", cpu_limit=-1):
@@ -15,7 +15,7 @@ def select_num_threads(display_name="", cpu_limit=-1):
     (maximum number of cores to use)"""
     cores = cpu_count()
     logging.info(f"Found {cores} logical cores in this PC")
-    num_threads = cores -1
+    num_threads = cores - 1
     if cpu_limit > 0 and num_threads > cpu_limit:
         logging.info(f"Limit CPU usage to {cpu_limit} cores.")
         num_threads = cpu_limit
@@ -78,8 +78,10 @@ def give_name_resolution_raster(size):
         _size = f"_{int(size)}M"
     elif int(size_cm) == float(size_cm):
         _size = f"_{int(size_cm)}CM"
-    else :
-        raise ValueError(f"Cell size is subcentimetric ({size}m) i.e raster resolution is " +
-                         "too high : output name not implemented for this case")
+    else:
+        raise ValueError(
+            f"Cell size is subcentimetric ({size}m) i.e raster resolution is "
+            + "too high : output name not implemented for this case"
+        )
 
     return _size

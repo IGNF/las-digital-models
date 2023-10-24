@@ -1,15 +1,11 @@
-from produit_derive_lidar import dhm_one_tile
-from produit_derive_lidar.commons import commons
 import logging
-import numpy as np
 import os
-import pytest
 import shutil
-import test.utils.point_cloud_utils as pcu
 import test.utils.raster_utils as ru
 
-from hydra import initialize, compose
+from hydra import compose, initialize
 
+from produit_derive_lidar import dhm_one_tile
 
 coordX = 77055
 coordY = 627760
@@ -23,22 +19,18 @@ test_path = os.path.dirname(os.path.abspath(__file__))
 tmp_path = os.path.join(test_path, "tmp")
 
 output_dir = os.path.join(tmp_path, "DHM")
-expected_output_file = os.path.join(
-    output_dir,
-    f"test_data_{coordX}_{coordY}_LA93_IGN69_50CM_TIN.tif"
-)
+expected_output_file = os.path.join(output_dir, f"test_data_{coordX}_{coordY}_LA93_IGN69_50CM_TIN.tif")
 
-expected_xmin = coordX * tile_coord_scale - pixel_size/2
-expected_ymax = coordY * tile_coord_scale  + pixel_size/2
+expected_xmin = coordX * tile_coord_scale - pixel_size / 2
+expected_ymax = coordY * tile_coord_scale + pixel_size / 2
 expected_raster_bounds = (expected_xmin, expected_ymax - tile_width), (expected_xmin + tile_width, expected_ymax)
-
 
 
 def setup_module(module):
     try:
         shutil.rmtree(tmp_path)
 
-    except (FileNotFoundError):
+    except FileNotFoundError:
         pass
     os.mkdir(tmp_path)
 
@@ -46,11 +38,16 @@ def setup_module(module):
 def test_mnh_one_tile():
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
-        cfg = compose(config_name="config",
-                      overrides=["io=test", "tile_geometry=test",
-                                 f"io.output_dir={output_dir}",
-                                 f"interpolation={interpolation_method}",
-                                 "dhm=test"])
+        cfg = compose(
+            config_name="config",
+            overrides=[
+                "io=test",
+                "tile_geometry=test",
+                f"io.output_dir={output_dir}",
+                f"interpolation={interpolation_method}",
+                "dhm=test",
+            ],
+        )
 
     assert cfg.interpolation.algo_name == interpolation_method  # Check that the correct method is used
 

@@ -3,7 +3,7 @@
 - refactor python version (standardize with other tools)
 - remove hydra internal logs
 - fix jenkinsfile (continuous integration)
-- add linting and pre-commit
+- add (+ apply) linting and pre-commit
 
 # v0.4.0
 - refactor steps to create fewer intermediate results

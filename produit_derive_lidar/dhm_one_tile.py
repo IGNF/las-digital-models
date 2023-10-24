@@ -1,17 +1,18 @@
 """Run create DHM on a single tile (current definition is DSM - DTM)"""
-from produit_derive_lidar.commons import commons
-from produit_derive_lidar.tasks.dhm_generation import calculate_dhm
 import logging
 import os
+
 import hydra
 from omegaconf import DictConfig
 
+from produit_derive_lidar.commons import commons
+from produit_derive_lidar.tasks.dhm_generation import calculate_dhm
 
 log = commons.get_logger(__name__)
 
 
 @hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
-def run_dhm_on_tile(config:DictConfig):
+def run_dhm_on_tile(config: DictConfig):
     os.makedirs(config.io.output_dir, exist_ok=True)
     tilename, _ = os.path.splitext(config.io.input_filename)
 
@@ -21,7 +22,7 @@ def run_dhm_on_tile(config:DictConfig):
     geotiff_dsm = os.path.join(config.dhm.input_dsm_dir, geotiff_filename)
     geotiff_dtm = os.path.join(config.dhm.input_dtm_dir, geotiff_filename)
     geotiff_output = os.path.join(config.io.output_dir, geotiff_filename)
-    ## process
+    # process
     calculate_dhm(geotiff_dsm, geotiff_dtm, geotiff_output, no_data_value=config.tile_geometry.no_data_value)
 
     return

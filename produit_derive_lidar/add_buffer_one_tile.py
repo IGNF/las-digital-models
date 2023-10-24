@@ -4,11 +4,12 @@ the queried tile
 
 """
 
-from pdaltools.las_add_buffer import create_las_with_buffer
 import logging
 import os
+
 import hydra
 from omegaconf import DictConfig
+from pdaltools.las_add_buffer import create_las_with_buffer
 
 
 @hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
@@ -27,7 +28,6 @@ def run_add_buffer_one_tile(config: DictConfig):
         input_file = os.path.join(config.io.input_dir, f"{tilename}.{config.io.forced_intermediate_ext}")
         output_file = os.path.join(config.io.output_dir, f"{tilename}.{config.io.forced_intermediate_ext}")
 
-
     os.makedirs(config.io.output_dir, exist_ok=True)
 
     create_las_with_buffer(
@@ -37,7 +37,7 @@ def run_add_buffer_one_tile(config: DictConfig):
         buffer_width=config.buffer.size,
         spatial_ref=config.io.spatial_reference,
         tile_width=config.tile_geometry.tile_width,
-        tile_coord_scale=config.tile_geometry.tile_coord_scale
+        tile_coord_scale=config.tile_geometry.tile_coord_scale,
     )
 
 
@@ -46,5 +46,5 @@ def main():
     run_add_buffer_one_tile()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

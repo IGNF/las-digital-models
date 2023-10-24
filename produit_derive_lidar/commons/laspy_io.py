@@ -3,10 +3,10 @@
 # version : v.1 06/12/2022
 # Merge the severals LIDAR tiles around the tile and raster preparation
 
-import math
-import numpy as np
-import laspy
 from typing import Tuple
+
+import laspy
+import numpy as np
 
 
 def read_las_and_extract_points_and_classifs(input_file: str) -> Tuple[laspy.lasdata.LasData, np.array, np.array]:

@@ -1,11 +1,11 @@
-from osgeo import gdal
-import rasterio
 import numpy as np
+import rasterio
+from osgeo import gdal
 
 
 # https://gis.stackexchange.com/questions/57834/how-to-get-raster-corner-coordinates-using-python-gdal-bindings
 def get_tif_extent(filename):
-    """ Return list of corner coordinates from a tif image """
+    """Return list of corner coordinates from a tif image"""
     ds = gdal.Open(filename)
 
     xmin, xpixel, _, ymax, _, ypixel = ds.GetGeoTransform()
@@ -13,7 +13,8 @@ def get_tif_extent(filename):
     xmax = xmin + width * xpixel
     ymin = ymax + height * ypixel
 
-    ds = None  # close gdal dataset (cf. https://gis.stackexchange.com/questions/80366/why-close-a-dataset-in-gdal-python)
+    # close gdal dataset (cf. https://gis.stackexchange.com/questions/80366/why-close-a-dataset-in-gdal-python)
+    ds = None
 
     return (xmin, ymin), (xmax, ymax)
 
