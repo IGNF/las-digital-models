@@ -2,7 +2,7 @@
 # maintener : MDupays
 # version : v.0.1.0 02/02/2023
 # Calculate DHM
-import lidarutils.gdal_calc as gdal_calc
+from osgeo_utils import gdal_calc
 
 
 def calculate_dhm(input_image_dsm, input_image_dtm, output_image, no_data_value: int = -9999):

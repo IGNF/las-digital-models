@@ -30,5 +30,4 @@ dependencies:
   - pip:
       - startinpy==0.8.0
       - ign-pdal-tools==0.5.3
-      - ign-lidarutils
 
