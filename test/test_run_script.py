@@ -5,7 +5,7 @@ import subprocess as sp
 
 import pytest
 
-from produit_derive_lidar.commons import commons
+from produits_derives_lidar.commons import commons
 
 test_path = os.path.dirname(os.path.abspath(__file__))
 tmp_path = os.path.join(test_path, "tmp")

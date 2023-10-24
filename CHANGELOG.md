@@ -5,6 +5,7 @@
 - fix jenkinsfile (continuous integration)
 - add (+ apply) linting and pre-commit
 - remove dead code
+- [BEAKING CHANGE] uniformise produit(s)_derive(s)_lidar to produits_derives_lidar
 
 # v0.4.0
 - refactor steps to create fewer intermediate results

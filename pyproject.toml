@@ -12,7 +12,7 @@ authors = [
 find = {}
 
 [tool.setuptools.dynamic]
-version = {attr = "produit_derive_lidar.version.__version__"}
+version = {attr = "produits_derives_lidar.version.__version__"}
 
 [tool.black]
 line-length = 119

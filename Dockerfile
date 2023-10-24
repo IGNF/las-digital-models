@@ -18,6 +18,6 @@ ENV PROJ_LIB=/opt/conda/envs/produits_derives_lidar/share/proj/
 
 WORKDIR /ProduitDeriveLIDAR
 RUN mkdir tmp
-COPY produit_derive_lidar produit_derive_lidar
+COPY produits_derives_lidar produits_derives_lidar
 COPY test test
 COPY configs configs

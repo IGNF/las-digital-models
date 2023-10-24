@@ -63,7 +63,7 @@ echo "------------------"
 echo "add buffer"
 echo "------------------"
 parallel --jobs ${PARALLEL_JOBS} \
-    python -m produit_derive_lidar.add_buffer_one_tile \
+    python -m produits_derives_lidar.add_buffer_one_tile \
         --config-name=${CONFIG_NAME} \
         io.input_dir=${INPUT} \
         io.input_filename={} \
@@ -87,7 +87,7 @@ echo "------------------"
 for METHOD in ${METHODS[@]}
 do
   parallel --jobs ${PARALLEL_JOBS} \
-      python -m produit_derive_lidar.ip_one_tile \
+      python -m produits_derives_lidar.ip_one_tile \
           --config-name=${CONFIG_NAME} \
           io.input_dir=${BUFFERED_DIR} \
           io.input_filename={} \
@@ -110,7 +110,7 @@ DSM_DIR=${OUTPUT}/DSM
 for METHOD in ${METHODS[@]}
 do
   parallel --jobs ${PARALLEL_JOBS} \
-      python -m produit_derive_lidar.ip_one_tile \
+      python -m produits_derives_lidar.ip_one_tile \
           --config-name=${CONFIG_NAME} \
           io.input_dir=${BUFFERED_DIR} \
           io.input_filename={} \
@@ -134,7 +134,7 @@ DHM_DIR=${OUTPUT}/DHM
 for METHOD in ${METHODS[@]}
 do
 parallel --jobs ${PARALLEL_JOBS} \
-    python -m produit_derive_lidar.dhm_one_tile \
+    python -m produits_derives_lidar.dhm_one_tile \
         --config-name=${CONFIG_NAME} \
         dhm.input_dsm_dir=${DSM_DIR} \
         dhm.input_dtm_dir=${DTM_DIR} \

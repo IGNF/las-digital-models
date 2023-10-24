@@ -28,13 +28,13 @@ while getopts "h?i:o:f:" opt; do
 done
 
 # Step 1 : filter ground
-python -m produit_derive_lidar.filter_multiprocessing \
+python -m produits_derives_lidar.filter_multiprocessing \
     -i ${INPUT} \
     -o ${FILTERED_LAS_DIR} \
     --keep_classes 2 66 \
     -e ${EXTENSION}
 # Step 2 ; create DTM with the severals method
-python -m produit_derive_lidar.ip_multiprocessing \
+python -m produits_derives_lidar.ip_multiprocessing \
     -i ${INPUT} \
     -o ${OUTPUT}/DTM \
     -f ${FILTERED_LAS_DIR} \

@@ -11,9 +11,11 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 from pdaltools.las_info import parse_filename
 
-from produit_derive_lidar.commons import commons
-from produit_derive_lidar.tasks.las_interpolation_deterministic import Interpolator
-from produit_derive_lidar.tasks.las_raster_generation import mask_with_no_data_shapefile
+from produits_derives_lidar.commons import commons
+from produits_derives_lidar.tasks.las_interpolation_deterministic import Interpolator
+from produits_derives_lidar.tasks.las_raster_generation import (
+    mask_with_no_data_shapefile,
+)
 
 log = commons.get_logger(__name__)
 

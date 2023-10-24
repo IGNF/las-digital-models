@@ -5,7 +5,7 @@ import test.utils.point_cloud_utils as pcu
 
 from hydra import compose, initialize
 
-from produit_derive_lidar import add_buffer_one_tile
+from produits_derives_lidar import add_buffer_one_tile
 
 coordX = 77055
 coordY = 627760

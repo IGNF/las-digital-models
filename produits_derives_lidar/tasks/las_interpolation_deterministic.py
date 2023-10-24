@@ -10,8 +10,8 @@ import pdal
 import rasterio
 from rasterio.transform import from_origin
 
-from produit_derive_lidar.commons import commons
-from produit_derive_lidar.commons.laspy_io import (
+from produits_derives_lidar.commons import commons
+from produits_derives_lidar.commons.laspy_io import (
     read_las_and_extract_points_and_classifs,
 )
 

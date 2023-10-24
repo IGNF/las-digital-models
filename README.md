@@ -67,7 +67,7 @@ reimplementation of conda):
 
 ```bash
 make install
-conda activate produit_derive_lidar
+conda activate produits_derives_lidar
 ```
 
 The `run.sh` command uses `gnu-parallel` to implement multiprocessing.
@@ -122,7 +122,7 @@ It will generate:
 To filter a point cloud in order to keep only the desired classes using `ign-pdal-tools`:
 
 ```bash
-python -m produit_derive_lidar.filter_one_tile \
+python -m produits_derives_lidar.filter_one_tile \
   io.input_dir=INPUT_DIR \
   io.input_filename=INPUT_FILENAME \
   io.output_dir=OUTPUT_DIR \
@@ -139,7 +139,7 @@ Any other parameter in the `./configs` tree can be overriden in the command (see
 To add a buffer to a point cloud using `ign-pdal-tools`:
 
 ```bash
-python -m produit_derive_lidar.filter_one_tile \
+python -m produits_derives_lidar.filter_one_tile \
   io.input_dir=INPUT_DIR \
   io.input_filename=INPUT_FILENAME \
   io.output_dir=OUTPUT_DIR \
@@ -154,7 +154,7 @@ Any other parameter in the `./configs` tree can be overriden in the command (see
 To run interpolation (DXM generation) using a given method:
 
 ```bash
-python -m produit_derive_lidar.ip_one_tile \
+python -m produits_derives_lidar.ip_one_tile \
     io.input_dir=${BUFFERED_DIR} \
     io.input_filename={} \
     io.output_dir=${DXM_DIR} \
@@ -174,7 +174,7 @@ To use it, provide the shapefile path with the `io.no_data_mask_shapefile` argum
 
 To generate DHM:
 ```bash
-    python -m produit_derive_lidar.dhm_one_tile \
+    python -m produits_derives_lidar.dhm_one_tile \
         dhm.input_dsm_dir=${DSM_DIR} \
         dhm.input_dtm_dir=${DTM_DIR} \
         io.input_filename={} \
@@ -184,7 +184,7 @@ To generate DHM:
 
 ```
 `dhm.input_dsm_dir` and `dhm.input_dtm_dir` must contained DSM and DTM generated with
-`produit_derive_lidar.ip_one_tile` using the same interpolation method an pixel_size as given in
+`produits_derives_lidar.ip_one_tile` using the same interpolation method an pixel_size as given in
 arguments.
 
 Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
@@ -207,7 +207,7 @@ docker run -t --rm --userns=host --shm-size=2gb \
     -v $INPUT_DIR:/input
     -v $OUTPUT_DIR:/output
     lidar_hd/produits_derives_lidar:$VERSION
-    python -m produit_derive_lidar.ip_one_tile \
+    python -m produits_derives_lidar.ip_one_tile \
         io.input_dir=/input \
         io.input_filename=$FILENAME \
         io.output_dir=/output \
@@ -215,7 +215,7 @@ docker run -t --rm --userns=host --shm-size=2gb \
         tile_geometry.pixel_size=$PIXEL_SIZE
 ```
 
-The version number can be retrieved with `python -m produit_derive_lidar.version`
+The version number can be retrieved with `python -m produits_derives_lidar.version`
 
 
 # Build and deploy as python package
@@ -236,8 +236,8 @@ make deploy
 
 If you are using an Anaconda virtual environment for PDAL/CGAL, you should first activate the environment in Anaconda prompt and _then_ run the relevant script
 from the same prompt. So, for example:
-1. Create conda environment : `conda env create -n produit_derive_lidar -f environment.yml`
-2. Activate conda environment : `conda activate produit_derive_lidar`
+1. Create conda environment : `conda env create -n produits_derives_lidar -f environment.yml`
+2. Activate conda environment : `conda activate produits_derives_lidar`
 2. Launch the module : `python -m [name of the module to run] [argument_1] [argument_2] [...]`
 
 Another word of caution with the outputs is that they all use a fixed no-data value of -9999. This includes the GeoTIFF exporter. To view the results correctly, you should keep in mind that while the upper bounds of the data will be determined correctly by the viewer software (e.g. QGIS), the lower bound will be -9999.

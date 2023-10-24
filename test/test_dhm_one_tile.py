@@ -5,7 +5,7 @@ import test.utils.raster_utils as ru
 
 from hydra import compose, initialize
 
-from produit_derive_lidar import dhm_one_tile
+from produits_derives_lidar import dhm_one_tile
 
 coordX = 77055
 coordY = 627760
