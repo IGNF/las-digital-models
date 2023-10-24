@@ -42,3 +42,26 @@ testing:
 	python -m pytest -s \
 	--log-cli-level=INFO --log-format="%(asctime)s %(levelname)s %(message)s" \
 	--log-date-format="%Y-%m-%d %H:%M:%S"
+
+
+# --------------------
+# Docker
+# --------------------
+
+PROJECT_NAME=lidar_hd/produits_derives_lidar
+VERSION=`cat VERSION.md`
+REGISTRY=docker-registry.ign.fr
+
+docker-build:
+	docker build -t ${PROJECT_NAME}:${VERSION} -f Dockerfile .
+
+docker-test:
+	docker run --rm -it ${PROJECT_NAME}:${VERSION} python -m pytest -s
+
+docker-remove:
+	docker rmi -f `docker images | grep ${PROJECT_NAME} | tr -s ' ' | cut -d ' ' -f 3`
+
+docker-deploy:
+	docker login docker-registry.ign.fr -u svc_lidarhd
+	docker tag ${PROJECT_NAME} ${REGISTRY}/${PROJECT_NAME}:${VERSION}
+	docker push ${REGISTRY}/${PROJECT_NAME}:${VERSION}

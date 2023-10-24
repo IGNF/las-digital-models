@@ -1,3 +1,6 @@
+# dev
+- refactor docker image tools (reduce docker image size)
+
 # v0.4.0
 - refactor steps to create fewer intermediate results
 - bump to pdal 2.6.0 (should resolve [#2277](http://redmine.forge-idi.ign.fr/issues/2277))

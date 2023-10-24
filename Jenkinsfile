@@ -24,14 +24,14 @@ parallel (
 	}
 	},
 
-	"docker":{	
+	"docker":{
 	node('DOCKER') {
 
 		stage('docker-build') {
 			gitlabCommitStatus("docker-build") {
 				if (env.BRANCH_NAME == 'master') {
 					checkout scm
-					sh "cd docker && ./build.sh"
+					sh "make docker-build"
 				} else {
 					echo "Nothing to do, because branch is not master"
 				}
