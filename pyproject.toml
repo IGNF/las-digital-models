@@ -12,4 +12,4 @@ authors = [
 find = {}
 
 [tool.setuptools.dynamic]
-version = {file = ["VERSION.md"]}
+version = {attr = "produit_derive_lidar.version.__version__"}

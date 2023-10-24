@@ -196,9 +196,9 @@ Any other parameter in the `./configs` tree can be overriden in the command (see
 
 This codebase can be used in a docker image.
 
-To generate the docker image, run `bash docker/build.sh`
+To generate the docker image, run `make docker-build`
 
-To deploy it on nexus, run `bash docker/deploy.sh`
+To deploy it on nexus, run `make docker-deploy`
 
 To run any of the methods cited in the [Usage section](#usage):
 ```bash
@@ -215,7 +215,7 @@ docker run -t --rm --userns=host --shm-size=2gb \
         tile_geometry.pixel_size=$PIXEL_SIZE
 ```
 
-The version number is in `VERSION.md`
+The version number can be retrieved with `python -m produit_derive_lidar.version`
 
 
 # Build and deploy as python package

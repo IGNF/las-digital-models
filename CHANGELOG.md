@@ -1,5 +1,6 @@
 # dev
 - refactor docker image tools (reduce docker image size)
+- refactor python version (standardize with other tools)
 
 # v0.4.0
 - refactor steps to create fewer intermediate results

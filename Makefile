@@ -49,7 +49,7 @@ testing:
 # --------------------
 
 PROJECT_NAME=lidar_hd/produits_derives_lidar
-VERSION=`cat VERSION.md`
+VERSION=`python -m produits_derives_lidar.version`
 REGISTRY=docker-registry.ign.fr
 
 docker-build:
