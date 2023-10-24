@@ -13,12 +13,11 @@ defaults:
   - tile_geometry: test.yaml  # describes input features and classes
   - dhm: test.yaml
 
-  # enable color logging
-  - override hydra/hydra_logging: colorlog
+  # disable hydra logging
+  - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-
-# hydra:
-#   # job.chdir: False
-#   hydra_logging: colorlog
-#   job_logging: colorlog
+hydra:
+  output_subdir: null
+  run:
+    dir: .
