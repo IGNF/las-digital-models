@@ -1,7 +1,0 @@
-REGISTRY=docker-registry.ign.fr
-PROJECT_NAME=lidar_hd/produits_derives_lidar
-VERSION=`cat VERSION.md`
-
-docker login docker-registry.ign.fr -u svc_lidarhd -p $1 && \
-docker tag $PROJECT_NAME $REGISTRY/$PROJECT_NAME:$VERSION && \
-docker push $REGISTRY/$PROJECT_NAME:$VERSION

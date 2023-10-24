@@ -20,6 +20,9 @@ install:
 deploy: check
 	twine upload --repository-url https://nexus.ign.fr/repository/pypi-lidarhd-hosted/ dist/*
 
+deploy-w-creds: check
+	twine upload --repository-url https://nexus.ign.fr/repository/pypi-lidarhd-hosted/ dist/* -u svc_lidarhd -p $(svc_lidarhd_pwd)
+
 check: dist/ign-mnx*.tar.gz
 	twine check dist/*
 
@@ -63,5 +66,10 @@ docker-remove:
 
 docker-deploy:
 	docker login docker-registry.ign.fr -u svc_lidarhd
+	docker tag ${PROJECT_NAME} ${REGISTRY}/${PROJECT_NAME}:${VERSION}
+	docker push ${REGISTRY}/${PROJECT_NAME}:${VERSION}
+
+docker-deploy-w-creds:
+	docker login docker-registry.ign.fr -u svc_lidarhd -p $(svc_lidarhd_pwd)
 	docker tag ${PROJECT_NAME} ${REGISTRY}/${PROJECT_NAME}:${VERSION}
 	docker push ${REGISTRY}/${PROJECT_NAME}:${VERSION}

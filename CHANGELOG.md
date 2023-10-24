@@ -2,6 +2,7 @@
 - refactor docker image tools (reduce docker image size)
 - refactor python version (standardize with other tools)
 - remove hydra internal logs
+- fix jenkinsfile (continuous integration)
 
 # v0.4.0
 - refactor steps to create fewer intermediate results
