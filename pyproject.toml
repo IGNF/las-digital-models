@@ -13,3 +13,20 @@ find = {}
 
 [tool.setuptools.dynamic]
 version = {attr = "produit_derive_lidar.version.__version__"}
+
+[tool.black]
+line-length = 119
+include = '\.pyi?$'
+exclude = '''
+/(
+  \.toml
+  |\.sh
+  |\.git
+  |\.ini
+  |\.bat
+  | data
+)/
+'''
+
+[tool.isort]
+profile = "black"

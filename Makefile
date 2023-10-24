@@ -13,6 +13,9 @@
 install:
 	mamba env update -n produits_derives_lidar -f environment.yml
 
+install-precommit:
+	pre-commit install
+
 # --------------------
 # pip library creation
 # --------------------

@@ -22,6 +22,11 @@ dependencies:
     # --------- build and deploy lib -- #
   - build
   - twine
+    # --------- linting --------------- #
+  - black
+  - flake8
+  - isort
+  - pre-commit
   - pip:
       - startinpy==0.8.0
       - ign-pdal-tools==0.5.3
