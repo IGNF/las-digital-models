@@ -2,7 +2,10 @@
 # maintener : MDupays
 # version : v.0.1.0 02/02/2023
 # Calculate DHM
+from osgeo import gdal
 from osgeo_utils import gdal_calc
+
+gdal.UseExceptions()
 
 
 def calculate_dhm(input_image_dsm, input_image_dtm, output_image, no_data_value: int = -9999):
@@ -27,4 +30,5 @@ def calculate_dhm(input_image_dsm, input_image_dtm, output_image, no_data_value:
         type="Float32",
         quiet=True,
         NoDataValue=no_data_value,
+        overwrite=True,
     )

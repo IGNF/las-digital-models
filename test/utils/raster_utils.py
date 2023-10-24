@@ -2,6 +2,9 @@ import numpy as np
 import rasterio
 from osgeo import gdal
 
+# Make gdal forward exceptions to python pinding
+gdal.UseExceptions()
+
 
 # https://gis.stackexchange.com/questions/57834/how-to-get-raster-corner-coordinates-using-python-gdal-bindings
 def get_tif_extent(filename):

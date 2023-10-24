@@ -8,12 +8,15 @@ from typing import List
 import numpy as np
 import pdal
 import rasterio
+from osgeo import gdal
 from rasterio.transform import from_origin
 
 from produits_derives_lidar.commons import commons
 from produits_derives_lidar.commons.laspy_io import (
     read_las_and_extract_points_and_classifs,
 )
+
+gdal.UseExceptions()
 
 
 class Interpolator:
