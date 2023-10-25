@@ -19,7 +19,7 @@ def read_las_and_extract_points_and_classifs(input_file: str) -> Tuple[laspy.las
         Tuple[laspy.lasdata.LasData, np.array, np.array]:
             las: las file object (laspy)
             pcd: points coordinates as an array of shape (nb_points, 3)
-            classigs : points classifications as an array of shape (nb_points)
+            classifs : points classifications as an array of shape (nb_points)
     """
     las = laspy.read(input_file)
     pcd = np.vstack((las.x, las.y, las.z)).transpose()

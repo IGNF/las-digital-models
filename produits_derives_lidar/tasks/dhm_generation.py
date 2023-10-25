@@ -8,14 +8,14 @@ from osgeo_utils import gdal_calc
 gdal.UseExceptions()
 
 
-def calculate_dhm(input_image_dsm, input_image_dtm, output_image, no_data_value: int = -9999):
+def calculate_dhm(input_image_dsm: str, input_image_dtm: str, output_image: str, no_data_value: int = -9999):
     """Calculate DHM from DSM and DTM (DHM = DSM - DTM)
 
     Args:
-        input_file_dsm (str): DSM by tile
-        input_file_dtm (str): DTM by tile
-        output_dir (str) : directory "DHM"
-        fname (str): name of LIDAR tile
+        input_file_dsm (str): path to DSM file
+        input_file_dtm (str): path to DTM file
+        output_image (str) : path to output DHM file
+        no_data_value (int): no data value (default to -9999)
 
     """
     # Calculate A - B where A and B have valid values, else return a no_data value
