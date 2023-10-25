@@ -1,4 +1,4 @@
-# dev
+# v1.0.0
 - refactor docker image tools (reduce docker image size)
 - refactor python version (standardize with other tools)
 - remove hydra internal logs
