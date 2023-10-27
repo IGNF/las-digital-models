@@ -30,7 +30,7 @@ parallel (
 					set -e
 					mamba run -n produits_derives_lidar make build
 					mamba run -n produits_derives_lidar make svc_lidarhd_pwd=${svc_lidarhd} deploy-w-creds
-					// """
+					"""
 				}
 			} else {
 				echo "Nothing to do, because branch is not master"

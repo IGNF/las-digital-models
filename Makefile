@@ -62,7 +62,7 @@ docker-build:
 	docker build -t ${PROJECT_NAME}:${VERSION} -f Dockerfile .
 
 docker-test:
-	docker run --rm -it ${PROJECT_NAME}:${VERSION} python -m pytest -s
+	docker run --rm ${PROJECT_NAME}:${VERSION} python -m pytest -s
 
 docker-remove:
 	docker rmi -f `docker images | grep ${PROJECT_NAME} | tr -s ' ' | cut -d ' ' -f 3`
