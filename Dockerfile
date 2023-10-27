@@ -21,4 +21,3 @@ RUN mkdir tmp
 COPY produits_derives_lidar produits_derives_lidar
 COPY test test
 COPY configs configs
-COPY run.sh run.sh

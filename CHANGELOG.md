@@ -1,3 +1,7 @@
+# dev
+- fix jenkinsfile (deployment part)
+- mark tests to skip inside docker image
+
 # v1.0.0
 - refactor docker image tools (reduce docker image size)
 - refactor python version (standardize with other tools)

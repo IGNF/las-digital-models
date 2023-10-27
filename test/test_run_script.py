@@ -33,6 +33,7 @@ def setup_module(module):
     os.mkdir(tmp_path)
 
 
+@pytest.mark.functional_test
 def test_run_script():
     cmd = ["./run.sh", "-i", input_dir, "-o", output_dir, "-p", str(pixel_size), "-c", "test"]
     print(cmd)

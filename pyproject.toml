@@ -30,3 +30,8 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+markers = [
+    "functional_test: marks functional tests, not to run inside the docker image",
+]
