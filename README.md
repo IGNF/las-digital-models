@@ -111,10 +111,7 @@ with:
 
 It will generate:
 * Temporary files (you can delete them manually when the result looks good):
-  * ${OUTPUT_DIR}/ground : filtered las for DTM generation
-  * ${OUTPUT_DIR}/ground_with_buffer : buffered las for DTM generation
-  * ${OUTPUT_DIR}/upground : filtered las for DSM generation
-  * ${OUTPUT_DIR}/upground_with_buffer : buffered las for DSM generation
+  * ${OUTPUT_DIR}/buffer : buffered las for DTM and DSM generation
 * Output folders:
   * ${OUTPUT_DIR}/DTM
   * ${OUTPUT_DIR}/DSM

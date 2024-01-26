@@ -88,7 +88,7 @@ class Interpolator:
 
     @commons.eval_time
     def execute_startin(self, pts):
-        """Takes the grid parameters and the ground points. Interpolates
+        """Takes the grid parameters and the fitlered points. Interpolates
         either using the TIN-linear or the Laplace method. Uses a no-data value set in commons
         Fully based on the startin package (https://startinpy.readthedocs.io/en/latest/api.html)
 
@@ -191,9 +191,8 @@ class Interpolator:
 
     @commons.eval_time
     def execute_pdal(self, fpath: str, output_file: str, method: str):
-        """Sets up a PDAL pipeline that reads a ground filtered LAS
-        file, and writes it via GDAL. The GDAL writer has interpolation
-        options, exposing the radius, power and a fallback kernel width
+        """Sets up a PDAL pipeline that reads LAS file, filters it to keep only some classifications and writes it via
+        GDAL. The GDAL writer has interpolation options, exposing the radius, power and a fallback kernel width
         to be configured. More about these in the readme on GitHub.
 
         The GDAL writer creates rasters using the data specified in the dimension option (defaults to Z).
@@ -238,9 +237,10 @@ class Interpolator:
 
     @commons.eval_time
     def execute_pdal_tin(self, fpath: str, output_file: str):
-        """Sets up a PDAL pipeline that reads a ground filtered LAS
-        file, and interpolates either using "Delaunay", then " Faceraster" and writes it via RASTER. Uses a no-data
-        value set in commons.
+        """Sets up a PDAL pipeline that reads LAS file, filters it to keep only some classifications and interpolates
+        either using "Delaunay", then " Faceraster" and writes it via RASTER.
+
+        Uses a no-data value set in commons.
         More about these in the readme on GitHub.
 
         The Delaunay Filter creates a triangulated mesh fulfilling the Delaunay condition from a collection of points.

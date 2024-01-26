@@ -11,6 +11,10 @@ import hydra
 from omegaconf import DictConfig
 from pdaltools.las_add_buffer import create_las_with_buffer
 
+from produits_derives_lidar.commons import commons
+
+log = commons.get_logger(__name__)
+
 
 @hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
 def run_add_buffer_one_tile(config: DictConfig):
