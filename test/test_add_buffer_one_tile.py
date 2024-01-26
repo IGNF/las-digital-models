@@ -7,32 +7,27 @@ from hydra import compose, initialize
 
 from produits_derives_lidar import add_buffer_one_tile
 
-coordX = 77055
-coordY = 627760
-
-test_path = os.path.dirname(__file__)
-tmp_path = os.path.join(test_path, "tmp")
-
-expected_output_nb_points = 47037
-
-
-output_dir = os.path.join(tmp_path, "buffer")
-
-output_default_file = os.path.join(output_dir, f"test_data_{coordX}_{coordY}_LA93_IGN69.las")
-
-output_las_file = os.path.join(output_dir, f"test_data_{coordX}_{coordY}_LA93_IGN69.las")
+TEST_PATH = os.path.dirname(__file__)
+TMP_PATH = os.path.join(TEST_PATH, "buffer")
+DATA_PATH = os.path.join(TEST_PATH, "data")
 
 
 def setup_module(module):
     try:
-        shutil.rmtree(tmp_path)
+        shutil.rmtree(TMP_PATH)
 
     except FileNotFoundError:
         pass
-    os.mkdir(tmp_path)
+    os.mkdir(TMP_PATH)
 
 
 def test_add_buffer_one_tile():
+    # DATA_PATH contains a .laz file, but check that the io.forced_intermediate_ext parameter forces to look for a
+    # .laz file
+    input_filename = "test_data_77055_627760_LA93_IGN69.las"
+    output_filename = "test_data_77055_627760_LA93_IGN69.laz"
+    output_file = os.path.join(TMP_PATH, output_filename)
+
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
         cfg = compose(
@@ -40,17 +35,19 @@ def test_add_buffer_one_tile():
             overrides=[
                 "io=test",
                 "tile_geometry=test",
-                "io.input_dir=./test/data/ground",
-                "io.forced_intermediate_ext=las",
-                f"io.output_dir={output_dir}",
+                f"io.input_dir={DATA_PATH}",
+                f"io.input_filename={input_filename}",
+                "io.forced_intermediate_ext=laz",
+                f"io.output_dir={TMP_PATH}",
                 "buffer=test",
             ],
         )
 
     add_buffer_one_tile.run_add_buffer_one_tile(cfg)
-    assert os.path.isfile(output_default_file)
-    logging.info(pcu.get_nb_points(output_default_file))
-    assert pcu.get_nb_points(output_default_file) == expected_output_nb_points
+    assert os.path.isfile(output_file)
+    logging.info(pcu.get_nb_points(output_file))
+    assert pcu.get_nb_points(output_file) == 103359
+    assert pcu.get_classification_values(output_file) == {1, 2, 3, 4, 5, 6, 64}
 
 
 if __name__ == "__main__":

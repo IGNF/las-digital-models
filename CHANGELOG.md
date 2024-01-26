@@ -1,6 +1,7 @@
 # dev
 - fix jenkinsfile (deployment part)
 - mark tests to skip inside docker image
+- update ign-pdal-tools to 1.5.1 (fix misclassification due to las rewriting with wrong format)
 
 # v1.0.0
 - refactor docker image tools (reduce docker image size)
@@ -9,7 +10,7 @@
 - fix jenkinsfile (continuous integration)
 - add (+ apply) linting and pre-commit
 - remove dead code
-- [BEAKING CHANGE] uniformise produit(s)_derive(s)_lidar to produits_derives_lidar
+- [BREAKING CHANGE] uniformise produit(s)_derive(s)_lidar to produits_derives_lidar
 - use gdal_calc from osgeo instead of lidarutils
 - remove gdal warning (explicitly set gdal.UseExceptions())
 - update readme
