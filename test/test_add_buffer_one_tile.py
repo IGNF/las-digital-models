@@ -8,7 +8,7 @@ from hydra import compose, initialize
 from produits_derives_lidar import add_buffer_one_tile
 
 TEST_PATH = os.path.dirname(__file__)
-TMP_PATH = os.path.join(TEST_PATH, "buffer")
+TMP_PATH = os.path.join(TEST_PATH, "tmp/buffer")
 DATA_PATH = os.path.join(TEST_PATH, "data")
 
 
