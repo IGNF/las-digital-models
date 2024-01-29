@@ -1,4 +1,4 @@
-# dev
+# v1.0.1
 - fix jenkinsfile (deployment part)
 - mark tests to skip inside docker image
 - update ign-pdal-tools to 1.5.1 (fix misclassification due to las rewriting with wrong format)
