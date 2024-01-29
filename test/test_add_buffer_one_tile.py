@@ -18,7 +18,7 @@ def setup_module(module):
 
     except FileNotFoundError:
         pass
-    os.mkdir(TMP_PATH)
+    os.makedirs(TMP_PATH, exist_ok=True)
 
 
 def test_add_buffer_one_tile():
