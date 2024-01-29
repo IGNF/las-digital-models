@@ -1,3 +1,6 @@
+# v1.0.2
+- add gdal executables to docker image (to generate cog)
+
 # v1.0.1
 - fix jenkinsfile (deployment part)
 - mark tests to skip inside docker image

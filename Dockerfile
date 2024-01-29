@@ -8,6 +8,8 @@ FROM debian:bullseye-slim
 
 # install PDAL
 COPY --from=mamba_pdal /opt/conda/envs/produits_derives_lidar/bin/pdal /opt/conda/envs/produits_derives_lidar/bin/pdal
+# install gdal
+COPY --from=mamba_pdal /opt/conda/envs/produits_derives_lidar/bin/*gdal* /opt/conda/envs/produits_derives_lidar/bin/
 COPY --from=mamba_pdal /opt/conda/envs/produits_derives_lidar/bin/python /opt/conda/envs/produits_derives_lidar/bin/python
 COPY --from=mamba_pdal /opt/conda/envs/produits_derives_lidar/lib/ /opt/conda/envs/produits_derives_lidar/lib/
 COPY --from=mamba_pdal /opt/conda/envs/produits_derives_lidar/ssl /opt/conda/envs/produits_derives_lidar/ssl
