@@ -8,7 +8,6 @@ defaults:
 
   - buffer: test.yaml
   - filter: default_test.yaml
-  - interpolation: pdal-tin.yaml
   - io: test.yaml
   - tile_geometry: test.yaml  # describes input features and classes
   - dhm: test.yaml

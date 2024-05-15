@@ -40,20 +40,13 @@ while getopts "h?i:o:p:j:s:c:" opt; do
   esac
 done
 
-# Get existing methods from config directory
-# sed commands:
-#    sed 's/^\.\///g' : remove ./ at beginning of file
-#    sed -n 's/\.yaml$//p'' : remove .yaml at end of file
-METHODS=($(cd ${SOURCE_DIR}/configs/interpolation && find .  -maxdepth 1 -type f | sed 's/^\.\///g' | sed -n 's/\.yaml$//p'))
-
 # Get all filenames for las or laz files in input folder
 #    sed 's/^\.\///g' : remove ./ at beginning of file
 FILENAMES=($(cd ${INPUT} && find .  -maxdepth 1 -type f \( -iname \*.las -o -iname \*.laz \) | sed 's/^\.\///g' ))
 
 
-echo "GENERATE DSM/DTM/DHM FOR METHODS: ${METHODS[@]} ON ${#FILENAMES[@]} FILES"
+echo "GENERATE DSM/DTM/DHM ON ${#FILENAMES[@]} FILES"
 echo ""
-
 
 # Step 0: Create las with buffer from its neighbors tiles
 # /!\ rasters generated from these las tiles will need to be cropped to match the input las area
@@ -80,24 +73,21 @@ echo "------------------"
 DTM_DIR=${OUTPUT}/DTM
 
 
-# Step 1 ; create DTM with each of the methods
+# Step 1 ; create DTM
 echo "------------------"
 echo "interpolation"
 echo "------------------"
-for METHOD in ${METHODS[@]}
-do
-  parallel --jobs ${PARALLEL_JOBS} \
-      python -m produits_derives_lidar.ip_one_tile \
-          --config-name=${CONFIG_NAME} \
-          io.input_dir=${BUFFERED_DIR} \
-          io.input_filename={} \
-          filter=dtm \
-          io.output_dir=${DTM_DIR} \
-          interpolation=${METHOD} \
-          tile_geometry.pixel_size=${PIXEL_SIZE} \
-          io.no_data_mask_shapefile=${SHAPEFILE} \
-          ::: "${FILENAMES[@]}"
-done
+
+parallel --jobs ${PARALLEL_JOBS} \
+    python -m produits_derives_lidar.ip_one_tile \
+        --config-name=${CONFIG_NAME} \
+        io.input_dir=${BUFFERED_DIR} \
+        io.input_filename={} \
+        filter=dtm \
+        io.output_dir=${DTM_DIR} \
+        tile_geometry.pixel_size=${PIXEL_SIZE} \
+        io.no_data_mask_shapefile=${SHAPEFILE} \
+        ::: "${FILENAMES[@]}"
 
 
 echo "------------------"
@@ -106,41 +96,32 @@ echo "------------------"
 
 DSM_DIR=${OUTPUT}/DSM
 
-# Step 2; create DSM with each of the methods
-for METHOD in ${METHODS[@]}
-do
-  parallel --jobs ${PARALLEL_JOBS} \
-      python -m produits_derives_lidar.ip_one_tile \
-          --config-name=${CONFIG_NAME} \
-          io.input_dir=${BUFFERED_DIR} \
-          io.input_filename={} \
-          filter=dsm \
-          io.output_dir=${DSM_DIR} \
-          interpolation=${METHOD} \
-          tile_geometry.pixel_size=${PIXEL_SIZE} \
-          io.no_data_mask_shapefile=${SHAPEFILE} \
-          ::: "${FILENAMES[@]}"
-done
+# Step 2; create DSM
+parallel --jobs ${PARALLEL_JOBS} \
+    python -m produits_derives_lidar.ip_one_tile \
+        --config-name=${CONFIG_NAME} \
+        io.input_dir=${BUFFERED_DIR} \
+        io.input_filename={} \
+        filter=dsm \
+        io.output_dir=${DSM_DIR} \
+        tile_geometry.pixel_size=${PIXEL_SIZE} \
+        io.no_data_mask_shapefile=${SHAPEFILE} \
+        ::: "${FILENAMES[@]}"
 
 echo "------------------"
 echo "RUN DHM GENERATION"
 echo "------------------"
 
-
 # Step 3 ; create DHM with each of the methods
 # Output filenames for each step
 DHM_DIR=${OUTPUT}/DHM
 
-for METHOD in ${METHODS[@]}
-do
 parallel --jobs ${PARALLEL_JOBS} \
-    python -m produits_derives_lidar.dhm_one_tile \
-        --config-name=${CONFIG_NAME} \
-        dhm.input_dsm_dir=${DSM_DIR} \
-        dhm.input_dtm_dir=${DTM_DIR} \
-        io.input_filename={} \
-        io.output_dir=${DHM_DIR} \
-        interpolation=${METHOD} \
-        tile_geometry.pixel_size=${PIXEL_SIZE} \
-        ::: "${FILENAMES[@]}"
-done
+  python -m produits_derives_lidar.dhm_one_tile \
+      --config-name=${CONFIG_NAME} \
+      dhm.input_dsm_dir=${DSM_DIR} \
+      dhm.input_dtm_dir=${DTM_DIR} \
+      io.input_filename={} \
+      io.output_dir=${DHM_DIR} \
+      tile_geometry.pixel_size=${PIXEL_SIZE} \
+      ::: "${FILENAMES[@]}"

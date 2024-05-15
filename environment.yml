@@ -29,5 +29,5 @@ dependencies:
   - pre-commit
   - pip:
       - startinpy==0.8.0
-      - ign-pdal-tools==1.5.1
+      - ign-pdal-tools==1.5.2
 

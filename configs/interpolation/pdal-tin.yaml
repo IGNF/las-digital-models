@@ -1,2 +1,0 @@
-algo_name: pdal-tin
-method_postfix: "TIN"  # postfix for output file generation

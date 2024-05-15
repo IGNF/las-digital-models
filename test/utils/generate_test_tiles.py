@@ -7,6 +7,7 @@ Save only part of the tiles, the indices of the output tiles are located like:
 0, 1, 2
 (the up-left corner of tile 4 is centered to make it easier to compute)
 """
+
 import argparse
 import os
 import test.utils.point_cloud_utils as pcu

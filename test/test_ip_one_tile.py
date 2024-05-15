@@ -23,7 +23,7 @@ EXPECTED_XMAX = COORD_Y * TILE_COORD_SCALE + PIXEL_SIZE / 2
 EXPECTED_RASTER_BOUNDS = (EXPECTED_XMIN, EXPECTED_XMAX - TILE_WIDTH), (EXPECTED_XMIN + TILE_WIDTH, EXPECTED_XMAX)
 
 SHAPEFILE = TEST_PATH / "data" / "mask_shapefile" / "test_multipolygon_shapefile.shp"
-EXPECTED_OUTPUT_USING_SHAPEFILE = GROUND_TRUTH_FOLDER / "test_data_77055_627760_LA93_IGN69_50CM_TIN_no_data.tif"
+EXPECTED_OUTPUT_USING_SHAPEFILE = GROUND_TRUTH_FOLDER / "test_data_77055_627760_LA93_IGN69_50CM_no_data.tif"
 
 
 def setup_module():
@@ -35,18 +35,16 @@ def setup_module():
     os.mkdir(TMP_PATH)
 
 
-def get_expected_output_file(method_postfix, base_dir=None):
+def get_expected_output_file(base_dir=None):
     if base_dir is None:
         base_dir = TMP_PATH / "hydra_ip"
-    expected_output_file = os.path.join(
-        base_dir, f"test_data_{COORD_X}_{COORD_Y}_LA93_IGN69_50CM_{method_postfix}.tif"
-    )
+    expected_output_file = os.path.join(base_dir, f"test_data_{COORD_X}_{COORD_Y}_LA93_IGN69_50CM.tif")
 
     return expected_output_file
 
 
-def compute_test_ip_one_tile(method):
-    output_dir = os.path.join(TMP_PATH, "compute_test_ip_one_tile")
+def test_ip_one_tile():
+    output_dir = os.path.join(TMP_PATH, "test_ip_one_tile")
     os.makedirs(output_dir, exist_ok=True)
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
@@ -56,14 +54,10 @@ def compute_test_ip_one_tile(method):
                 "io=test",
                 f"io.output_dir={output_dir}",
                 "tile_geometry=test",
-                f"interpolation={method}",
                 "filter.keep_classes=[]",
             ],
         )
-
-        assert cfg.interpolation.algo_name == method  # Check that the correct method is used
-
-        output_file = get_expected_output_file(cfg.interpolation.method_postfix, base_dir=output_dir)
+        output_file = get_expected_output_file(base_dir=output_dir)
         logging.debug(output_file)
         logging.debug(f"Pixel size: {cfg.tile_geometry.pixel_size}")
 
@@ -76,12 +70,6 @@ def compute_test_ip_one_tile(method):
         assert ru.tif_values_all_close(output_file, os.path.join(GROUND_TRUTH_FOLDER, os.path.basename(output_file)))
 
 
-def test_ip_one_tile_all_methods():
-    for method in ["cgal-nn", "pdal-idw", "pdal-tin", "startin-laplace", "startin-tinlinear"]:
-        logging.debug(f"Test for method: {method}")
-        compute_test_ip_one_tile(method)
-
-
 def test_ip_with_no_data_mask():
     output_dir = os.path.join(TMP_PATH, "test_ip_with_no_data_mask")
     os.makedirs(output_dir, exist_ok=True)
@@ -92,14 +80,13 @@ def test_ip_with_no_data_mask():
             overrides=[
                 "io=test",
                 "tile_geometry=test",
-                "interpolation=pdal-tin",
                 f"io.no_data_mask_shapefile={SHAPEFILE}",
                 f"io.output_dir={output_dir}",
                 "filter.keep_classes=[]",
             ],
         )
 
-        output_file = get_expected_output_file(cfg.interpolation.method_postfix, base_dir=output_dir)
+        output_file = get_expected_output_file(base_dir=output_dir)
         logging.debug(f"Write to {output_file}")
 
         ip_one_tile.run_ip_on_tile(cfg)
@@ -111,11 +98,11 @@ def test_ip_with_no_data_mask():
         assert ru.tif_values_all_close(output_file, EXPECTED_OUTPUT_USING_SHAPEFILE)
 
 
-def test_ip_dtm_classes_tin():
-    output_dir = os.path.join(TMP_PATH, "test_ip_dtm_classes_tin")
+def test_ip_dtm_classes():
+    output_dir = os.path.join(TMP_PATH, "test_ip_dtm_classes")
     os.makedirs(output_dir, exist_ok=True)
     expected_output = os.path.join(
-        TEST_PATH, "data", "interpolation", "test_data_77055_627760_LA93_IGN69_50CM_TIN_dtm_classes.tif"
+        TEST_PATH, "data", "interpolation", "test_data_77055_627760_LA93_IGN69_50CM_dtm_classes.tif"
     )
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
@@ -124,13 +111,12 @@ def test_ip_dtm_classes_tin():
             overrides=[
                 "io=test",
                 "tile_geometry=test",
-                "interpolation=pdal-tin",
                 "filter=dtm",
                 f"io.output_dir={output_dir}",
             ],
         )
 
-        output_file = get_expected_output_file(cfg.interpolation.method_postfix, base_dir=output_dir)
+        output_file = get_expected_output_file(base_dir=output_dir)
 
         ip_one_tile.run_ip_on_tile(cfg)
         assert os.path.isfile(output_file)
@@ -143,5 +129,5 @@ def test_ip_dtm_classes_tin():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    test_ip_one_tile_all_methods()
+    test_ip_one_tile()
     test_ip_with_no_data_mask()

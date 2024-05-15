@@ -1,3 +1,5 @@
+- remove unused interpolation methods
+
 # v1.0.2
 - add gdal executables to docker image (to generate cog)
 

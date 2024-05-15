@@ -20,9 +20,6 @@ expected_output_dirs = {
     "dhm": os.path.join(output_dir, "DHM"),
 }
 
-methods = ["cgal-nn", "pdal-idw", "pdal-tin", "startin-laplace", "startin-tinlinear"]
-postfixs = ["NN", "IDW", "TIN", "Laplace", "TINlinear"]
-
 
 def setup_module(module):
     try:
@@ -50,12 +47,11 @@ def test_run_script():
     for input_file in os.listdir(input_dir):
         if input_file.endswith(("las", "laz")):
             tilename = os.path.splitext(input_file)[0]
-            for method, m_postfix in zip(methods, postfixs):
-                for od in expected_output_dirs.keys():
-                    _size = commons.give_name_resolution_raster(pixel_size)
-                    out_filename = f"{tilename}{_size}_{m_postfix}.tif"
-                    out_path = os.path.join(expected_output_dirs[od], out_filename)
-                    assert os.path.isfile(out_path), f"Output for {od} with method {method} was not generated"
+            for od in expected_output_dirs.keys():
+                _size = commons.give_name_resolution_raster(pixel_size)
+                out_filename = f"{tilename}{_size}.tif"
+                out_path = os.path.join(expected_output_dirs[od], out_filename)
+                assert os.path.isfile(out_path), f"Output for {od} was not generated"
 
 
 if __name__ == "__main__":

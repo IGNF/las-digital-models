@@ -1,4 +1,5 @@
 """Run create DHM on a single tile (current definition is DSM - DTM)"""
+
 import logging
 import os
 
@@ -18,7 +19,7 @@ def run_dhm_on_tile(config: DictConfig):
 
     # for export
     _size = commons.give_name_resolution_raster(config.tile_geometry.pixel_size)
-    geotiff_filename = f"{tilename}{_size}_{config.interpolation.method_postfix}.tif"
+    geotiff_filename = f"{tilename}{_size}.tif"
     geotiff_dsm = os.path.join(config.dhm.input_dsm_dir, geotiff_filename)
     geotiff_dtm = os.path.join(config.dhm.input_dtm_dir, geotiff_filename)
     geotiff_output = os.path.join(config.io.output_dir, geotiff_filename)

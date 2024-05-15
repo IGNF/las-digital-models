@@ -12,14 +12,12 @@ coordY = 627760
 tile_coord_scale = 10
 tile_width = 50
 pixel_size = 0.5
-interpolation_method = "pdal-tin"
-
 
 test_path = os.path.dirname(os.path.abspath(__file__))
 tmp_path = os.path.join(test_path, "tmp")
 
 output_dir = os.path.join(tmp_path, "DHM")
-expected_output_file = os.path.join(output_dir, f"test_data_{coordX}_{coordY}_LA93_IGN69_50CM_TIN.tif")
+expected_output_file = os.path.join(output_dir, f"test_data_{coordX}_{coordY}_LA93_IGN69_50CM.tif")
 
 expected_xmin = coordX * tile_coord_scale - pixel_size / 2
 expected_ymax = coordY * tile_coord_scale + pixel_size / 2
@@ -44,12 +42,9 @@ def test_mnh_one_tile():
                 "io=test",
                 "tile_geometry=test",
                 f"io.output_dir={output_dir}",
-                f"interpolation={interpolation_method}",
                 "dhm=test",
             ],
         )
-
-    assert cfg.interpolation.algo_name == interpolation_method  # Check that the correct method is used
 
     dhm_one_tile.run_dhm_on_tile(cfg)
     assert os.path.isfile(expected_output_file)
