@@ -1,6 +1,3 @@
-# RASTER_GENERATION METHODS
-
-
 import fiona
 import rasterio
 import rasterio.mask
