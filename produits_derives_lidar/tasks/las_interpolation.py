@@ -29,7 +29,8 @@ def interpolate_from_config(input_file: str, output_raster: str, config: dict):
                 "spatial_reference": #str, spatial reference to use when reading las file
             },
             "filter": {
-                "keep_classes": #list of ints, classes of the points to use in the interpolation
+                "dimension": #str, dimension alogn which to filter
+                "keep_values": #list of ints, values of the gilter dimension for the points to use in the interpolation
             }
         }
 
@@ -42,7 +43,8 @@ def interpolate_from_config(input_file: str, output_raster: str, config: dict):
         config["tile_geometry"]["tile_coord_scale"],
         config["io"]["spatial_reference"],
         config["tile_geometry"]["no_data_value"],
-        config["filter"]["keep_classes"],
+        config["filter"]["dimension"],
+        config["filter"]["keep_values"],
     )
 
 
@@ -55,7 +57,8 @@ def interpolate(
     tile_coord_scale: int,
     spatial_ref: str,
     no_data_value: int,
-    classes: List[int],
+    filter_dimension: str,
+    filter_values: List[int],
 ):
     """Generate a Z (height) raster file from a LAS point cloud file by interpolating the Z value at the center of
     each pixel.
@@ -63,7 +66,8 @@ def interpolate(
     It uses TIN interpolation.
 
     Steps are:
-    - filter the point cloud with classes to use in the interpolation (eg. class 2-ground for a digital terrain model)
+    - filter the points to use in the interplation (using one dimension name and a list of values)
+    (eg. Classification=2(ground) for a digital terrain model)
     - triangulate the point cloud using Delaunay
     - interpolate the height values at the center of the pixels using Faceraster
     - write the result in a raster file.
@@ -76,7 +80,9 @@ def interpolate(
         tile_coord_scale (int): scale of the tiles coordinates in the las filename
         spatial_ref (str): spatial reference to use when reading las file
         no_data_value (int): no data value for the output raster
-        classes (List[int]): classes of the points to use in the interpolation
+        filter_dimension (str): Name of the dimension along which to filter input points
+        (keep empty to disable input filter)
+        filter_values (List[int]): Values to keep for input points along filter_dimension
     """
 
     _, coordX, coordY, _ = parse_filename(input_file)
@@ -87,8 +93,8 @@ def interpolate(
 
     # Read with pdal
     pipeline = pdal.Reader.las(filename=input_file, override_srs=spatial_ref, nosrs=True)
-    if classes:
-        pipeline |= pdal.Filter.range(limits=",".join(f"Classification[{c}:{c}]" for c in classes))
+    if filter_dimension and filter_values:
+        pipeline |= pdal.Filter.range(limits=",".join(f"{filter_dimension}[{v}:{v}]" for v in filter_values))
 
     # Add interpolation method to the pdal pipeline
     pipeline |= pdal.Filter.delaunay()

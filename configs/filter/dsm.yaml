@@ -1,1 +1,2 @@
-keep_classes: [2, 3, 4, 5, 6, 9, 17]   # Classes to keep when running DSM
+dimension: Classification
+keep_values: [2, 3, 4, 5, 6, 9, 17]   # Classes to keep when running DSM

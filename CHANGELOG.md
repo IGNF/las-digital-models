@@ -1,3 +1,5 @@
+- **API CHANGE**: update filter API: use `dimension` + `keep_values` instead of `keep_classes` to be more flexible in
+the prefiltering step
 - remove unused interpolation methods
 
 # v1.0.2

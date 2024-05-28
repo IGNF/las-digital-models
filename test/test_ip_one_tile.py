@@ -54,7 +54,8 @@ def test_ip_one_tile():
                 "io=test",
                 f"io.output_dir={output_dir}",
                 "tile_geometry=test",
-                "filter.keep_classes=[]",
+                "filter.dimension=''",
+                "filter.keep_values=[]",
             ],
         )
         output_file = get_expected_output_file(base_dir=output_dir)
@@ -82,7 +83,7 @@ def test_ip_with_no_data_mask():
                 "tile_geometry=test",
                 f"io.no_data_mask_shapefile={SHAPEFILE}",
                 f"io.output_dir={output_dir}",
-                "filter.keep_classes=[]",
+                "filter.keep_values=[]",
             ],
         )
 

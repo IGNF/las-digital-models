@@ -1,1 +1,2 @@
-keep_classes: [2, 9, 66]   # Classes to keep when running DTM
+dimension: Classification
+keep_values: [2, 9, 66]   # Classes to keep when running DTM

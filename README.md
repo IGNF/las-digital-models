@@ -50,7 +50,8 @@ using the [ign-pdal-tools](http://gitlab.forge-idi.ign.fr/Lidar/pdalTools) libra
 The selected interpolation method is: constrained Delaunay-based (CDT) TIN-linear
 
 Steps are:
-- filter the point cloud with classes to use in the interpolation (eg. class 2-ground for a digital terrain model)
+- filter the points to use in the interplation (using one dimension name and a list of values)
+  (eg. Classification=2(ground) for a digital terrain model)
 - triangulate the point cloud using Delaunay
 - interpolate the height values at the center of the pixels using Faceraster
 - write the result in a raster file.
@@ -142,11 +143,12 @@ python -m produits_derives_lidar.ip_one_tile \
     io.input_dir=${BUFFERED_DIR} \
     io.input_filename={} \
     io.output_dir=${DXM_DIR} \
-    tile_geometry.pixel_size=${PIXEL_SIZE}
-    filter.keep_classes=[2,66]
+    tile_geometry.pixel_size=${PIXEL_SIZE} \
+    filter.dimension="Classification" \
+    filter.keep_values=[2,66]
 ```
 
-`filter.keep_classes` must be a list inside `[]`, separated by `,` without spaces.
+`filter.keep_values` must be a list inside `[]`, separated by `,` without spaces.
 
 Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
 [hydra](https://hydra.cc/) for more details on usage)

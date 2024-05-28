@@ -1,1 +1,2 @@
-keep_classes: [2, 66]  # ground + virtual points
+dimension: Classification
+keep_values: [2, 66]  # ground + virtual points
