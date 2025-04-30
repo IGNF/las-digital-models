@@ -1,4 +1,3 @@
-import inspect
 import os
 from pathlib import Path
 
@@ -13,7 +12,7 @@ TEST_PATH = Path(__file__).resolve().parent.parent
 
 TMP_PATH = os.path.join(TEST_PATH, "tmp/extract_z_virtual_lines_from_raster")
 DATA_RASTER_PATH = os.path.join(TEST_PATH, "data/bridge/mns_hydro_postfiltre")
-DATA_LINES_PATH = os.path.join(TEST_PATH, "data/bridge/input_operators")
+DATA_LINES_PATH = os.path.join(TEST_PATH, "data/bridge/input_operators/lignes_contraintes")
 
 INPUT_RASTER = os.path.join(DATA_RASTER_PATH, "test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif")
 INPUT_LINES = os.path.join(DATA_LINES_PATH, "NUALHD_1-0_DF_lignes_contrainte.shp")
@@ -62,24 +61,3 @@ def test_extract_z_virtual_lines_from_raster_by_las():
 
         # Strict comparison of min_z
         assert result_min_z == expected["min_z"]
-
-
-def test_parse_args():
-    # sanity check for arguments parsing
-    args = extract_z_virtual_lines_from_raster.parse_args(
-        [
-            "--input_geometry",
-            "data/bridge/input_operators/lignes_contraintes/NUALHD_1-0_DF_lignes_contrainte.shp",
-            "--input_raster",
-            "data/bridge/mns_hydro_postfiltre/test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif",
-            "--output_geometry",
-            "tmp/extract_z_virtual_lines_from_raster/test_lines_2023_0299_6802_LA93_IGN69.geojson",
-            "--spatial_ref",
-            "EPSG:2154",
-        ]
-    )
-    parsed_args_keys = args.__dict__.keys()
-    main_parameters = inspect.signature(
-        extract_z_virtual_lines_from_raster.extract_z_virtual_lines_from_raster
-    ).parameters.keys()
-    assert set(parsed_args_keys) == set(main_parameters)

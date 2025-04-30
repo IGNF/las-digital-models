@@ -3,7 +3,10 @@
 input_dir: /path/to/origin/las/folder
 input_filename: filename.las
 
-input_dir_geometry: /path/to/origin/geoemtry/folder
+input_raster_dir: path/to/origin/raster/folder
+input_raster_filename: filename.tiff
+
+input_geometry_dir: /path/to/origin/geometry/folder
 input_geometry_filename: filename.shp
 
 # Shapefile used to burn no-data value (inside its polygons)

@@ -1,5 +1,3 @@
-import argparse
-
 import geopandas as gpd
 import rasterio
 
@@ -9,30 +7,6 @@ from produits_derives_lidar.extract_stat_from_raster.rasters.clip_lines_by_raste
 from produits_derives_lidar.extract_stat_from_raster.rasters.extract_z_min_from_raster_by_polylines import (
     extract_min_z_from_mns_by_polylines,
 )
-
-
-def parse_args(argv=None):
-    parser = argparse.ArgumentParser("Add points from GeoJSON in LIDAR tile")
-    parser.add_argument(
-        "--input_geometry", "-ig", type=str, required=True, help="Input Geometry file (GeoJSON or Shapefile)"
-    )
-    parser.add_argument("--input_raster", "-r", type=str, required=True, help="Input raster file")
-    parser.add_argument(
-        "--output_geometry",
-        "-o",
-        type=str,
-        required=True,
-        default="",
-        help="Output eometry file (GeoJSON or Shapefile)",
-    )
-    parser.add_argument(
-        "--spatial_ref",
-        type=str,
-        required=False,
-        help="spatial reference for the writer",
-    )
-
-    return parser.parse_args(argv)
 
 
 def extract_z_virtual_lines_from_raster(
@@ -81,8 +55,3 @@ def extract_z_virtual_lines_from_raster(
         gdf_min_z.to_file(output_geometry, driver="GeoJSON")
     else:
         raise ValueError("Unsupported geometry type in the input Geometry file.")
-
-
-if __name__ == "__main__":
-    args = parse_args()
-    extract_z_virtual_lines_from_raster(**vars(args))
