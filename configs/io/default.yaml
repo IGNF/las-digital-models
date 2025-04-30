@@ -3,6 +3,9 @@
 input_dir: /path/to/origin/las/folder
 input_filename: filename.las
 
+input_dir_geometry: /path/to/origin/geoemtry/folder
+input_geometry_filename: filename.shp
+
 # Shapefile used to burn no-data value (inside its polygons)
 no_data_mask_shapefile: null  # /path/to/mask.shp
 
@@ -16,6 +19,7 @@ forced_intermediate_ext: null  # can be "las", "laz" or null. (intermediate resu
 spatial_reference: EPSG:2154
 
 output_dir: /path/to/output/folder  # Directory folder for saving the outputs
+
 
 
 

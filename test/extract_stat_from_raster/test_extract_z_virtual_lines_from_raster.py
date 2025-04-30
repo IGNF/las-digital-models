@@ -69,7 +69,7 @@ def test_parse_args():
     args = extract_z_virtual_lines_from_raster.parse_args(
         [
             "--input_geometry",
-            "data/bridge/input_operators/NUALHD_1-0_DF_lignes_contrainte.shp",
+            "data/bridge/input_operators/lignes_contraintes/NUALHD_1-0_DF_lignes_contrainte.shp",
             "--input_raster",
             "data/bridge/mns_hydro_postfiltre/test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif",
             "--output_geometry",
