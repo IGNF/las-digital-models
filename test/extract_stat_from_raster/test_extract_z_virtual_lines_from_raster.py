@@ -12,11 +12,9 @@ from produits_derives_lidar.extract_stat_from_raster import (
 TEST_PATH = Path(__file__).resolve().parent.parent
 
 TMP_PATH = os.path.join(TEST_PATH, "tmp/extract_z_virtual_lines_from_raster")
-DATA_LIDAR_PATH = os.path.join(TEST_PATH, "data/bridge/pointcloud")
 DATA_RASTER_PATH = os.path.join(TEST_PATH, "data/bridge/mns_hydro_postfiltre")
 DATA_LINES_PATH = os.path.join(TEST_PATH, "data/bridge/input_operators")
 
-INPUT_LIDAR = os.path.join(DATA_LIDAR_PATH, "test_semis_2023_0299_6802_LA93_IGN69.laz")
 INPUT_RASTER = os.path.join(DATA_RASTER_PATH, "test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif")
 INPUT_LINES = os.path.join(DATA_LINES_PATH, "NUALHD_1-0_DF_lignes_contrainte.shp")
 
@@ -32,8 +30,8 @@ def test_extract_z_virtual_lines_from_raster_by_las():
     if Path(OUTPUT_LINES).exists():
         os.remove(OUTPUT_LINES)
 
-    extract_z_virtual_lines_from_raster.extract_z_virtual_lines_from_raster_by_las(
-        INPUT_LINES, INPUT_LIDAR, INPUT_RASTER, OUTPUT_LINES, "EPSG:2154", 1000
+    extract_z_virtual_lines_from_raster.extract_z_virtual_lines_from_raster(
+        INPUT_LINES, INPUT_RASTER, OUTPUT_LINES, "EPSG:2154"
     )
 
     lines_result = gpd.read_file(OUTPUT_LINES)
@@ -72,20 +70,16 @@ def test_parse_args():
         [
             "--input_geometry",
             "data/bridge/input_operators/NUALHD_1-0_DF_lignes_contrainte.shp",
-            "--input_las",
-            "data/bridge/pointcloud/test_semis_2023_0299_6802_LA93_IGN69.laz",
             "--input_raster",
             "data/bridge/mns_hydro_postfiltre/test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif",
             "--output_geometry",
             "tmp/extract_z_virtual_lines_from_raster/test_lines_2023_0299_6802_LA93_IGN69.geojson",
             "--spatial_ref",
             "EPSG:2154",
-            "--tile_width",
-            "1000",
         ]
     )
     parsed_args_keys = args.__dict__.keys()
     main_parameters = inspect.signature(
-        extract_z_virtual_lines_from_raster.extract_z_virtual_lines_from_raster_by_las
+        extract_z_virtual_lines_from_raster.extract_z_virtual_lines_from_raster
     ).parameters.keys()
     assert set(parsed_args_keys) == set(main_parameters)
