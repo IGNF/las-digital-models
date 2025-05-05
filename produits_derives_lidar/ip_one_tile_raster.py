@@ -21,12 +21,20 @@ def run_ip_on_tile_raster(config: DictConfig):
     """Run extract z virtual lines on single tile using hydra config
     config parameters are explained in the default.yaml files
     """
-    os.makedirs(config.io.output_dir, exist_ok=True)
     tilename_raster, _ = os.path.splitext(config.io.input_raster_filename)
     input_raster = os.path.join(config.io.input_raster_dir, f"{tilename_raster}.tif")  # path to the RASTER file
+    if not os.path.isfile(input_raster):
+        raise ValueError(f"Input raster file not found: {input_raster}")
 
     tilename_geom, _ = os.path.splitext(config.io.input_geometry_filename)
     input_geometry = os.path.join(config.io.input_geometry_dir, f"{tilename_geom}.shp")  # path to the geometry file
+    if not os.path.isfile(input_geometry):
+        raise ValueError(f"Input gemetry file not found: {input_geometry}")
+
+    output_dir = config.io.output_dir
+    if output_dir is None:
+        raise ValueError("""config.io.output_dir is empty, please provide an input directory in the configuration""")
+    os.makedirs(config.io.output_dir, exist_ok=True)
 
     # for export
     crs = config.io.spatial_reference
