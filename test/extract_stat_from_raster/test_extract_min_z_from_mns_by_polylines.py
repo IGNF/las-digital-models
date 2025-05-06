@@ -20,7 +20,7 @@ def test_extract_min_z_from_mns_by_polylines():
         ),
         LineString(
             [(299922.471011867397465, 6801805.1817591432482), (299993.079669367230963, 6801808.322328265756369)]
-        ),
+        ),  # Ligne clairement en dehors de l’emprise du raster
     ]
     lines_gdf = gpd.GeoDataFrame(geometry=lines, crs="EPSG:2154")
 
@@ -38,3 +38,11 @@ def test_extract_min_z_from_mns_by_polylines():
     # Check that the computed min_z matches the expected ones
     for computed, expected in zip(result["min_z"], expected_min_z):
         assert computed == expected, f"Expected {expected}, but got {computed}"
+
+
+def test_extract_min_z_with_geometry_outside_raster():
+    outside_line = LineString([(100000.0, 6600000.0), (100010.0, 6600010.0)])
+    lines_gdf = gpd.GeoDataFrame(geometry=[outside_line], crs="EPSG:2154")
+
+    result = extract_min_z_from_mns_by_polylines(lines_gdf, INPUT_RASTER)
+    assert result.empty, "Expected empty GeoDataFrame when line is outside raster"

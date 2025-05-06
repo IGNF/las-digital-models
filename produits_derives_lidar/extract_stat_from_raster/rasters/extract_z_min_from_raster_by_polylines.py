@@ -14,6 +14,7 @@ def extract_min_z_from_mns_by_polylines(lines_gdf: gpd.GeoDataFrame, mns_raster_
 
     Returns:
         GeoDataFrame: A GeoDataFrame with the original geometries and a 'min_z' column.
+        Only geometries with a valid Zmin are included.
     """
     geometries = []
     min_z_values = []
@@ -28,9 +29,14 @@ def extract_min_z_from_mns_by_polylines(lines_gdf: gpd.GeoDataFrame, mns_raster_
 
         for line in lines:
             stats = zonal_stats(vectors=[line], raster=mns_raster_path, stats=["min"], all_touched=True, nodata=None)
-            min_z = round(stats[0]["min"], 2) if stats and stats[0]["min"] is not None else None
+            min_z = stats[0]["min"] if stats else None
+
+            if min_z is None:
+                print(f"[WARNING] No valid Zmin found for geometry {geom} (ignored).")
+                continue  # Skip this geometry
+
             geometries.append(line)
-            min_z_values.append(min_z)
+            min_z_values.append(round(min_z, 2))
 
     result_gdf = gpd.GeoDataFrame({"geometry": geometries, "min_z": min_z_values}, crs=lines_gdf.crs)
     return result_gdf
