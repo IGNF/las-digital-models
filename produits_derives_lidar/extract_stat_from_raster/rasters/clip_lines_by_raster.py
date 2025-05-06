@@ -21,12 +21,8 @@ def clip_lines_to_raster(input_lines: gpd.GeoDataFrame, input_raster: str, crs: 
         raster_crs = src.crs
 
     # Convert lines to raster CRS if needed
-    if crs:
-        input_lines = input_lines.to_crs(crs)
-        bbox_polygon = box(*bounds)
-    else:
-        input_lines = input_lines.to_crs(raster_crs)
-        bbox_polygon = box(*bounds)
+    input_lines = input_lines.to_crs(crs if crs else raster_crs)
+    bbox_polygon = box(*bounds)
 
     # Select lines that intersect the raster bbox
     clipped_lines = input_lines[input_lines.intersects(bbox_polygon)]
