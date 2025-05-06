@@ -25,7 +25,7 @@ def extract_z_virtual_lines_from_raster(
 
     Raises:
         RuntimeError: If the input RASTER file has no valid EPSG code.
-        ValueError: Unsupported geometry type in the input Geometry file
+        ValueError: If no valid min Z value could be extracted for any geometry.
     """
     if not spatial_ref:
         with rasterio.open(input_raster) as src:
@@ -34,24 +34,25 @@ def extract_z_virtual_lines_from_raster(
             raise RuntimeError(f"RASTER file {input_raster} does not have a valid EPSG code.")
 
     # Read the input GeoJSON
-    gdf = gpd.read_file(input_geometry)
+    lines_gdf = gpd.read_file(input_geometry)
 
-    if gdf.crs is None:
-        gdf.set_crs(epsg=spatial_ref, inplace=True)
+    if lines_gdf.crs is None:
+        lines_gdf.set_crs(epsg=spatial_ref, inplace=True)
 
-    # Store the unique geometry type in a variable
-    unique_geom_type = gdf.geometry.geom_type.unique()
+    if not all(lines_gdf.geometry.geom_type.isin(["LineString", "MultiLineString"])):
+        raise ValueError("Only LineString and MultiLineString geometries are supported.")
 
-    # Check the geometry type
-    if len(unique_geom_type) != 1:
-        raise ValueError("Several geometry types found in geometry file. This case is not handled.")
+    # Clip lines by tile (raster and lidar)
+    clipped_lines = clip_lines_to_raster(lines_gdf, input_raster, spatial_ref)
 
-    if unique_geom_type in ["LineString", "MultiLineString"]:
-        gdf = gdf.explode(index_parts=False).reset_index(drop=True)
-        # Clip lines by tile (raster and lidar)
-        gdf = clip_lines_to_raster(gdf, input_raster, spatial_ref)
-        # Extract Z value from lines
-        gdf_min_z = extract_min_z_from_mns_by_polylines(gdf, input_raster)
-        gdf_min_z.to_file(output_geometry, driver="GeoJSON")
-    else:
-        raise ValueError("Unsupported geometry type in the input Geometry file.")
+    if clipped_lines.empty:
+        raise ValueError("No input geometry intersects the raster extent.")
+
+    # Extract Z value from lines
+    gdf_min_z = extract_min_z_from_mns_by_polylines(clipped_lines, input_raster)
+    gdf_min_z = gdf_min_z.dropna(subset=["min_z"])  # Delete the lines without Zmin's value
+
+    if gdf_min_z.empty:
+        raise ValueError("All geometries returned None Zmin values; output will be empty.")
+
+    gdf_min_z.to_file(output_geometry, driver="GeoJSON")
