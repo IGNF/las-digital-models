@@ -24,7 +24,7 @@ def setup_module(module):
     os.makedirs(TMP_PATH, exist_ok=True)
 
 
-def test_extract_z_virtual_lines_from_raster_by_las():
+def test_extract_z_virtual_lines_from_raster():
     # Ensure the output file doesn't exist before the test
     if Path(OUTPUT_LINES).exists():
         os.remove(OUTPUT_LINES)

@@ -15,17 +15,17 @@ def extract_z_virtual_lines_from_raster(
     output_geometry: str,
     spatial_ref: str,
 ):
-    """Extract Z value from raster by LIDAR tiles (tiling file)
+    """Extract the minimum Z value along a 2d lines (contained in a geometry file) using an elevation raster.
 
     Args:
         input_geometry (str): Path to the input geometry file (GeoJSON or Shapefile) with 2D lines.
-        input_raster (str): Path to the raster file by tile
-        output_geometry (str): Path to save the output geometry file (GeoJSON or Shapefile)
+        input_raster (str): Path to the elevation raster file from which Z is extracted.
+        output_geometry (str): Path to save the output geometry file (GeoJSON or Shapefile).
         spatial_ref (str): CRS of the data.
 
     Raises:
         RuntimeError: If the input RASTER file has no valid EPSG code.
-        ValueError: If no valid min Z value could be extracted for any geometry.
+         ValueError: if the geometry file does not only contain (Multi)LineStrings.
     """
     if not spatial_ref:
         with rasterio.open(input_raster) as src:
@@ -46,11 +46,11 @@ def extract_z_virtual_lines_from_raster(
     clipped_lines = clip_lines_to_raster(lines_gdf, input_raster, spatial_ref)
 
     if clipped_lines.empty:
-        raise ValueError("No input geometry intersects the raster extent.")
+        print(f"absence of bridges for the raster : {input_raster}")
+        pass
 
     # Extract Z value from lines
     gdf_min_z = extract_min_z_from_mns_by_polylines(clipped_lines, input_raster)
-    gdf_min_z = gdf_min_z.dropna(subset=["min_z"])  # Delete the lines without Zmin's value
 
     if gdf_min_z.empty:
         raise ValueError("All geometries returned None Zmin values; output will be empty.")
