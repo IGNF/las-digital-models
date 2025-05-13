@@ -15,6 +15,7 @@ defaults:
   - io: default.yaml
   - tile_geometry: default.yaml  # describes input features and classes
   - dhm: default.yaml
+  - extract_stat: default.yaml
 
   # disable hydra logging
   - override hydra/hydra_logging: disabled
