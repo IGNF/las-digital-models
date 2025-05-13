@@ -1,8 +1,5 @@
-# Folder containing the input raster tiles.
+# Folder containing the input raster tiles and geometry.
 # (set to `--output_dir` if not provided).
-input_dir: /path/to/origin/las/folder
-input_filename: filename.las
-
 input_raster_dir: path/to/origin/raster/folder
 input_raster_filename: filename.tiff
 
