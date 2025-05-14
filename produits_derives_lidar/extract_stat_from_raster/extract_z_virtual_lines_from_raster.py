@@ -39,8 +39,8 @@ def extract_z_virtual_lines_from_raster(
     if lines_gdf.crs is None:
         lines_gdf.set_crs(epsg=spatial_ref, inplace=True)
 
-    if not all(lines_gdf.geometry.geom_type.isin(["LineString", "MultiLineString"])):
-        raise ValueError("Only LineString and MultiLineString geometries are supported.")
+    if not all(lines_gdf.geometry.geom_type.isin(["LineString"])):
+        raise ValueError("Only LineString geometries are supported.")
 
     # Clip lines by tile (raster and lidar)
     clipped_lines = clip_lines_to_raster(lines_gdf, input_raster, spatial_ref)

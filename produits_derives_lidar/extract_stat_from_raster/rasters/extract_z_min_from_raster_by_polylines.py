@@ -1,9 +1,39 @@
+import logging
+
 import geopandas as gpd
+import rasterio
 from rasterstats import zonal_stats
-from shapely.geometry import LineString, MultiLineString
+from shapely.geometry import LineString, box
 
 
-def extract_min_z_from_mns_by_polylines(lines_gdf: gpd.GeoDataFrame, mns_raster_path: str):
+def clip_lines_by_raster(input_lines: gpd.GeoDataFrame, input_raster: str, crs: str = None) -> gpd.GeoDataFrame:
+    """
+    Select lines from a GeoDataFrame that intersect the raster extent.
+
+    Args:
+        input_lines (gpd.GeoDataFrame): GeoDataFrame with lines.
+        input_raster (str): Path to the raster file (e.g., .tif).
+        crs (str, optional): Target CRS if reprojection is needed.
+
+    Returns:
+        gpd.GeoDataFrame: Lines that intersect with the raster extent.
+    """
+    # Open the raster and get its bounding box
+    with rasterio.open(input_raster) as src:
+        bounds = src.bounds
+        raster_crs = src.crs
+
+    # Convert lines to raster CRS if needed
+    input_lines = input_lines.to_crs(crs if crs else raster_crs)
+    bbox_polygon = box(*bounds)
+
+    # Select lines that intersect the raster bbox
+    clipped_lines = input_lines[input_lines.intersects(bbox_polygon)]
+
+    return clipped_lines
+
+
+def extract_polylines_min_z_from_dsm(lines_gdf: gpd.GeoDataFrame, mns_raster_path: str):
     """
     Extracts the minimum Z value from a DSM raster for each polyline (LineString or MultiLineString)
     in the input shapefile, keeping the original geometry.
@@ -16,27 +46,18 @@ def extract_min_z_from_mns_by_polylines(lines_gdf: gpd.GeoDataFrame, mns_raster_
         GeoDataFrame: A GeoDataFrame with the original geometries and a 'min_z' column.
         Only geometries with a valid Zmin are included.
     """
-    geometries = []
-    min_z_values = []
 
-    for geom in lines_gdf.geometry:
+    def get_z_min(geom, mns_raster_path):
         if isinstance(geom, LineString):
-            lines = [geom]
-        elif isinstance(geom, MultiLineString):
-            lines = list(geom.geoms)
+            stats = zonal_stats(vectors=[geom], raster=mns_raster_path, stats=["min"], all_touched=True, nodata=None)
+            min_z = stats[0]["min"]
+            if min_z is not None:
+                return round(min_z, 2)
+            else:
+                logging.warning(f"[WARNING] No valid Zmin found for geometry {geom} (ignored).")
         else:
-            continue  # Skip any geometry that is not a LineString or MultiLineString
+            logging.warning(f"[WARNING] Geometry {geom} is not a LineString (ignored).")
 
-        for line in lines:
-            stats = zonal_stats(vectors=[line], raster=mns_raster_path, stats=["min"], all_touched=True, nodata=None)
-            min_z = stats[0]["min"] if stats else None
+    lines_gdf["min_z"] = lines_gdf.apply(lambda row: get_z_min(row.geometry, mns_raster_path), axis=1)
 
-            if min_z is None:
-                print(f"[WARNING] No valid Zmin found for geometry {geom} (ignored).")
-                continue  # Skip this geometry
-
-            geometries.append(line)
-            min_z_values.append(round(min_z, 2))
-
-    result_gdf = gpd.GeoDataFrame({"geometry": geometries, "min_z": min_z_values}, crs=lines_gdf.crs)
-    return result_gdf
+    return lines_gdf
