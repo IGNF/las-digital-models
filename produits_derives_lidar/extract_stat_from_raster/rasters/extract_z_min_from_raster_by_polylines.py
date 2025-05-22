@@ -33,23 +33,23 @@ def clip_lines_by_raster(input_lines: gpd.GeoDataFrame, input_raster: str, crs: 
     return clipped_lines
 
 
-def extract_polylines_min_z_from_dsm(lines_gdf: gpd.GeoDataFrame, mns_raster_path: str):
+def extract_polylines_min_z_from_dsm(lines_gdf: gpd.GeoDataFrame, dsm_rasterpath: str):
     """
     Extracts the minimum Z value from a DSM raster for each polyline (LineString or MultiLineString)
     in the input shapefile, keeping the original geometry.
 
     Args:
         lines_gdf (str): GeoDataFrame with 2D lines.
-        mns_raster_path (str): Path to the DSM raster (GeoTIFF).
+        dsm_rasterpath (str): Path to the DSM raster (.vrt).
 
     Returns:
         GeoDataFrame: A GeoDataFrame with the original geometries and a 'min_z' column.
         Only geometries with a valid Zmin are included.
     """
 
-    def get_z_min(geom, mns_raster_path):
+    def get_z_min(geom, dsm_rasterpath):
         if isinstance(geom, LineString):
-            stats = zonal_stats(vectors=[geom], raster=mns_raster_path, stats=["min"], all_touched=True, nodata=None)
+            stats = zonal_stats(vectors=[geom], raster=dsm_rasterpath, stats=["min"], all_touched=True, nodata=None)
             min_z = stats[0]["min"]
             if min_z is not None:
                 return round(min_z, 2)
@@ -58,6 +58,6 @@ def extract_polylines_min_z_from_dsm(lines_gdf: gpd.GeoDataFrame, mns_raster_pat
         else:
             logging.warning(f"Geometry {geom} is not a LineString (ignored).")
 
-    lines_gdf["min_z"] = lines_gdf.apply(lambda row: get_z_min(row.geometry, mns_raster_path), axis=1)
+    lines_gdf["min_z"] = lines_gdf.apply(lambda row: get_z_min(row.geometry, dsm_rasterpath), axis=1)
 
     return lines_gdf

@@ -1,0 +1,45 @@
+<VRTDataset rasterXSize="400" rasterYSize="200">
+  <SRS dataAxisToSRSAxisMapping="1,2">PROJCS["RGF93 v1 / Lambert-93",GEOGCS["RGF93 v1",DATUM["Reseau_Geodesique_Francais_1993_v1",SPHEROID["GRS 1980",6378137,298.257222101,AUTHORITY["EPSG","7019"]],AUTHORITY["EPSG","6171"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4171"]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["latitude_of_origin",46.5],PARAMETER["central_meridian",3],PARAMETER["standard_parallel_1",49],PARAMETER["standard_parallel_2",44],PARAMETER["false_easting",700000],PARAMETER["false_northing",6600000],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH],AUTHORITY["EPSG","2154"]]</SRS>
+  <GeoTransform>  2.9900000000000000e+05,  5.0000000000000000e+00,  0.0000000000000000e+00,  6.8020000000000000e+06,  0.0000000000000000e+00, -5.0000000000000000e+00</GeoTransform>
+  <VRTRasterBand dataType="Float32" band="1">
+    <NoDataValue>9999</NoDataValue>
+    <ColorInterp>Gray</ColorInterp>
+    <ComplexSource resampling="cubic">
+      <SourceFilename relativeToVRT="0">/home/MDupays/Malvina/git/ProduitDeriveLIDAR/test/data/bridge/mns_hydro_postfiltre/test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif</SourceFilename>
+      <SourceBand>1</SourceBand>
+      <SourceProperties RasterXSize="200" RasterYSize="200" DataType="Float32" BlockXSize="200" BlockYSize="10" />
+      <SrcRect xOff="0" yOff="0" xSize="200" ySize="200" />
+      <DstRect xOff="0" yOff="0" xSize="200" ySize="200" />
+      <NODATA>9999</NODATA>
+    </ComplexSource>
+    <ComplexSource resampling="cubic">
+      <SourceFilename relativeToVRT="0">/home/MDupays/Malvina/git/ProduitDeriveLIDAR/test/data/bridge/mns_hydro_postfiltre/test_mns_hydro_2023_0300_6802_LA93_IGN69_5m.tif</SourceFilename>
+      <SourceBand>1</SourceBand>
+      <SourceProperties RasterXSize="200" RasterYSize="200" DataType="Float32" BlockXSize="200" BlockYSize="10" />
+      <SrcRect xOff="0" yOff="0" xSize="200" ySize="200" />
+      <DstRect xOff="200" yOff="0" xSize="200" ySize="200" />
+      <NODATA>9999</NODATA>
+    </ComplexSource>
+  </VRTRasterBand>
+  <VRTRasterBand dataType="Byte" band="2">
+    <ColorInterp>Alpha</ColorInterp>
+    <ComplexSource>
+      <SourceFilename relativeToVRT="0">/home/MDupays/Malvina/git/ProduitDeriveLIDAR/test/data/bridge/mns_hydro_postfiltre/test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif</SourceFilename>
+      <SourceBand>1</SourceBand>
+      <SourceProperties RasterXSize="200" RasterYSize="200" DataType="Float32" BlockXSize="200" BlockYSize="10" />
+      <SrcRect xOff="0" yOff="0" xSize="200" ySize="200" />
+      <DstRect xOff="0" yOff="0" xSize="200" ySize="200" />
+      <ScaleOffset>255</ScaleOffset>
+      <ScaleRatio>0</ScaleRatio>
+    </ComplexSource>
+    <ComplexSource>
+      <SourceFilename relativeToVRT="0">/home/MDupays/Malvina/git/ProduitDeriveLIDAR/test/data/bridge/mns_hydro_postfiltre/test_mns_hydro_2023_0300_6802_LA93_IGN69_5m.tif</SourceFilename>
+      <SourceBand>1</SourceBand>
+      <SourceProperties RasterXSize="200" RasterYSize="200" DataType="Float32" BlockXSize="200" BlockYSize="10" />
+      <SrcRect xOff="0" yOff="0" xSize="200" ySize="200" />
+      <DstRect xOff="200" yOff="0" xSize="200" ySize="200" />
+      <ScaleOffset>255</ScaleOffset>
+      <ScaleRatio>0</ScaleRatio>
+    </ComplexSource>
+  </VRTRasterBand>
+</VRTDataset>

@@ -1,35 +1,64 @@
-import geopandas as gpd
-import rasterio
+import logging
+import os
 
+import geopandas as gpd
+import hydra
+from omegaconf import DictConfig
+from osgeo import gdal
+
+from produits_derives_lidar.commons import commons
 from produits_derives_lidar.extract_stat_from_raster.rasters.extract_z_min_from_raster_by_polylines import (
-    clip_lines_by_raster,
     extract_polylines_min_z_from_dsm,
 )
 
+log = commons.get_logger(__name__)
 
-def extract_z_virtual_lines_from_raster(
-    input_geometry: str,
-    input_raster: str,
-    output_geometry: str,
-    spatial_ref: str,
-):
-    """Extract the minimum Z value along a 2d lines (contained in a geometry file) using an elevation raster.
 
-    Args:
-        input_geometry (str): Path to the input geometry file (GeoJSON or Shapefile) with 2D lines.
-        input_raster (str): Path to the elevation raster file from which Z is extracted.
-        output_geometry (str): Path to save the output geometry file (GeoJSON or Shapefile).
-        spatial_ref (str): CRS of the data.
-
+@hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
+def run_extract_z_virtual_lines_from_raster(config: DictConfig):
+    """Extract the minimum Z value along one or more 2d lines (contained in a geometry file) using hydra config
+    config parameters are explained in the default.yaml files
     Raises:
         RuntimeError: If the input RASTER file has no valid EPSG code.
          ValueError: if the geometry file does not only contain (Multi)LineStrings.
     """
-    if not spatial_ref:
-        with rasterio.open(input_raster) as src:
-            spatial_ref = src.crs
-        if spatial_ref is None:
-            raise RuntimeError(f"RASTER file {input_raster} does not have a valid EPSG code.")
+    # Check input files
+    raster_dir = config.extract_stat.input_raster_dir
+    if not os.path.isdir(raster_dir):
+        raise ValueError("""config.extract_stat.raster_dir folder not found""")
+
+    dir_list_raster = [os.path.join(raster_dir, f) for f in os.listdir(raster_dir) if f.lower().endswith(".tif")]
+    if not dir_list_raster:
+        raise ValueError(f"No raster (.tif) files found in {raster_dir}")
+
+    filename_geom, _ = os.path.splitext(config.extract_stat.input_geometry_filename)
+    input_geometry = os.path.join(
+        config.extract_stat.input_geometry_dir, f"{filename_geom}.shp"
+    )  # path to the geometry file
+    if not os.path.isfile(input_geometry):
+        raise ValueError(f"Input gemetry file not found: {input_geometry}")
+
+    # Check output folder
+    output_dir = config.extract_stat.output_dir
+    if output_dir is None:
+        raise ValueError(
+            """config.extract_stat.output_dir is empty, please provide an input directory in the configuration"""
+        )
+    os.makedirs(config.extract_stat.output_dir, exist_ok=True)
+
+    # Parameters
+    spatial_ref = config.extract_stat.spatial_reference
+    output_geometry = os.path.join(config.extract_stat.output_dir, config.extract_stat.output_geometry_filename)
+    input_vrt = config.extract_stat.input_vrt_path
+
+    # Build and save VRT file
+    vrt_options = gdal.BuildVRTOptions(resampleAlg="cubic", addAlpha=True)
+    my_vrt = gdal.BuildVRT(input_vrt, dir_list_raster, options=vrt_options)
+
+    if my_vrt is None:
+        raise ValueError(f"gdal.BuildVRT returned None for {input_vrt}")
+
+    my_vrt = None
 
     # Read the input GeoJSON
     lines_gdf = gpd.read_file(input_geometry)
@@ -40,17 +69,24 @@ def extract_z_virtual_lines_from_raster(
     if not all(lines_gdf.geometry.geom_type.isin(["LineString"])):
         raise ValueError("Only LineString geometries are supported.")
 
-    # Clip lines by tile (raster and lidar)
-    clipped_lines = clip_lines_by_raster(lines_gdf, input_raster, spatial_ref)
-
-    if clipped_lines.empty:
-        print(f"absence of bridges for the raster : {input_raster}")
-        pass
-
-    # Extract Z value from lines
-    gdf_min_z = extract_polylines_min_z_from_dsm(clipped_lines, input_raster)
+    # Extract Z value from lines and clean the result
+    gdf_min_z = (
+        extract_polylines_min_z_from_dsm(lines_gdf, input_vrt)
+        .dropna(subset=["min_z"])
+        .drop(columns=[c for c in ["index", "FID"] if c in lines_gdf.columns], errors="ignore")
+        .reset_index(drop=True)
+    )
 
     if gdf_min_z.empty:
         raise ValueError("All geometries returned None Zmin values; output will be empty.")
 
     gdf_min_z.to_file(output_geometry, driver="GeoJSON")
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    run_extract_z_virtual_lines_from_raster()
+
+
+if __name__ == "__main__":
+    main()
