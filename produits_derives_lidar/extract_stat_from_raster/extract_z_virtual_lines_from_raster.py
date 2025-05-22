@@ -1,11 +1,9 @@
 import geopandas as gpd
 import rasterio
 
-from produits_derives_lidar.extract_stat_from_raster.rasters.clip_lines_by_raster import (
-    clip_lines_to_raster,
-)
 from produits_derives_lidar.extract_stat_from_raster.rasters.extract_z_min_from_raster_by_polylines import (
-    extract_min_z_from_mns_by_polylines,
+    clip_lines_by_raster,
+    extract_polylines_min_z_from_dsm,
 )
 
 
@@ -43,14 +41,14 @@ def extract_z_virtual_lines_from_raster(
         raise ValueError("Only LineString geometries are supported.")
 
     # Clip lines by tile (raster and lidar)
-    clipped_lines = clip_lines_to_raster(lines_gdf, input_raster, spatial_ref)
+    clipped_lines = clip_lines_by_raster(lines_gdf, input_raster, spatial_ref)
 
     if clipped_lines.empty:
         print(f"absence of bridges for the raster : {input_raster}")
         pass
 
     # Extract Z value from lines
-    gdf_min_z = extract_min_z_from_mns_by_polylines(clipped_lines, input_raster)
+    gdf_min_z = extract_polylines_min_z_from_dsm(clipped_lines, input_raster)
 
     if gdf_min_z.empty:
         raise ValueError("All geometries returned None Zmin values; output will be empty.")

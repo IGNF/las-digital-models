@@ -1,4 +1,4 @@
-""" Main script for extract z virtual lines on a single tile (raster)
+""" Main script for Z min extraction along 2D lines using a single raster.
 Output files will be written to the target folder, tagged with the name of the tile that was used.
 """
 
@@ -17,7 +17,7 @@ log = commons.get_logger(__name__)
 
 
 @hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
-def run_ip_on_tile_raster(config: DictConfig):
+def run_extract_minz_from_raster_one_tile(config: DictConfig):
     """Run extract z virtual lines on single tile using hydra config
     config parameters are explained in the default.yaml files
     """
@@ -52,7 +52,7 @@ def run_ip_on_tile_raster(config: DictConfig):
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    run_ip_on_tile_raster()
+    run_extract_minz_from_raster_one_tile()
 
 
 if __name__ == "__main__":

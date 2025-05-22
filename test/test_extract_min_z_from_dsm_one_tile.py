@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from hydra import compose, initialize
 
-from produits_derives_lidar import ip_one_tile_raster
+from produits_derives_lidar import extract_min_z_from_dsm_one_tile
 
 TEST_PATH = Path(__file__).resolve().parent
 TMP_PATH = TEST_PATH / "tmp"
@@ -14,7 +14,7 @@ TMP_PATH = TEST_PATH / "tmp"
 DATA_DIR = TEST_PATH / "data" / "bridge"
 INPUT_RASTER_DIR = DATA_DIR / "mns_hydro_postfiltre"
 INPUT_GEOMETRY_DIR = DATA_DIR / "input_operators/lignes_contraintes"
-OUTPUT_DIR = TMP_PATH / "main_ip_one_tile_raster"
+OUTPUT_DIR = TMP_PATH / "main_extract_min_z_from_dsm_one_tile"
 
 
 def setup_module():
@@ -26,7 +26,7 @@ def setup_module():
     os.mkdir(TMP_PATH)
 
 
-def test_ip_one_tile_raster_default():
+def test_extract_min_z_from_dsm_one_tile_default():
     input_raster_dir = INPUT_RASTER_DIR
     input_raster_filename = "test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif"
     input_geometry_dir = INPUT_GEOMETRY_DIR
@@ -46,11 +46,11 @@ def test_ip_one_tile_raster_default():
                 f"io.output_dir={output_dir}",
             ],
         )
-    ip_one_tile_raster.run_ip_on_tile_raster(cfg)
+    extract_min_z_from_dsm_one_tile.run_extract_minz_from_raster_one_tile(cfg)
     assert (Path(output_dir) / "test_mns_hydro_2023_0299_6802_LA93_IGN69_5m_lines.GeoJSON").is_file()
 
 
-def test_ip_one_tile_raster_no_input_raster():
+def test_extract_min_z_from_dsm_one_tile_no_input_raster():
     input_geometry_dir = INPUT_GEOMETRY_DIR
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
     output_dir = OUTPUT_DIR
@@ -67,10 +67,10 @@ def test_ip_one_tile_raster_no_input_raster():
             ],
         )
     with pytest.raises(ValueError):
-        ip_one_tile_raster.run_ip_on_tile_raster(cfg)
+        extract_min_z_from_dsm_one_tile.run_extract_minz_from_raster_one_tile(cfg)
 
 
-def test_ip_one_tile_raster_no_input_geometry():
+def test_extract_min_z_from_dsm_one_tile_no_input_geometry():
     input_raster_dir = INPUT_RASTER_DIR
     input_raster_filename = "test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif"
     output_dir = OUTPUT_DIR
@@ -87,10 +87,10 @@ def test_ip_one_tile_raster_no_input_geometry():
             ],
         )
     with pytest.raises(ValueError):
-        ip_one_tile_raster.run_ip_on_tile_raster(cfg)
+        extract_min_z_from_dsm_one_tile.run_extract_minz_from_raster_one_tile(cfg)
 
 
-def test_ip_one_tile_raster_no_output():
+def test_extract_min_z_from_dsm_one_tile_no_output():
     input_raster_dir = INPUT_RASTER_DIR
     input_raster_filename = "test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif"
     input_geometry_dir = INPUT_GEOMETRY_DIR
@@ -109,12 +109,12 @@ def test_ip_one_tile_raster_no_output():
             ],
         )
         with pytest.raises(ValueError, match="config.io.output_dir is empty"):
-            ip_one_tile_raster.run_ip_on_tile_raster(cfg)
+            extract_min_z_from_dsm_one_tile.run_extract_minz_from_raster_one_tile(cfg)
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    test_ip_one_tile_raster_default()
-    test_ip_one_tile_raster_no_input_geometry()
-    test_ip_one_tile_raster_no_input_raster()
-    test_ip_one_tile_raster_no_output()
+    test_extract_min_z_from_dsm_one_tile_default()
+    test_extract_min_z_from_dsm_one_tile_no_input_geometry()
+    test_extract_min_z_from_dsm_one_tile_no_input_raster()
+    test_extract_min_z_from_dsm_one_tile_no_output()

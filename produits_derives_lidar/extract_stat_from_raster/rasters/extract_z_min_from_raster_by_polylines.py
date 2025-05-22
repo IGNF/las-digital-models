@@ -54,9 +54,9 @@ def extract_polylines_min_z_from_dsm(lines_gdf: gpd.GeoDataFrame, mns_raster_pat
             if min_z is not None:
                 return round(min_z, 2)
             else:
-                logging.warning(f"[WARNING] No valid Zmin found for geometry {geom} (ignored).")
+                logging.warning(f"No valid Zmin found for geometry {geom} (ignored).")
         else:
-            logging.warning(f"[WARNING] Geometry {geom} is not a LineString (ignored).")
+            logging.warning(f"Geometry {geom} is not a LineString (ignored).")
 
     lines_gdf["min_z"] = lines_gdf.apply(lambda row: get_z_min(row.geometry, mns_raster_path), axis=1)
 
