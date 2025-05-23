@@ -11,6 +11,8 @@ from produits_derives_lidar.extract_stat_from_raster.rasters.extract_z_min_from_
     extract_polylines_min_z_from_dsm,
 )
 
+gdal.UseExceptions()
+
 log = commons.get_logger(__name__)
 
 
@@ -32,8 +34,8 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
         raise ValueError(f"No raster (.tif) files found in {raster_dir}")
 
     filename_geom, _ = os.path.splitext(config.extract_stat.input_geometry_filename)
-    input_geometry = os.path.join(
-        config.extract_stat.input_geometry_dir, f"{filename_geom}.shp"
+    input_geometry = next(
+        os.path.join(config.extract_stat.input_geometry_dir, f"{filename_geom}.{ext}") for ext in ("geojson", "shp")
     )  # path to the geometry file
     if not os.path.isfile(input_geometry):
         raise ValueError(f"Input gemetry file not found: {input_geometry}")
@@ -66,12 +68,24 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     if lines_gdf.crs is None:
         lines_gdf.set_crs(epsg=spatial_ref, inplace=True)
 
+    # Convert geometries to LineString if possible
+    def to_linestring(geom):
+        if geom.geom_type == "LineString":
+            return geom
+        elif geom.geom_type == "MultiLineString":
+            return list(geom.geoms)[0]
+        else:
+            raise ValueError(f"Unsupported geometry type: {geom.geom_type}")
+
+    lines_gdf["geometry"] = lines_gdf.geometry.apply(to_linestring)
+
+    # Final check
     if not all(lines_gdf.geometry.geom_type.isin(["LineString"])):
-        raise ValueError("Only LineString geometries are supported.")
+        raise ValueError("Only LineString or MultiLineString geometries are supported.")
 
     # Extract Z value from lines and clean the result
     gdf_min_z = (
-        extract_polylines_min_z_from_dsm(lines_gdf, input_vrt)
+        extract_polylines_min_z_from_dsm(lines_gdf, input_vrt, no_data_value=config.tile_geometry.no_data_value)
         .dropna(subset=["min_z"])
         .drop(columns=[c for c in ["index", "FID"] if c in lines_gdf.columns], errors="ignore")
         .reset_index(drop=True)

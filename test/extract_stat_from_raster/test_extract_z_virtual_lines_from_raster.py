@@ -127,6 +127,6 @@ def test_extract_z_virtual_lines_from_raster_no_output():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     test_extract_z_virtual_lines_from_raster_default()
-    test_extract_z_virtual_lines_from_raster_no_input_geometry()
-    test_extract_z_virtual_lines_from_raster_no_input_raster()
-    test_extract_z_virtual_lines_from_raster_no_output()
+    # test_extract_z_virtual_lines_from_raster_no_input_geometry()
+    # test_extract_z_virtual_lines_from_raster_no_input_raster()
+    # test_extract_z_virtual_lines_from_raster_no_output()
