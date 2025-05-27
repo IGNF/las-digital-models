@@ -15,6 +15,9 @@ from produits_derives_lidar.extract_stat_from_raster.rasters.extract_z_min_from_
     clip_lines_by_raster,
     extract_polylines_min_z_from_dsm,
 )
+from produits_derives_lidar.extract_stat_from_raster.vectors.clip_geometry import (
+    clip_lines_by_polygons,
+)
 
 gdal.UseExceptions()
 
@@ -64,6 +67,11 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     if not dir_list_raster:
         raise ValueError(f"No raster (.tif) files found in {raster_dir}")
 
+    input_clip_geometry = os.path.join(config.extract_stat.input_clip_geometry_dir, config.extract_stat.input_clip_geometry_filename)
+    # path to the geometry file
+    if not os.path.isfile(input_geometry):
+        raise ValueError(f"Input geometry file not found: {input_clip_geometry}")
+
     # Check output folder
     output_dir = config.extract_stat.output_dir
     if output_dir is None:
@@ -82,9 +90,13 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
 
     # Read the input GeoJSON
     lines_gdf = gpd.read_file(input_geometry)
+    polygons_gdf = gpd.read_file(input_clip_geometry)
 
     if lines_gdf.crs is None:
         lines_gdf.set_crs(epsg=spatial_ref, inplace=True)
+
+    if polygons_gdf.crs is None:
+        polygons_gdf.set_crs(epsg=spatial_ref, inplace=True)
 
     # Convert geometries to LineString if possible
     def to_linestring(geom):
@@ -115,7 +127,13 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     if lines_gdf_min_z.empty:
         raise ValueError("All geometries returned None. Abort.")
 
-    lines_gdf_min_z.to_file(output_geometry, driver="GeoJSON")
+    # Keep lines inside raster (VRT created)
+    lines_gdf_min_z = clip_lines_by_raster(lines_gdf_min_z, output_vrt, spatial_ref)
+
+    # Clip lines by bridges
+    lines_gdf_min_z_clip = clip_lines_by_polygons(lines_gdf_min_z, polygons_gdf)
+
+    lines_gdf_min_z_clip.to_file(output_geometry, driver="GeoJSON")
 
 
 def main():

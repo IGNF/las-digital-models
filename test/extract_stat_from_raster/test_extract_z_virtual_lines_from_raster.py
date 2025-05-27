@@ -18,6 +18,7 @@ TMP_PATH = TEST_PATH / "tmp"
 DATA_DIR = TEST_PATH / "data" / "bridge"
 INPUT_RASTER_DIR = DATA_DIR / "mns_hydro_postfiltre"
 INPUT_GEOMETRY_DIR = DATA_DIR / "input_operators/lignes_contraintes"
+INPUT_CLIP_GEOMETRY_DIR = DATA_DIR / "input_operators/tabliers"
 OUTPUT_DIR = TMP_PATH / "main_extract_z_virtual_lines_from_raster"
 OUTPUT_VRT_FILENAME = "MNS_HYDRO.vrt"
 
@@ -34,6 +35,7 @@ def setup_module():
 def test_extract_z_virtual_lines_from_raster_default():
     input_raster_dir = INPUT_RASTER_DIR
     input_geometry_dir = INPUT_GEOMETRY_DIR
+    input_clip_geometry_dir = INPUT_CLIP_GEOMETRY_DIR
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
     output_vrt_filename = OUTPUT_VRT_FILENAME
     output_dir = OUTPUT_DIR
@@ -47,6 +49,7 @@ def test_extract_z_virtual_lines_from_raster_default():
             overrides=[
                 f"extract_stat.input_raster_dir={input_raster_dir}",
                 f"extract_stat.input_geometry_dir={input_geometry_dir}",
+                f"extract_stat.input_clip_geometry_dir={input_clip_geometry_dir}",
                 f"extract_stat.input_geometry_filename={input_geometry_filename}",
                 f"extract_stat.output_vrt_filename={output_vrt_filename}",
                 f"extract_stat.output_dir={output_dir}",
@@ -75,6 +78,7 @@ def test_extract_z_virtual_lines_from_raster_default():
 
 def test_extract_z_virtual_lines_from_raster_no_input_raster():
     input_geometry_dir = INPUT_GEOMETRY_DIR
+    input_clip_geometry_dir = INPUT_CLIP_GEOMETRY_DIR
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
     output_vrt_filename = OUTPUT_VRT_FILENAME
     output_dir = OUTPUT_DIR
@@ -87,6 +91,7 @@ def test_extract_z_virtual_lines_from_raster_no_input_raster():
             config_name="config",
             overrides=[
                 f"extract_stat.input_geometry_dir={input_geometry_dir}",
+                f"extract_stat.input_clip_geometry_dir={input_clip_geometry_dir}",
                 f"extract_stat.input_geometry_filename={input_geometry_filename}",
                 f"extract_stat.output_vrt_filename={output_vrt_filename}",
                 f"extract_stat.output_dir={output_dir}",
@@ -122,6 +127,7 @@ def test_extract_z_virtual_lines_from_raster_no_input_geometry():
 def test_extract_z_virtual_lines_from_raster_no_output():
     input_raster_dir = INPUT_RASTER_DIR
     input_geometry_dir = INPUT_GEOMETRY_DIR
+    input_clip_geometry_dir = INPUT_CLIP_GEOMETRY_DIR
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
     output_vrt_filename = OUTPUT_VRT_FILENAME
 
@@ -132,6 +138,7 @@ def test_extract_z_virtual_lines_from_raster_no_output():
             overrides=[
                 f"extract_stat.input_raster_dir={input_raster_dir}",
                 f"extract_stat.input_geometry_dir={input_geometry_dir}",
+                f"extract_stat.input_clip_geometry_dir={input_clip_geometry_dir}",
                 f"extract_stat.input_geometry_filename={input_geometry_filename}",
                 f"extract_stat.output_vrt_filename={output_vrt_filename}",
                 "extract_stat.output_dir=null",

@@ -1,7 +1,9 @@
 input_raster_dir: path/to/origin/raster/folder # Directory folder for containing the inputs
 
 input_geometry_dir: /path/to/origin/geometry/folder
-input_geometry_filename: filename.shp
+input_geometry_filename: filename.geojson
+input_clip_geometry_dir: /path/to/origin/geometry/folder
+input_clip_geometry_filename: filename.geojson
 
 # Spatial reference to use to override the one from input raster.
 spatial_reference: EPSG:2154
