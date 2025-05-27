@@ -19,9 +19,7 @@ INPUT_RASTER = os.path.join(DATA_RASTER_PATH, "test_mns_hydro_2023_0299_6802_LA9
 def test_extract_polylines_min_z_from_dsm():
     lines = [
         LineString([(299934.06, 6801817.96), (300007.48, 6801822.18)]),
-        LineString(
-            [(299922.47, 6801805.18), (299993.08, 6801808.32)]
-        ),  # Ligne clairement en dehors de l’emprise du raster
+        LineString([(299922.47, 6801805.18), (299993.08, 6801808.32)]),  # Line outside from raster
     ]
     lines_gdf = gpd.GeoDataFrame(geometry=lines, crs="EPSG:2154")
 
@@ -29,6 +27,7 @@ def test_extract_polylines_min_z_from_dsm():
 
     # # Check that all resulting geometries are LineStrings
     assert all(isinstance(geom, LineString) for geom in result.geometry)
+    assert all(geom.has_z for geom in result.geometry)
 
     # Expected minimum Z values for each line, manually determined
     expected_min_z = [
@@ -37,8 +36,18 @@ def test_extract_polylines_min_z_from_dsm():
     ]
 
     # Check that the computed min_z matches the expected ones
-    for computed, expected in zip(result["min_z"], expected_min_z):
-        assert computed == expected, f"Expected {expected}, but got {computed}"
+    for geom, expected_z in zip(result.geometry, expected_min_z):
+        zs = [round(z, 2) for x, y, z in geom.coords]
+        assert all(z == expected_z for z in zs), f"Expected all Z = {expected_z}, got {zs}"
+
+
+def test_line_outside_raster():
+    line = LineString([(0, 0), (1, 1)])  # totalement hors emprise
+    lines_gdf = gpd.GeoDataFrame(geometry=[line], crs="EPSG:2154")
+
+    result = extract_polylines_min_z_from_dsm(lines_gdf, INPUT_RASTER)
+
+    assert len(result) == 0
 
 
 @pytest.fixture(scope="module")

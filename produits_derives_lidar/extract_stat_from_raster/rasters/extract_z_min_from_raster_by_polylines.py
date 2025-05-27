@@ -34,7 +34,7 @@ def clip_lines_by_raster(input_lines: gpd.GeoDataFrame, input_raster: str, crs: 
 
 
 def extract_polylines_min_z_from_dsm(
-    lines_gdf: gpd.GeoDataFrame, dsm_rasterpath: str, no_data_value: int = -9999
+    lines_gdf: gpd.GeoDataFrame, dsm_rasterpath: str, no_data_value: int = 9999
 ) -> gpd.GeoDataFrame:
     """
     Extracts the minimum Z value from a DSM raster for each polyline (LineString or MultiLineString)
@@ -46,23 +46,38 @@ def extract_polylines_min_z_from_dsm(
         no_data_value (int): no data value (default to -9999)
 
     Returns:
-        GeoDataFrame: A GeoDataFrame with the original geometries and a 'min_z' column.
-        Only geometries with a valid Zmin are included.
+        GeoDataFrame: A GeoDataFrame with generated 3D Lines.
     """
 
-    def get_z_min(geom, dsm_rasterpath):
+    def get_z_min_on_linestring(geom, dsm_rasterpath):
         if isinstance(geom, LineString):
             stats = zonal_stats(
                 vectors=[geom], raster=dsm_rasterpath, stats=["min"], all_touched=True, nodata=no_data_value
             )
             min_z = stats[0]["min"]
-            if min_z is not None:
-                return round(min_z, 2)
-            else:
+
+            if min_z is None or int(min_z) == no_data_value:
                 logging.warning(f"No valid Zmin found for geometry {geom} (ignored).")
+                return None
+
+            coords_3d = [(x, y, round(min_z, 2)) for x, y in geom.coords]
+            return LineString(coords_3d)
+
         else:
             logging.warning(f"Geometry {geom} is not a LineString (ignored).")
+            return None
 
-    lines_gdf["min_z"] = lines_gdf.apply(lambda row: get_z_min(row.geometry, dsm_rasterpath), axis=1)
+    # Apply this function "get_z_min in linestring"
+    lines_gdf["geometry"] = lines_gdf["geometry"].apply(lambda geom: get_z_min_on_linestring(geom, dsm_rasterpath))
+
+    def is_invalid(geom):
+        if geom is None:
+            return True
+        if isinstance(geom, LineString) and geom.has_z:
+            z_vals = [pt[2] for pt in geom.coords]
+            return all(z == no_data_value for z in z_vals)
+        return False
+
+    lines_gdf = lines_gdf[~lines_gdf["geometry"].apply(is_invalid)]
 
     return lines_gdf
