@@ -17,7 +17,7 @@ DATA_DIR = TEST_PATH / "data" / "bridge"
 INPUT_RASTER_DIR = DATA_DIR / "mns_hydro_postfiltre"
 INPUT_GEOMETRY_DIR = DATA_DIR / "input_operators/lignes_contraintes"
 OUTPUT_DIR = TMP_PATH / "main_extract_z_virtual_lines_from_raster"
-INPUT_VRT_PATH = OUTPUT_DIR / "MNS_HYDRO.vrt"
+OUTPUT_VRT_PATH = OUTPUT_DIR / "MNS_HYDRO.vrt"
 
 
 def setup_module():
@@ -33,7 +33,7 @@ def test_extract_z_virtual_lines_from_raster_default():
     input_raster_dir = INPUT_RASTER_DIR
     input_geometry_dir = INPUT_GEOMETRY_DIR
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
-    input_vrt_path = INPUT_VRT_PATH
+    output_vrt_path = OUTPUT_VRT_PATH
     output_dir = OUTPUT_DIR
     output_geometry_filename = "constraint_lines.GeoJSON"
     os.makedirs(output_dir, exist_ok=True)
@@ -46,7 +46,7 @@ def test_extract_z_virtual_lines_from_raster_default():
                 f"extract_stat.input_raster_dir={input_raster_dir}",
                 f"extract_stat.input_geometry_dir={input_geometry_dir}",
                 f"extract_stat.input_geometry_filename={input_geometry_filename}",
-                f"extract_stat.input_vrt_path={input_vrt_path}",
+                f"extract_stat.output_vrt_path={output_vrt_path}",
                 f"extract_stat.output_dir={output_dir}",
                 f"extract_stat.output_geometry_filename={output_geometry_filename}",
             ],
@@ -58,7 +58,7 @@ def test_extract_z_virtual_lines_from_raster_default():
 def test_extract_z_virtual_lines_from_raster_no_input_raster():
     input_geometry_dir = INPUT_GEOMETRY_DIR
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
-    input_vrt_path = "MNS_HYDRO.vrt"
+    output_vrt_path = OUTPUT_VRT_PATH
     output_dir = OUTPUT_DIR
     output_geometry_filename = "constraint_lines.GeoJSON"
     os.makedirs(output_dir, exist_ok=True)
@@ -70,7 +70,7 @@ def test_extract_z_virtual_lines_from_raster_no_input_raster():
             overrides=[
                 f"extract_stat.input_geometry_dir={input_geometry_dir}",
                 f"extract_stat.input_geometry_filename={input_geometry_filename}",
-                f"extract_stat.input_vrt_path={input_vrt_path}",
+                f"extract_stat.output_vrt_path={output_vrt_path}",
                 f"extract_stat.output_dir={output_dir}",
                 f"extract_stat.output_geometry_filename={output_geometry_filename}",
             ],
@@ -81,7 +81,7 @@ def test_extract_z_virtual_lines_from_raster_no_input_raster():
 
 def test_extract_z_virtual_lines_from_raster_no_input_geometry():
     input_raster_dir = INPUT_RASTER_DIR
-    input_vrt_path = "MNS_HYDRO.vrt"
+    output_vrt_path = OUTPUT_VRT_PATH
     output_dir = OUTPUT_DIR
     output_geometry_filename = "constraint_lines.GeoJSON"
     os.makedirs(output_dir, exist_ok=True)
@@ -92,7 +92,7 @@ def test_extract_z_virtual_lines_from_raster_no_input_geometry():
             config_name="config",
             overrides=[
                 f"extract_stat.input_raster_dir={input_raster_dir}",
-                f"extract_stat.input_vrt_path={input_vrt_path}",
+                f"extract_stat.output_vrt_path={output_vrt_path}",
                 f"extract_stat.output_dir={output_dir}",
                 f"extract_stat.output_geometry_filename={output_geometry_filename}",
             ],
@@ -105,7 +105,7 @@ def test_extract_z_virtual_lines_from_raster_no_output():
     input_raster_dir = INPUT_RASTER_DIR
     input_geometry_dir = INPUT_GEOMETRY_DIR
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
-    input_vrt_path = "MNS_HYDRO.vrt"
+    output_vrt_path = OUTPUT_VRT_PATH
 
     with initialize(version_base="1.2", config_path="../../configs"):
         # config is relative to a module
@@ -115,7 +115,7 @@ def test_extract_z_virtual_lines_from_raster_no_output():
                 f"extract_stat.input_raster_dir={input_raster_dir}",
                 f"extract_stat.input_geometry_dir={input_geometry_dir}",
                 f"extract_stat.input_geometry_filename={input_geometry_filename}",
-                f"extract_stat.input_vrt_path={input_vrt_path}",
+                f"extract_stat.output_vrt_path={output_vrt_path}",
                 "extract_stat.output_dir=null",
                 "extract_stat.output_geometry_filename=null",
             ],
@@ -127,6 +127,6 @@ def test_extract_z_virtual_lines_from_raster_no_output():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     test_extract_z_virtual_lines_from_raster_default()
-    # test_extract_z_virtual_lines_from_raster_no_input_geometry()
-    # test_extract_z_virtual_lines_from_raster_no_input_raster()
-    # test_extract_z_virtual_lines_from_raster_no_output()
+    test_extract_z_virtual_lines_from_raster_no_input_geometry()
+    test_extract_z_virtual_lines_from_raster_no_input_raster()
+    test_extract_z_virtual_lines_from_raster_no_output()

@@ -8,6 +8,7 @@ from osgeo import gdal
 
 from produits_derives_lidar.commons import commons
 from produits_derives_lidar.extract_stat_from_raster.rasters.extract_z_min_from_raster_by_polylines import (
+    clip_lines_by_raster,
     extract_polylines_min_z_from_dsm,
 )
 
@@ -44,21 +45,21 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     output_dir = config.extract_stat.output_dir
     if output_dir is None:
         raise ValueError(
-            """config.extract_stat.output_dir is empty, please provide an input directory in the configuration"""
+            """config.extract_stat.output_dir is empty, please provide an output directory in the configuration"""
         )
     os.makedirs(config.extract_stat.output_dir, exist_ok=True)
 
     # Parameters
     spatial_ref = config.extract_stat.spatial_reference
     output_geometry = os.path.join(config.extract_stat.output_dir, config.extract_stat.output_geometry_filename)
-    input_vrt = config.extract_stat.input_vrt_path
+    output_vrt = config.extract_stat.output_vrt_path
 
     # Build and save VRT file
     vrt_options = gdal.BuildVRTOptions(resampleAlg="cubic", addAlpha=True)
-    my_vrt = gdal.BuildVRT(input_vrt, dir_list_raster, options=vrt_options)
+    my_vrt = gdal.BuildVRT(output_vrt, dir_list_raster, options=vrt_options)
 
     if my_vrt is None:
-        raise ValueError(f"gdal.BuildVRT returned None for {input_vrt}")
+        raise ValueError(f"gdal.BuildVRT returned None for {output_vrt}")
 
     my_vrt = None
 
@@ -79,22 +80,25 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
 
     lines_gdf["geometry"] = lines_gdf.geometry.apply(to_linestring)
 
-    # Final check
+    # Check lines are only LineString
     if not all(lines_gdf.geometry.geom_type.isin(["LineString"])):
         raise ValueError("Only LineString or MultiLineString geometries are supported.")
 
     # Extract Z value from lines and clean the result
-    gdf_min_z = (
-        extract_polylines_min_z_from_dsm(lines_gdf, input_vrt, no_data_value=config.tile_geometry.no_data_value)
-        .dropna(subset=["min_z"])
+    lines_gdf_min_z = (
+        extract_polylines_min_z_from_dsm(lines_gdf, output_vrt, no_data_value=config.tile_geometry.no_data_value)
         .drop(columns=[c for c in ["index", "FID"] if c in lines_gdf.columns], errors="ignore")
         .reset_index(drop=True)
     )
 
-    if gdf_min_z.empty:
-        raise ValueError("All geometries returned None Zmin values; output will be empty.")
+    # Keep lines inside raster (VRT created)
+    lines_gdf_min_z_final = clip_lines_by_raster(lines_gdf_min_z, output_vrt, spatial_ref)
 
-    gdf_min_z.to_file(output_geometry, driver="GeoJSON")
+    # Check lines are not empty
+    if lines_gdf_min_z_final.empty:
+        raise ValueError("All geometries returned None; output will be empty.")
+
+    lines_gdf_min_z_final.to_file(output_geometry, driver="GeoJSON")
 
 
 def main():
