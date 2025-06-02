@@ -42,7 +42,7 @@ def test_extract_polylines_min_z_from_dsm():
 
 
 def test_line_outside_raster():
-    line = LineString([(0, 0), (1, 1)])  # totalement hors emprise
+    line = LineString([(0, 0), (1, 1)])  # no intersection with raster footprint
     lines_gdf = gpd.GeoDataFrame(geometry=[line], crs="EPSG:2154")
 
     result = extract_polylines_min_z_from_dsm(lines_gdf, INPUT_RASTER)
