@@ -30,10 +30,6 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     if not os.path.isdir(raster_dir):
         raise ValueError("""config.extract_stat.raster_dir folder not found""")
 
-    dir_list_raster = [os.path.join(raster_dir, f) for f in os.listdir(raster_dir) if f.lower().endswith(".tif")]
-    if not dir_list_raster:
-        raise ValueError(f"No raster (.tif) files found in {raster_dir}")
-
     filename_geom, _ = os.path.splitext(config.extract_stat.input_geometry_filename)
     input_geometry = next(
         os.path.join(config.extract_stat.input_geometry_dir, f"{filename_geom}.{ext}") for ext in ("geojson", "shp")
@@ -52,16 +48,24 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     # Parameters
     spatial_ref = config.extract_stat.spatial_reference
     output_geometry = os.path.join(config.extract_stat.output_dir, config.extract_stat.output_geometry_filename)
-    output_vrt = config.extract_stat.output_vrt_path
+    output_vrt = os.path.join(config.extract_stat.output_dir, config.extract_stat.output_vrt_filename)
 
-    # Build and save VRT file
-    vrt_options = gdal.BuildVRTOptions(resampleAlg="cubic", addAlpha=True)
-    my_vrt = gdal.BuildVRT(output_vrt, dir_list_raster, options=vrt_options)
+    def create_list_raster_and_vrt(raster_dir, output_vrt):
+        dir_list_raster = [os.path.join(raster_dir, f) for f in os.listdir(raster_dir) if f.lower().endswith(".tif")]
+        if not dir_list_raster:
+            raise ValueError(f"No raster (.tif) files found in {raster_dir}")
 
-    if my_vrt is None:
-        raise ValueError(f"gdal.BuildVRT returned None for {output_vrt}")
+        # Build and save VRT file
+        vrt_options = gdal.BuildVRTOptions(resampleAlg="cubic", addAlpha=True)
+        my_vrt = gdal.BuildVRT(output_vrt, dir_list_raster, options=vrt_options)
 
-    my_vrt = None
+        if my_vrt is None:
+            raise ValueError(f"gdal.BuildVRT returned None for {output_vrt}")
+
+        my_vrt = None
+
+    # Create list of input's raster and vrt
+    create_list_raster_and_vrt(raster_dir, output_vrt)
 
     # Read the input GeoJSON
     lines_gdf = gpd.read_file(input_geometry)
@@ -84,21 +88,21 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     if not all(lines_gdf.geometry.geom_type.isin(["LineString"])):
         raise ValueError("Only LineString or MultiLineString geometries are supported.")
 
+    # Keep lines inside raster (VRT created)
+    lines_gdf_clip = clip_lines_by_raster(lines_gdf, output_vrt, spatial_ref)
+
     # Extract Z value from lines and clean the result
     lines_gdf_min_z = (
-        extract_polylines_min_z_from_dsm(lines_gdf, output_vrt, no_data_value=config.tile_geometry.no_data_value)
+        extract_polylines_min_z_from_dsm(lines_gdf_clip, output_vrt, no_data_value=config.tile_geometry.no_data_value)
         .drop(columns=[c for c in ["index", "FID"] if c in lines_gdf.columns], errors="ignore")
         .reset_index(drop=True)
     )
 
-    # Keep lines inside raster (VRT created)
-    lines_gdf_min_z_final = clip_lines_by_raster(lines_gdf_min_z, output_vrt, spatial_ref)
-
     # Check lines are not empty
-    if lines_gdf_min_z_final.empty:
-        raise ValueError("All geometries returned None; output will be empty.")
+    if lines_gdf_min_z.empty:
+        raise ValueError("All geometries returned None. Abort.")
 
-    lines_gdf_min_z_final.to_file(output_geometry, driver="GeoJSON")
+    lines_gdf_min_z.to_file(output_geometry, driver="GeoJSON")
 
 
 def main():
