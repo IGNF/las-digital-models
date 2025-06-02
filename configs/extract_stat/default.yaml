@@ -1,6 +1,4 @@
-# Folder containing the input raster tiles and geometry.
-# (set to `--output_dir` if not provided).
-input_raster_dir: path/to/origin/raster/folder
+input_raster_dir: path/to/origin/raster/folder # Directory folder for containing the inputs
 
 input_geometry_dir: /path/to/origin/geometry/folder
 input_geometry_filename: filename.shp
@@ -10,5 +8,4 @@ spatial_reference: EPSG:2154
 
 output_dir: /path/to/output/folder  # Directory folder for saving the outputs
 output_geometry_filename: filename.GeoJSON
-
-output_vrt_path: /path/to/origin/geometry/folder/filename.vrt
+output_vrt_filename: filename.vrt
