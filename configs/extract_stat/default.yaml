@@ -6,6 +6,6 @@ input_geometry_filename: filename.shp
 # Spatial reference to use to override the one from input raster.
 spatial_reference: EPSG:2154
 
-output_dir: /path/to/output/folder  # Directory folder for saving the outputs
+output_dir: /path/to/output/folder  # Directory in which to save the outputs
 output_geometry_filename: filename.GeoJSON
 output_vrt_filename: filename.vrt
