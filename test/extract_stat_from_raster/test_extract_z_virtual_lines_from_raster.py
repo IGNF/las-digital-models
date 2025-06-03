@@ -145,7 +145,7 @@ def test_extract_z_virtual_lines_from_raster_no_output():
 def test_extract_z_virtual_lines_from_raster_outside():
     input_raster_dir = INPUT_RASTER_DIR
     input_geometry_dir = INPUT_GEOMETRY_DIR
-    input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte_outside_MNS.shp"
+    input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte_outside_MNS.geojson"
     output_vrt_filename = OUTPUT_VRT_FILENAME
     output_dir = TMP_PATH / "main_extract_z_virtual_lines_from_raster_outside"
     output_geometry_filename = "constraint_lines.GeoJSON"

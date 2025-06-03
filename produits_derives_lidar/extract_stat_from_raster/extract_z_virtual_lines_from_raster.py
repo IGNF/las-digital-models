@@ -21,21 +21,16 @@ gdal.UseExceptions()
 log = commons.get_logger(__name__)
 
 
-def create_list_raster_and_vrt(raster_dir: str, output_vrt: str):
-    """Create list of input's raster and vrt
+def create_vrt(dir_list_raster: list, output_vrt: str):
+    """Create vrt from raster files in a directory.
 
     Args:
-        raster_dir (str): Directory containing .tif files (MNS raster).
+        dir_list_raster (List): ist of input raster files.
         output_vrt (str): Path to the output VRT file.
 
     Raises:
-        ValueError: If the list of input RASTER file doesn't exist
         ValueError: If the VRT doesn't create
     """
-    dir_list_raster = [os.path.join(raster_dir, f) for f in os.listdir(raster_dir) if f.lower().endswith(".tif")]
-    if not dir_list_raster:
-        raise ValueError(f"No raster (.tif) files found in {raster_dir}")
-
     # Build and save VRT file
     vrt_options = gdal.BuildVRTOptions(resampleAlg="cubic", addAlpha=True)
     my_vrt = gdal.BuildVRT(output_vrt, dir_list_raster, options=vrt_options)
@@ -63,7 +58,11 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     input_geometry = os.path.join(config.extract_stat.input_geometry_dir, config.extract_stat.input_geometry_filename)
 
     if not os.path.isfile(input_geometry):
-        raise ValueError(f"Input gemetry file not found: {input_geometry}")
+        raise ValueError(f"Input geometry file not found: {input_geometry}")
+
+    dir_list_raster = [os.path.join(raster_dir, f) for f in os.listdir(raster_dir) if f.lower().endswith(".tif")]
+    if not dir_list_raster:
+        raise ValueError(f"No raster (.tif) files found in {raster_dir}")
 
     # Check output folder
     output_dir = config.extract_stat.output_dir
@@ -78,8 +77,8 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     output_geometry = os.path.join(config.extract_stat.output_dir, config.extract_stat.output_geometry_filename)
     output_vrt = os.path.join(config.extract_stat.output_dir, config.extract_stat.output_vrt_filename)
 
-    # Create list of input's raster and vrt
-    create_list_raster_and_vrt(raster_dir, output_vrt)
+    # Create  vrt
+    create_vrt(dir_list_raster, output_vrt)
 
     # Read the input GeoJSON
     lines_gdf = gpd.read_file(input_geometry)
