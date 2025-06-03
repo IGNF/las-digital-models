@@ -1,3 +1,7 @@
+"""
+Main script to run the extraction of minimum Z values along lines (defined in a geometry file) \
+from raster containing Z value
+"""
 import logging
 import os
 
@@ -17,23 +21,47 @@ gdal.UseExceptions()
 log = commons.get_logger(__name__)
 
 
+def create_list_raster_and_vrt(raster_dir: str, output_vrt: str):
+    """Create list of input's raster and vrt
+
+    Args:
+        raster_dir (str): Directory containing .tif files (MNS raster).
+        output_vrt (str): Path to the output VRT file.
+
+    Raises:
+        ValueError: If the list of input RASTER file doesn't exist
+        ValueError: If the VRT doesn't create
+    """
+    dir_list_raster = [os.path.join(raster_dir, f) for f in os.listdir(raster_dir) if f.lower().endswith(".tif")]
+    if not dir_list_raster:
+        raise ValueError(f"No raster (.tif) files found in {raster_dir}")
+
+    # Build and save VRT file
+    vrt_options = gdal.BuildVRTOptions(resampleAlg="cubic", addAlpha=True)
+    my_vrt = gdal.BuildVRT(output_vrt, dir_list_raster, options=vrt_options)
+
+    if my_vrt is None:
+        raise ValueError(f"gdal.BuildVRT returned None for {output_vrt}")
+
+    my_vrt = None  # necessary to close the VRT file properly
+
+
 @hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
 def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     """Extract the minimum Z value along one or more 2d lines (contained in a geometry file) using hydra config
     config parameters are explained in the default.yaml files
+
     Raises:
         RuntimeError: If the input RASTER file has no valid EPSG code.
-         ValueError: if the geometry file does not only contain (Multi)LineStrings.
+        ValueError: if the geometry file does not only contain (Multi)LineStrings.
     """
     # Check input files
     raster_dir = config.extract_stat.input_raster_dir
     if not os.path.isdir(raster_dir):
         raise ValueError("""config.extract_stat.raster_dir folder not found""")
 
-    filename_geom, _ = os.path.splitext(config.extract_stat.input_geometry_filename)
-    input_geometry = next(
-        os.path.join(config.extract_stat.input_geometry_dir, f"{filename_geom}.{ext}") for ext in ("geojson", "shp")
-    )  # path to the geometry file
+    input_geometry = os.path.join(config.extract_stat.input_geometry_dir, config.extract_stat.input_geometry_filename)
+
     if not os.path.isfile(input_geometry):
         raise ValueError(f"Input gemetry file not found: {input_geometry}")
 
@@ -49,20 +77,6 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     spatial_ref = config.extract_stat.spatial_reference
     output_geometry = os.path.join(config.extract_stat.output_dir, config.extract_stat.output_geometry_filename)
     output_vrt = os.path.join(config.extract_stat.output_dir, config.extract_stat.output_vrt_filename)
-
-    def create_list_raster_and_vrt(raster_dir, output_vrt):
-        dir_list_raster = [os.path.join(raster_dir, f) for f in os.listdir(raster_dir) if f.lower().endswith(".tif")]
-        if not dir_list_raster:
-            raise ValueError(f"No raster (.tif) files found in {raster_dir}")
-
-        # Build and save VRT file
-        vrt_options = gdal.BuildVRTOptions(resampleAlg="cubic", addAlpha=True)
-        my_vrt = gdal.BuildVRT(output_vrt, dir_list_raster, options=vrt_options)
-
-        if my_vrt is None:
-            raise ValueError(f"gdal.BuildVRT returned None for {output_vrt}")
-
-        my_vrt = None
 
     # Create list of input's raster and vrt
     create_list_raster_and_vrt(raster_dir, output_vrt)

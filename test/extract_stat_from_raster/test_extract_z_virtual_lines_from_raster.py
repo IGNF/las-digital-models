@@ -69,8 +69,8 @@ def test_extract_z_virtual_lines_from_raster_default():
         return all(z == z_values[0] for z in z_values)
 
     for geom in gdf.geometry:
-        assert is_linestring_z(geom), "the geometry's output is okay : LineString Z"
-        assert all_z_coords_equal(geom), "This lines have the same Z value"
+        assert is_linestring_z(geom)  # the geometry's output is okay : LineString Z
+        assert all_z_coords_equal(geom)  # this lines have the same Z value"
 
 
 def test_extract_z_virtual_lines_from_raster_no_input_raster():

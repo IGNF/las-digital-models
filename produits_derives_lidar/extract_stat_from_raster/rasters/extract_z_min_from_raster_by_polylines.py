@@ -1,7 +1,3 @@
-"""
-Main script to run the extraction of minimum Z values along lines (defined in a geometry file) \
-from raster containing Z value
-"""
 import logging
 
 import geopandas as gpd
