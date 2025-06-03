@@ -14,6 +14,7 @@ TMP_PATH = TEST_PATH / "tmp"
 
 DATA_DIR = TEST_PATH / "data" / "bridge" / "input_operators"
 DATA_LINES = DATA_DIR / "lignes_contraintes/test_constraint_lines_3D_OE.geojson"
+DATA_LINES_OUTSIDE = DATA_DIR / "lignes_contraintes/test_constraint_lines_3D_OE_outside.geojson"
 DATA_BRIDGES = DATA_DIR / "tabliers/test_tabliers_pont_OE.geojson"
 
 
@@ -30,7 +31,7 @@ def test_create_hydro_vector_mask_default():
     assert all(isinstance(geom, LineString) for geom in gdf.geometry)  # All geometry should LineString
 
     expected_number_of_geometries = 6
-    assert len(gdf) == expected_number_of_geometries  # One geometry
+    assert len(gdf) == expected_number_of_geometries  # Six geometry
 
     # Define expected geometries
     expected_geometries = [
@@ -52,3 +53,13 @@ def test_create_hydro_vector_mask_default():
         assert any(
             expected_geom.equals(actual_geom) for actual_geom in actual_geoms
         ), f"Expected geometry not found: {expected_geom.wkt}"
+
+
+def test_create_hydro_vector_mask_outside():
+    # Parameters
+    lines_outsides_gdf = gpd.read_file(DATA_LINES_OUTSIDE)
+    bridges_gdf = gpd.read_file(DATA_BRIDGES)
+
+    gdf = clip_lines_by_polygons(lines_outsides_gdf, bridges_gdf)
+
+    assert gdf.empty  # GeoDataFrame should empty

@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "test_constraint_lines_3D_OE_outside",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::2154" } },
+"features": [
+{ "type": "Feature", "properties": { }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 857669.106175682041794, 6856232.701145305298269 ], [ 857677.634996418142691, 6856233.368203910067677 ] ] ] } },
+{ "type": "Feature", "properties": { }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 857670.440292892162688, 6856228.269970285706222 ], [ 857677.825584591017105, 6856229.651734539307654 ] ] ] } },
+{ "type": "Feature", "properties": { }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 857669.749410765594803, 6856232.582027697004378 ], [ 857674.514115087455139, 6856233.368203910067677 ] ] ] } }
+]
+}
