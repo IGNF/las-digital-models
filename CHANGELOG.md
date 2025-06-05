@@ -1,3 +1,6 @@
+# v1.2.0
+- run the extraction of minimum Z values along lines (defined in a geometry file) from raster containing Z value
+
 # v1.1.0
 - **API CHANGE**: update filter API: use `dimension` + `keep_values` instead of `keep_classes` to be more flexible in
 the prefiltering step

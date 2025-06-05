@@ -3,10 +3,12 @@ This repo contains code to generate different kinds of digital models from LAS i
 * DSM: digital surface model (model of the ground surface including natural and built features such as trees or buildings)
 * DTM: digital terrain model (model of the ground surface without natural and built features such as trees or buildings)
 * DHM: digital height model (model of the height of natural and built features from the ground)
+
+This repo contains also code to extract the minimum Z values along lines (defined in a geometry file) from raster containing Z value
 # Overview
 
 ## Workflow
-
+### Digitals Models from LAS inputs
 The overall workflow to create DXM from a classified LAS point cloud is:
 
 As a preprocessing step, a buffer is added to each tile:
@@ -34,6 +36,13 @@ To generate a Digital Height Model (DHM):
 
 ```
 DSM - DTM -> DHM
+```
+
+### Extract the minimum Z values along lines from raster containing Z value
+The overall workflow to extract the minimum Z values along lines from MNS is:
+
+```
+Folder containing MNS -> create VRT -> clip lines inside raster -> extract min Z -> clip lines by bridges
 ```
 
 ## In this repo
@@ -171,6 +180,37 @@ To generate DHM:
 `dhm.input_dsm_dir` and `dhm.input_dtm_dir` must contained DSM and DTM generated with
 `produits_derives_lidar.ip_one_tile` using the same pixel_size as given in
 arguments.
+
+Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
+[hydra](https://hydra.cc/) for more details on usage)
+
+
+
+## Extract the minimum Z values along lines from raster containing Z value
+
+with:
+* INPUT_RASTER_DIR: folder that contains the raster
+* INPUT_GEOMETRY_DIR: folder that contains the constraints lines (lines)
+* INPUT_GEOMETRY_DIR: folder that contains the bridge deck (polygons)
+* INPUT_GEOMETRY_FILENAME: Name of geometry that contains the "input geometry".
+* INPUT_CLIP_GEOMETRY_FILENAME: Name of geometry to use for clipping the "input geometry" after minZ is extracted.
+* OUTPUT_DIR: folder where the output will be saved
+* OUTPUT_VRT_FILENAME: Name of VRT file
+* OUTPUT_GEOMETRY_FILENAME: Name og geometry that contains the "output geoemtry"
+
+To run extraction of minimum Z value :
+
+```bash
+    python -m produits_derives_lidar.extract_stat_from_raster.extract_z_virtual_lines_from_raster \
+        extract_stat.input_raster_dir=${INPUT_RASTER_DIR} \
+        extract_stat.input_geometry_dir=${INPUT_GEOMETRY_DIR} \
+        extract_stat.input_clip_geometry_dir=${INPUT_CLIP_GEOMETRY_DIR} \
+        extract_stat.input_geometry_filename=${INPUT_GEOMETRY_FILENAME} \
+        extract_stat.input_clip_geometry_filename=${INPUT_CLIP_GEOMETRY_FILENAME} \
+        extract_stat.output_vrt_filename=${OUTPUT_VRT_FILENAME} \
+        extract_stat.output_dir=${OUTPUT_DIR} \
+        extract_stat.output_geometry_filename=${OUTPUT_GEOMETRY_FILENAME}
+```
 
 Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
 [hydra](https://hydra.cc/) for more details on usage)
