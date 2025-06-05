@@ -67,7 +67,9 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     if not dir_list_raster:
         raise ValueError(f"No raster (.tif) files found in {raster_dir}")
 
-    input_clip_geometry = os.path.join(config.extract_stat.input_clip_geometry_dir, config.extract_stat.input_clip_geometry_filename)
+    input_clip_geometry = os.path.join(
+        config.extract_stat.input_clip_geometry_dir, config.extract_stat.input_clip_geometry_filename
+    )
     # path to the geometry file
     if not os.path.isfile(input_geometry):
         raise ValueError(f"Input geometry file not found: {input_clip_geometry}")
@@ -126,9 +128,6 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     # Check lines are not empty
     if lines_gdf_min_z.empty:
         raise ValueError("All geometries returned None. Abort.")
-
-    # Keep lines inside raster (VRT created)
-    lines_gdf_min_z = clip_lines_by_raster(lines_gdf_min_z, output_vrt, spatial_ref)
 
     # Clip lines by bridges
     lines_gdf_min_z_clip = clip_lines_by_polygons(lines_gdf_min_z, polygons_gdf)

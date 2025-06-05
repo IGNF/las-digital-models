@@ -36,7 +36,8 @@ def test_extract_z_virtual_lines_from_raster_default():
     input_raster_dir = INPUT_RASTER_DIR
     input_geometry_dir = INPUT_GEOMETRY_DIR
     input_clip_geometry_dir = INPUT_CLIP_GEOMETRY_DIR
-    input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
+    input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.geojson"
+    input_clip_geometry_filename = "NUALHD_1-0_DF_tabliers_pont.geojson"
     output_vrt_filename = OUTPUT_VRT_FILENAME
     output_dir = OUTPUT_DIR
     output_geometry_filename = "constraint_lines.GeoJSON"
@@ -51,6 +52,7 @@ def test_extract_z_virtual_lines_from_raster_default():
                 f"extract_stat.input_geometry_dir={input_geometry_dir}",
                 f"extract_stat.input_clip_geometry_dir={input_clip_geometry_dir}",
                 f"extract_stat.input_geometry_filename={input_geometry_filename}",
+                f"extract_stat.input_clip_geometry_filename={input_clip_geometry_filename}",
                 f"extract_stat.output_vrt_filename={output_vrt_filename}",
                 f"extract_stat.output_dir={output_dir}",
                 f"extract_stat.output_geometry_filename={output_geometry_filename}",
@@ -152,7 +154,9 @@ def test_extract_z_virtual_lines_from_raster_no_output():
 def test_extract_z_virtual_lines_from_raster_outside():
     input_raster_dir = INPUT_RASTER_DIR
     input_geometry_dir = INPUT_GEOMETRY_DIR
+    input_clip_geometry_dir = INPUT_CLIP_GEOMETRY_DIR
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte_outside_MNS.geojson"
+    input_clip_geometry_filename = "NUALHD_1-0_DF_tabliers_pont.geojson"
     output_vrt_filename = OUTPUT_VRT_FILENAME
     output_dir = TMP_PATH / "main_extract_z_virtual_lines_from_raster_outside"
     output_geometry_filename = "constraint_lines.GeoJSON"
@@ -165,7 +169,9 @@ def test_extract_z_virtual_lines_from_raster_outside():
             overrides=[
                 f"extract_stat.input_raster_dir={input_raster_dir}",
                 f"extract_stat.input_geometry_dir={input_geometry_dir}",
+                f"extract_stat.input_clip_geometry_dir={input_clip_geometry_dir}",
                 f"extract_stat.input_geometry_filename={input_geometry_filename}",
+                f"extract_stat.input_clip_geometry_filename={input_clip_geometry_filename}",
                 f"extract_stat.output_vrt_filename={output_vrt_filename}",
                 f"extract_stat.output_dir={output_dir}",
                 f"extract_stat.output_geometry_filename={output_geometry_filename}",
