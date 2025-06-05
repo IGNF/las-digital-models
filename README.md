@@ -1,14 +1,27 @@
-# Generate DXM from LAS point cloud files
-This repo contains code to generate different kinds of digital models from LAS inputs:
-* DSM: digital surface model (model of the ground surface including natural and built features such as trees or buildings)
-* DTM: digital terrain model (model of the ground surface without natural and built features such as trees or buildings)
-* DHM: digital height model (model of the height of natural and built features from the ground)
+# Perform misc operations on Digital models generated from LAS files
+- Generate DxM from LAS point cloud files
+- Extract values from a DxM along geometries
 
-This repo contains also code to extract the minimum Z values along lines (defined in a geometry file) from raster containing Z value
+Note: DxM refers digital models in general (Digital xxx Model, that can be Digital Surface Model, Digital Terrain Model...) 
+
 # Overview
 
+## Main functionalities 
+
+###   Generate DxM from LAS point cloud files
+
+This repo contains code to generate different kinds of digital models from LAS inputs:
+ * DSM: digital surface model (model of the ground surface including natural and built features such as trees or buildings)
+ * DTM: digital terrain model (model of the ground surface without natural and built features such as trees or buildings)
+ * DHM: digital height model (model of the height of natural and built features from the ground)
+
+### Extract values from a DxM along geometries
+This repo contains also code to extract the minimum Z values along lines (defined in a geometry file) from raster containing Z value,  and clip them to the extent of polygons from another geometry file
+The expected use case is : input lines are constraint lines used to open bridges in DTMs, clipping polygons are bridges under which the DTM should be opened
+
 ## Workflow
-### Digitals Models from LAS inputs
+### Digital Models from LAS inputs
+
 The overall workflow to create DXM from a classified LAS point cloud is:
 
 As a preprocessing step, a buffer is added to each tile:
@@ -39,11 +52,14 @@ DSM - DTM -> DHM
 ```
 
 ### Extract the minimum Z values along lines from raster containing Z value
+
 The overall workflow to extract the minimum Z values along lines from MNS is:
 
-```
-Folder containing MNS -> create VRT -> clip lines inside raster -> extract min Z -> clip lines by bridges
-```
+- Create a VRT from a folder containing DxM
+- Clip lines from geometry file to the raster extent
+- Extract minimum Z value along each Line
+- Clip lines to the extent of polygons (from another file)
+
 
 ## In this repo
 
@@ -96,6 +112,8 @@ docker image (see the [Docker section](#docker) for this use case).
 This code uses hydra to manage configuration and parameters. All configurations are available in
 the `configs` folder.
 
+##  Generate DxM from LAS point cloud files
+
 > **Warning** In all steps, the tiles are supposed to be named following this syntax:
 > `prefix1_prefix2_{coord_x}_{coord_y}_suffix` where
 > `coord_x` and `coord_y` are the coordinates of the top-left corner of the tile.
@@ -104,7 +122,7 @@ the `configs` folder.
 > * `tile_geometry.tile_width` must contain the tile size in meters
 > * `tile_geometry.tile_coord_scale` must contain the `coord_x` and `coord_y` scale so that `coord_{x or y} * tile_geometry.tile_coord_scale` are the coordinates of the top-left corner in meters
 
-## Whole pipeline
+### Whole pipeline
 
 To run the whole pipeline (DSM + DTM + DHM) on all the LAS files in a folder, use `run.sh`.
 
@@ -123,12 +141,11 @@ It will generate:
 * Temporary files (you can delete them manually when the result looks good):
   * ${OUTPUT_DIR}/buffer : buffered las for DTM and DSM generation
 * Output folders:
-  * ${OUTPUT_DIR}/DTM
+  * ${OUTPUT_DIR}/DTM###   Generate DxM from LAS point cloud files
   * ${OUTPUT_DIR}/DSM
   * ${OUTPUT_DIR}/DHM
 
-
-## Buffer
+### Buffer
 
 To add a buffer to a point cloud using `ign-pdal-tools`:
 
@@ -143,7 +160,7 @@ python -m produits_derives_lidar.filter_one_tile \
 Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
 [hydra](https://hydra.cc/) for more details on usage)
 
-## Interpolation
+### Interpolation
 
 To run interpolation (DXM generation):
 
@@ -165,7 +182,7 @@ Any other parameter in the `./configs` tree can be overriden in the command (see
 During the interpolation step, a shapefile can be provided to mask polygons using `tile_geometry.no_data_value`.
 To use it, provide the shapefile path with the `io.no_data_mask_shapefile` argument.
 
-## DHM
+### DHM
 
 To generate DHM:
 ```bash
@@ -186,12 +203,14 @@ Any other parameter in the `./configs` tree can be overriden in the command (see
 
 
 
-## Extract the minimum Z values along lines from raster containing Z value
+## Extract values from a DxM along geometries
+
+### Extract the minimum Z values
 
 with:
 * INPUT_RASTER_DIR: folder that contains the raster
 * INPUT_GEOMETRY_DIR: folder that contains the constraints lines (lines)
-* INPUT_GEOMETRY_DIR: folder that contains the bridge deck (polygons)
+* INPUT_CLIP_GEOMETRY_DIR: folder that contains the clipping geometries
 * INPUT_GEOMETRY_FILENAME: Name of geometry that contains the "input geometry".
 * INPUT_CLIP_GEOMETRY_FILENAME: Name of geometry to use for clipping the "input geometry" after minZ is extracted.
 * OUTPUT_DIR: folder where the output will be saved
