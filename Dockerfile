@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:latest as mamba_pdal
+FROM mambaorg/micromamba:latest AS mamba_pdal
 COPY environment.yml /environment.yml
 USER root
 RUN micromamba env create -n produits_derives_lidar -f /environment.yml

@@ -2,6 +2,7 @@
 Main script to run the extraction of minimum Z values along lines (defined in a geometry file) \
 from raster containing Z value
 """
+
 import logging
 import os
 
@@ -44,7 +45,7 @@ def create_vrt(dir_list_raster: list, output_vrt: str):
     my_vrt = None  # necessary to close the VRT file properly
 
 
-@hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
+@hydra.main(config_path="../../configs/", config_name="config.yaml", version_base="1.2")
 def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     """Extract the minimum Z value along one or more 2d lines (contained in a geometry file) using hydra config
     config parameters are explained in the default.yaml files
@@ -56,7 +57,9 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     # Check input files
     raster_dir = config.extract_stat.input_raster_dir
     if not os.path.isdir(raster_dir):
-        raise ValueError("""config.extract_stat.raster_dir folder not found""")
+        raise ValueError(
+            f"""config.extract_stat.input_raster_dir ({config.extract_stat.input_raster_dir}) not found"""
+        )
 
     input_geometry = os.path.join(config.extract_stat.input_geometry_dir, config.extract_stat.input_geometry_filename)
 
