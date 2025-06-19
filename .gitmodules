@@ -1,3 +1,0 @@
-[submodule "pdalTools"]
-	path = pdalTools
-	url = ssh://git@gitlab.forge-idi.ign.fr:10022/Lidar/pdalTools.git

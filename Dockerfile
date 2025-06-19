@@ -18,7 +18,7 @@ COPY --from=mamba_pdal /opt/conda/envs/las_digital_models/share/proj/proj.db /op
 ENV PATH=$PATH:/opt/conda/envs/las_digital_models/bin/
 ENV PROJ_LIB=/opt/conda/envs/las_digital_models/share/proj/
 
-WORKDIR /ProduitDeriveLIDAR
+WORKDIR /las-digital-models
 RUN mkdir tmp
 COPY las_digital_models las_digital_models
 COPY test test
