@@ -11,7 +11,7 @@
 
 # mamba env update also works when environment does not exist yet
 install:
-	mamba env update -n produits_derives_lidar -f environment.yml
+	mamba env update -n las_digital_models -f environment.yml
 
 install-precommit:
 	pre-commit install
@@ -21,15 +21,12 @@ install-precommit:
 # --------------------
 
 deploy: check
-	twine upload --repository-url https://nexus.ign.fr/repository/pypi-lidarhd-hosted/ dist/*
+	twine upload  dist/*
 
-deploy-w-creds: check
-	twine upload --repository-url https://nexus.ign.fr/repository/pypi-lidarhd-hosted/ dist/* -u svc_lidarhd -p $(svc_lidarhd_pwd)
-
-check: dist/ign-mnx*.tar.gz
+check: dist/ign-las-digital-models*.tar.gz
 	twine check dist/*
 
-dist/ign-mnx*.tar.gz:
+dist/ign-las-digital-models*.tar.gz:
 	python -m build
 
 build: clean
@@ -37,7 +34,7 @@ build: clean
 
 clean:
 	rm -rf tmp
-	rm -rf ign-mnx.egg-info
+	rm -rf ign-las-digital-models.egg-info
 	rm -rf dist
 
 # --------------------
@@ -54,8 +51,8 @@ testing:
 # Docker
 # --------------------
 
-PROJECT_NAME=lidar_hd/produits_derives_lidar
-VERSION=`python -m produits_derives_lidar.version`
+PROJECT_NAME=lidar_hd/las_digital_models
+VERSION=`python -m las_digital_models.version`
 REGISTRY=docker-registry.ign.fr
 
 docker-build:

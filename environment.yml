@@ -1,4 +1,4 @@
-name: produits_derives_lidar
+name: las_digital_models
 channels:
   - conda-forge
   - anaconda

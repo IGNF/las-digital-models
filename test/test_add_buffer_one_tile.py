@@ -5,7 +5,7 @@ import test.utils.point_cloud_utils as pcu
 
 from hydra import compose, initialize
 
-from produits_derives_lidar import add_buffer_one_tile
+from las_digital_models import add_buffer_one_tile
 
 TEST_PATH = os.path.dirname(__file__)
 TMP_PATH = os.path.join(TEST_PATH, "tmp/buffer")
