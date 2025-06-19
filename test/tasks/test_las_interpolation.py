@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from produits_derives_lidar.tasks.las_interpolation import interpolate
+from las_digital_models.tasks.las_interpolation import interpolate
 
 TILE_COORD_SCALE = 10
 TILE_WIDTH = 50

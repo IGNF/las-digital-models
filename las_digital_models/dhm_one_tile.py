@@ -6,8 +6,8 @@ import os
 import hydra
 from omegaconf import DictConfig
 
-from produits_derives_lidar.commons import commons
-from produits_derives_lidar.tasks.dhm_generation import calculate_dhm
+from las_digital_models.commons import commons
+from las_digital_models.tasks.dhm_generation import calculate_dhm
 
 log = commons.get_logger(__name__)
 

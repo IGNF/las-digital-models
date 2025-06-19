@@ -11,7 +11,7 @@ import hydra
 from omegaconf import DictConfig
 from pdaltools.las_add_buffer import create_las_with_buffer
 
-from produits_derives_lidar.commons import commons
+from las_digital_models.commons import commons
 
 log = commons.get_logger(__name__)
 

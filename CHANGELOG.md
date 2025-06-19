@@ -1,3 +1,5 @@
+Rename produit_derive_lidar to las_digital_models
+
 # v1.2.1
 Fix path to hydra config in Z values extraction
 

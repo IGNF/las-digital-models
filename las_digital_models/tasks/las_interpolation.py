@@ -4,7 +4,7 @@ import pdal
 from osgeo import gdal
 from pdaltools.las_info import parse_filename
 
-from produits_derives_lidar.commons import commons
+from las_digital_models.commons import commons
 
 gdal.UseExceptions()
 

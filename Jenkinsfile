@@ -11,14 +11,14 @@ parallel (
 
 		stage('mamba') {
 		gitlabCommitStatus("mamba") {
-			sh "mamba env update -n produits_derives_lidar"
+			sh "mamba env update -n las_digital_models"
 		}
 		}
 
 		stage('test') {
 		gitlabCommitStatus("test") {
 			sh """
-			mamba run -n produits_derives_lidar make testing
+			mamba run -n las_digital_models make testing
 			"""
 		}
 		}
@@ -28,8 +28,8 @@ parallel (
 				withCredentials([string(credentialsId: 'svc_lidarhd', variable: 'svc_lidarhd')]) {
 					sh """
 					set -e
-					mamba run -n produits_derives_lidar make build
-					mamba run -n produits_derives_lidar make svc_lidarhd_pwd=${svc_lidarhd} deploy-w-creds
+					mamba run -n las_digital_models make build
+					mamba run -n las_digital_models make svc_lidarhd_pwd=${svc_lidarhd} deploy-w-creds
 					"""
 				}
 			} else {

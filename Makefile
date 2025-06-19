@@ -11,7 +11,7 @@
 
 # mamba env update also works when environment does not exist yet
 install:
-	mamba env update -n produits_derives_lidar -f environment.yml
+	mamba env update -n las_digital_models -f environment.yml
 
 install-precommit:
 	pre-commit install
@@ -54,8 +54,8 @@ testing:
 # Docker
 # --------------------
 
-PROJECT_NAME=lidar_hd/produits_derives_lidar
-VERSION=`python -m produits_derives_lidar.version`
+PROJECT_NAME=lidar_hd/las_digital_models
+VERSION=`python -m las_digital_models.version`
 REGISTRY=docker-registry.ign.fr
 
 docker-build:
