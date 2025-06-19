@@ -4,6 +4,8 @@
 
 Note: DxM refers digital models in general (Digital xxx Model, that can be Digital Surface Model, Digital Terrain Model...)
 
+Note: this project has only been tested on Linux
+
 # Overview
 
 ## Main functionalities

@@ -51,25 +51,21 @@ testing:
 # Docker
 # --------------------
 
-PROJECT_NAME=lidar_hd/las_digital_models
+REGISTRY=ghcr.io
+NAMESPACE=ignf
+IMAGE_NAME=las-digital-models
 VERSION=`python -m las_digital_models.version`
-REGISTRY=docker-registry.ign.fr
+FULL_IMAGE_NAME=${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:${VERSION}
 
 docker-build:
-	docker build -t ${PROJECT_NAME}:${VERSION} -f Dockerfile .
+	docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile .
 
 docker-test:
-	docker run --rm ${PROJECT_NAME}:${VERSION} python -m pytest -s -m "not functional_test"
+	docker run --rm ${IMAGE_NAME}:${VERSION} python -m pytest -s -m "not functional_test"
 
 docker-remove:
-	docker rmi -f `docker images | grep ${PROJECT_NAME} | tr -s ' ' | cut -d ' ' -f 3`
+	docker rmi -f `docker images | grep ${IMAGE_NAME}:${VERSION} | tr -s ' ' | cut -d ' ' -f 3`
 
 docker-deploy:
-	docker login docker-registry.ign.fr -u svc_lidarhd
-	docker tag ${PROJECT_NAME}:${VERSION} ${REGISTRY}/${PROJECT_NAME}:${VERSION}
-	docker push ${REGISTRY}/${PROJECT_NAME}:${VERSION}
-
-docker-deploy-w-creds:
-	docker login docker-registry.ign.fr -u svc_lidarhd -p $(svc_lidarhd_pwd)
-	docker tag ${PROJECT_NAME}:${VERSION} ${REGISTRY}/${PROJECT_NAME}:${VERSION}
-	docker push ${REGISTRY}/${PROJECT_NAME}:${VERSION}
+	docker tag ${IMAGE_NAME}:${VERSION} ${FULL_IMAGE_NAME}
+	docker push ${FULL_IMAGE_NAME}
