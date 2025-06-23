@@ -6,7 +6,7 @@ import pytest
 import rasterio
 from shapely.geometry import LineString
 
-from produits_derives_lidar.extract_stat_from_raster.rasters.extract_z_min_from_raster_by_polylines import (
+from las_digital_models.extract_stat_from_raster.rasters.extract_z_min_from_raster_by_polylines import (
     clip_lines_by_raster,
     extract_polylines_min_z_from_dsm,
 )

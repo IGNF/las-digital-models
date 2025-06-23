@@ -8,7 +8,7 @@ import pytest
 from hydra import compose, initialize
 from shapely.geometry import LineString
 
-from produits_derives_lidar.extract_stat_from_raster import (
+from las_digital_models.extract_stat_from_raster import (
     extract_z_virtual_lines_from_raster,
 )
 

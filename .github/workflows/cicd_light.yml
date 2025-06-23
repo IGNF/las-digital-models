@@ -1,0 +1,39 @@
+name: cicd_light
+
+on:
+  # Run tests for non-draft pull request on dev
+  pull_request:
+    branches:
+      - dev
+
+
+jobs:
+  test_light:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      # See https://github.com/marketplace/actions/setup-micromamba
+      - name: setup-micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: environment.yml
+          environment-name: las_digital_models  # activate the environment
+          cache-environment: true
+          cache-downloads: true
+          generate-run-shell: true
+
+      - name: Run tests with pytest
+        shell: micromamba-shell {0}
+        run: >
+          python -m pytest -s
+          --log-cli-level=DEBUG
+          --log-format="%(asctime)s %(levelname)s %(message)s"
+          --log-date-format="%Y-%m-%d %H:%M:%S"
+
+

@@ -6,5 +6,5 @@ test/tmp/
 *.log
 
 # Library deployment
-ign_mnx.egg-info
+*.egg-info
 dist

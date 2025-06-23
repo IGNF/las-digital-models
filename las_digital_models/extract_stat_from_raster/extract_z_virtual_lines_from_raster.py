@@ -11,12 +11,12 @@ import hydra
 from omegaconf import DictConfig
 from osgeo import gdal
 
-from produits_derives_lidar.commons import commons
-from produits_derives_lidar.extract_stat_from_raster.rasters.extract_z_min_from_raster_by_polylines import (
+from las_digital_models.commons import commons
+from las_digital_models.extract_stat_from_raster.rasters.extract_z_min_from_raster_by_polylines import (
     clip_lines_by_raster,
     extract_polylines_min_z_from_dsm,
 )
-from produits_derives_lidar.extract_stat_from_raster.vectors.clip_geometry import (
+from las_digital_models.extract_stat_from_raster.vectors.clip_geometry import (
     clip_lines_by_polygons,
 )
 
