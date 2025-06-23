@@ -1,8 +1,8 @@
 [project]
-name = "ign-mnx"
+name = "ign-las-digital-models"
 dynamic = ["version"]
 
-description = "Library for creation of DEM, DSM and DTM from lidar point cloud"
+description = "Library to create and perform misc operations on Digital Models generated from LAS files"
 readme = "README.md"
 authors = [
     { name = "Malvina Dupays", email = "malvina.dupays@ign.fr" },
@@ -12,7 +12,7 @@ authors = [
 find = {}
 
 [tool.setuptools.dynamic]
-version = {attr = "produits_derives_lidar.version.__version__"}
+version = {attr = "las_digital_models.version.__version__"}
 
 [tool.black]
 line-length = 119

@@ -10,9 +10,9 @@ import tempfile
 import hydra
 from omegaconf import DictConfig
 
-from produits_derives_lidar.commons import commons
-from produits_derives_lidar.tasks.las_interpolation import interpolate_from_config
-from produits_derives_lidar.tasks.postprocessing import mask_with_no_data_shapefile
+from las_digital_models.commons import commons
+from las_digital_models.tasks.las_interpolation import interpolate_from_config
+from las_digital_models.tasks.postprocessing import mask_with_no_data_shapefile
 
 log = commons.get_logger(__name__)
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from hydra import compose, initialize
 
-from produits_derives_lidar import ip_one_tile
+from las_digital_models import ip_one_tile
 
 COORD_X = 77055
 COORD_Y = 627760

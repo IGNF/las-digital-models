@@ -11,7 +11,7 @@
 
 # mamba env update also works when environment does not exist yet
 install:
-	mamba env update -n produits_derives_lidar -f environment.yml
+	mamba env update -n las_digital_models -f environment.yml
 
 install-precommit:
 	pre-commit install
@@ -21,15 +21,12 @@ install-precommit:
 # --------------------
 
 deploy: check
-	twine upload --repository-url https://nexus.ign.fr/repository/pypi-lidarhd-hosted/ dist/*
+	twine upload  dist/*
 
-deploy-w-creds: check
-	twine upload --repository-url https://nexus.ign.fr/repository/pypi-lidarhd-hosted/ dist/* -u svc_lidarhd -p $(svc_lidarhd_pwd)
-
-check: dist/ign-mnx*.tar.gz
+check: dist/ign-las-digital-models*.tar.gz
 	twine check dist/*
 
-dist/ign-mnx*.tar.gz:
+dist/ign-las-digital-models*.tar.gz:
 	python -m build
 
 build: clean
@@ -37,7 +34,7 @@ build: clean
 
 clean:
 	rm -rf tmp
-	rm -rf ign-mnx.egg-info
+	rm -rf ign-las-digital-models.egg-info
 	rm -rf dist
 
 # --------------------
@@ -54,25 +51,21 @@ testing:
 # Docker
 # --------------------
 
-PROJECT_NAME=lidar_hd/produits_derives_lidar
-VERSION=`python -m produits_derives_lidar.version`
-REGISTRY=docker-registry.ign.fr
+REGISTRY=ghcr.io
+NAMESPACE=ignf
+IMAGE_NAME=las-digital-models
+VERSION=`python -m las_digital_models.version`
+FULL_IMAGE_NAME=${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:${VERSION}
 
 docker-build:
-	docker build -t ${PROJECT_NAME}:${VERSION} -f Dockerfile .
+	docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile .
 
 docker-test:
-	docker run --rm ${PROJECT_NAME}:${VERSION} python -m pytest -s -m "not functional_test"
+	docker run --rm ${IMAGE_NAME}:${VERSION} python -m pytest -s -m "not functional_test"
 
 docker-remove:
-	docker rmi -f `docker images | grep ${PROJECT_NAME} | tr -s ' ' | cut -d ' ' -f 3`
+	docker rmi -f `docker images | grep ${IMAGE_NAME}:${VERSION} | tr -s ' ' | cut -d ' ' -f 3`
 
 docker-deploy:
-	docker login docker-registry.ign.fr -u svc_lidarhd
-	docker tag ${PROJECT_NAME}:${VERSION} ${REGISTRY}/${PROJECT_NAME}:${VERSION}
-	docker push ${REGISTRY}/${PROJECT_NAME}:${VERSION}
-
-docker-deploy-w-creds:
-	docker login docker-registry.ign.fr -u svc_lidarhd -p $(svc_lidarhd_pwd)
-	docker tag ${PROJECT_NAME}:${VERSION} ${REGISTRY}/${PROJECT_NAME}:${VERSION}
-	docker push ${REGISTRY}/${PROJECT_NAME}:${VERSION}
+	docker tag ${IMAGE_NAME}:${VERSION} ${FULL_IMAGE_NAME}
+	docker push ${FULL_IMAGE_NAME}

@@ -4,7 +4,7 @@ import geopandas as gpd
 from pyproj import CRS
 from shapely.geometry import LineString
 
-from produits_derives_lidar.extract_stat_from_raster.vectors.clip_geometry import (
+from las_digital_models.extract_stat_from_raster.vectors.clip_geometry import (
     clip_lines_by_polygons,
 )
 

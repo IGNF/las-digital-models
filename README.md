@@ -2,11 +2,13 @@
 - Generate DxM from LAS point cloud files
 - Extract values from a DxM along geometries
 
-Note: DxM refers digital models in general (Digital xxx Model, that can be Digital Surface Model, Digital Terrain Model...) 
+Note: DxM refers digital models in general (Digital xxx Model, that can be Digital Surface Model, Digital Terrain Model...)
+
+Note: this project has only been tested on Linux
 
 # Overview
 
-## Main functionalities 
+## Main functionalities
 
 ###   Generate DxM from LAS point cloud files
 
@@ -94,7 +96,7 @@ reimplementation of conda):
 
 ```bash
 make install
-conda activate produits_derives_lidar
+conda activate las_digital_models
 ```
 
 The `run.sh` command uses `gnu-parallel` to implement multiprocessing.
@@ -150,7 +152,7 @@ It will generate:
 To add a buffer to a point cloud using `ign-pdal-tools`:
 
 ```bash
-python -m produits_derives_lidar.filter_one_tile \
+python -m las_digital_models.filter_one_tile \
   io.input_dir=INPUT_DIR \
   io.input_filename=INPUT_FILENAME \
   io.output_dir=OUTPUT_DIR \
@@ -165,7 +167,7 @@ Any other parameter in the `./configs` tree can be overriden in the command (see
 To run interpolation (DXM generation):
 
 ```bash
-python -m produits_derives_lidar.ip_one_tile \
+python -m las_digital_models.ip_one_tile \
     io.input_dir=${BUFFERED_DIR} \
     io.input_filename={} \
     io.output_dir=${DXM_DIR} \
@@ -186,7 +188,7 @@ To use it, provide the shapefile path with the `io.no_data_mask_shapefile` argum
 
 To generate DHM:
 ```bash
-    python -m produits_derives_lidar.dhm_one_tile \
+    python -m las_digital_models.dhm_one_tile \
         dhm.input_dsm_dir=${DSM_DIR} \
         dhm.input_dtm_dir=${DTM_DIR} \
         io.input_filename={} \
@@ -195,7 +197,7 @@ To generate DHM:
 
 ```
 `dhm.input_dsm_dir` and `dhm.input_dtm_dir` must contained DSM and DTM generated with
-`produits_derives_lidar.ip_one_tile` using the same pixel_size as given in
+`las_digital_models.ip_one_tile` using the same pixel_size as given in
 arguments.
 
 Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
@@ -220,7 +222,7 @@ with:
 To run extraction of minimum Z value :
 
 ```bash
-    python -m produits_derives_lidar.extract_stat_from_raster.extract_z_virtual_lines_from_raster \
+    python -m las_digital_models.extract_stat_from_raster.extract_z_virtual_lines_from_raster \
         extract_stat.input_raster_dir=${INPUT_RASTER_DIR} \
         extract_stat.input_geometry_dir=${INPUT_GEOMETRY_DIR} \
         extract_stat.input_clip_geometry_dir=${INPUT_CLIP_GEOMETRY_DIR} \
@@ -250,15 +252,15 @@ To run interpolation:
 docker run -t --rm --userns=host --shm-size=2gb \
     -v $INPUT_DIR:/input
     -v $OUTPUT_DIR:/output
-    lidar_hd/produits_derives_lidar:$VERSION
-    python -m produits_derives_lidar.ip_one_tile \
+    lidar_hd/las_digital_models:$VERSION
+    python -m las_digital_models.ip_one_tile \
         io.input_dir=/input \
         io.input_filename=$FILENAME \
         io.output_dir=/output \
         tile_geometry.pixel_size=$PIXEL_SIZE
 ```
 
-The version number can be retrieved with `python -m produits_derives_lidar.version`
+The version number can be retrieved with `python -m las_digital_models.version`
 
 
 # Build and deploy as python package
@@ -279,8 +281,8 @@ make deploy
 
 If you are using an Anaconda virtual environment for PDAL/CGAL, you should first activate the environment in Anaconda prompt and _then_ run the relevant script
 from the same prompt. So, for example:
-1. Create conda environment : `conda env create -n produits_derives_lidar -f environment.yml`
-2. Activate conda environment : `conda activate produits_derives_lidar`
+1. Create conda environment : `conda env create -n las_digital_models -f environment.yml`
+2. Activate conda environment : `conda activate las_digital_models`
 2. Launch the module : `python -m [name of the module to run] [argument_1] [argument_2] [...]`
 
 Another word of caution with the outputs is that they all use a fixed no-data value of -9999. This includes the GeoTIFF exporter. To view the results correctly, you should keep in mind that while the upper bounds of the data will be determined correctly by the viewer software (e.g. QGIS), the lower bound will be -9999.
