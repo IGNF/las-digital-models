@@ -34,4 +34,5 @@ profile = "black"
 [tool.pytest.ini_options]
 markers = [
     "functional_test: marks functional tests, not to run inside the docker image",
+    "pdal_custom: marks tests that only work with PDAL compiled on a custom fork and branch",
 ]

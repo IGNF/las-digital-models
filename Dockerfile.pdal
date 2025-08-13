@@ -1,0 +1,101 @@
+# code from https://github.com/PDAL/PDAL/blob/master/scripts/docker/ubuntu/Dockerfile
+FROM condaforge/mambaforge:latest AS mamba_pdal
+
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+
+RUN conda create -n las_digital_models -y
+ARG GITHUB_SHA
+ARG GITHUB_REPOSITORY="PDAL/PDAL"
+ARG GITHUB_SERVER_URL="https://github.com"
+
+SHELL ["conda", "run", "-n", "las_digital_models", "/bin/bash", "-c"]
+
+RUN mamba install -c conda-forge git compilers conda-pack cmake make ninja sysroot_linux-64=2.17 && \
+    mamba install --yes -c conda-forge pdal --only-deps
+
+RUN mamba install numpy requests gdal cgal geopandas pytest pip pyproj hydra-core hydra-colorlog rasterio fiona parallel
+    
+RUN rm -rf /opt/conda/envs/las_digital_models/lib/libpdal*
+RUN rm -rf /opt/conda/envs/las_digital_models/lib/libpdal_plugin*
+
+RUN git clone "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" pdal && \
+    cd pdal ; \
+    git checkout ${GITHUB_SHA}
+
+RUN mkdir -p pdal/build && \
+    cd pdal/build  && \
+    CXXFLAGS="-Werror=strict-aliasing" LDFLAGS="-Wl,-rpath-link,$CONDA_PREFIX/lib" cmake -G Ninja  \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_LIBRARY_PATH:FILEPATH="$CONDA_PREFIX/lib" \
+        -DCMAKE_INCLUDE_PATH:FILEPATH="$CONDA_PREFIX/include" \
+        -DCMAKE_INSTALL_PREFIX="$CONDA_PREFIX" \
+        -DBUILD_PLUGIN_CPD=OFF \
+        -DBUILD_PLUGIN_PGPOINTCLOUD=ON \
+        -DBUILD_PLUGIN_NITF=ON \
+        -DBUILD_PLUGIN_ICEBRIDGE=ON \
+        -DBUILD_PLUGIN_HDF=ON \
+        -DBUILD_PLUGIN_TILEDB=ON \
+        -DBUILD_PLUGIN_E57=ON \
+        -DBUILD_PGPOINTCLOUD_TESTS=OFF \
+        -DWITH_ZSTD=ON \
+        ..
+
+RUN cd pdal/build  && \
+    ninja
+
+RUN cd pdal/build  && \
+    ctest -V
+
+RUN cd pdal/build  && \
+    ninja install
+
+RUN git clone https://github.com/PDAL/python.git
+
+RUN mamba install --yes -c conda-forge pybind11
+
+RUN mkdir -p python/build && \
+    cd python/build  && \
+    CXXFLAGS="-Werror=strict-aliasing" LDFLAGS="-Wl,-rpath-link,$CONDA_PREFIX/lib" cmake -G Ninja  \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_LIBRARY_PATH:FILEPATH="$CONDA_PREFIX/lib" \
+        -DCMAKE_INCLUDE_PATH:FILEPATH="$CONDA_PREFIX/include" \
+        -DCMAKE_INSTALL_PREFIX="$CONDA_PREFIX/lib/python3.13/site-packages/" \
+        ..
+
+RUN cd python/build  && ninja
+
+RUN cd python/build  && ctest -V
+
+RUN cd python/build  && ninja install
+
+RUN git clone https://github.com/PDAL/python-plugins.git pdal-python && \
+    cd pdal-python && git checkout 1.6.5  && \
+    pip install -vv . --no-deps
+
+
+# Add our environment
+RUN pip install laspy[lazrs] 
+RUN pip install ign-pdal-tools 
+RUN pip install rasterstats
+
+FROM debian:bullseye-slim
+
+# install PDAL
+COPY --from=mamba_pdal /opt/conda/envs/las_digital_models/bin/pdal /opt/conda/envs/las_digital_models/bin/pdal
+COPY --from=mamba_pdal /opt/conda/envs/las_digital_models/bin/python /opt/conda/envs/las_digital_models/bin/python
+COPY --from=mamba_pdal /opt/conda/envs/las_digital_models/lib/ /opt/conda/envs/las_digital_models/lib/
+COPY --from=mamba_pdal /opt/conda/envs/las_digital_models/bin/ /opt/conda/envs/las_digital_models/bin/
+COPY --from=mamba_pdal /opt/conda/envs/las_digital_models/share/gdal/ /opt/conda/envs/las_digital_models/share/gdal/
+COPY --from=mamba_pdal /opt/conda/envs/las_digital_models/ssl /opt/conda/envs/las_digital_models/ssl
+COPY --from=mamba_pdal /opt/conda/envs/las_digital_models/share/proj/proj.db /opt/conda/envs/las_digital_models/share/proj/proj.db
+
+ENV PATH=$PATH:/opt/conda/envs/las_digital_models/bin/:/opt/conda/envs/las_digital_models/
+ENV PROJ_LIB=/opt/conda/envs/las_digital_models/share/proj/
+ENV GDAL_DATA=/opt/conda/envs/las_digital_models/share/gdal/
+
+WORKDIR /las-digital-models
+RUN mkdir tmp
+COPY las_digital_models las_digital_models
+COPY test test
+COPY configs configs
+COPY run.sh run.sh

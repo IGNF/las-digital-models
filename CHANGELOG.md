@@ -1,3 +1,5 @@
+Custom PDAL: in the docker image, compile custom PDAL (waiting for PDAL 2.9)
+
 # v2.0.0
 Rename produit_derive_lidar to las_digital_models
 
