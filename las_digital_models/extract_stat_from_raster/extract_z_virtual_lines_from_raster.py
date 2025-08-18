@@ -94,29 +94,18 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
     create_vrt(dir_list_raster, output_vrt)
 
     # Read the input GeoJSON
-    lines_gdf = gpd.read_file(input_geometry)
+    geom_gdf = gpd.read_file(input_geometry)
     polygons_gdf = gpd.read_file(input_clip_geometry)
 
-    if lines_gdf.crs is None:
-        lines_gdf.set_crs(epsg=spatial_ref, inplace=True)
+    # Convert geometries to LineString (no more MultiLineString)
+    mask = geom_gdf.geometry.geom_type.isin(['LineString', 'MultiLineString'])
+    lines_gdf = geom_gdf.loc[mask].explode(index_parts=False).reset_index(drop=True)
+
+    if geom_gdf.crs is None:
+        geom_gdf.set_crs(epsg=spatial_ref, inplace=True)
 
     if polygons_gdf.crs is None:
         polygons_gdf.set_crs(epsg=spatial_ref, inplace=True)
-
-    # Convert geometries to LineString if possible
-    def to_linestring(geom):
-        if geom.geom_type == "LineString":
-            return geom
-        elif geom.geom_type == "MultiLineString":
-            return list(geom.geoms)[0]
-        else:
-            raise ValueError(f"Unsupported geometry type: {geom.geom_type}")
-
-    lines_gdf["geometry"] = lines_gdf.geometry.apply(to_linestring)
-
-    # Check lines are only LineString
-    if not all(lines_gdf.geometry.geom_type.isin(["LineString"])):
-        raise ValueError("Only LineString or MultiLineString geometries are supported.")
 
     # Keep lines inside raster (VRT created)
     lines_gdf_clip = clip_lines_by_raster(lines_gdf, output_vrt, spatial_ref)
@@ -133,7 +122,11 @@ def run_extract_z_virtual_lines_from_raster(config: DictConfig):
         raise ValueError("All geometries returned None. Abort.")
 
     # Clip lines by bridges
-    lines_gdf_min_z_clip = clip_lines_by_polygons(lines_gdf_min_z, polygons_gdf)
+    geoms_gdf_min_z_clip = clip_lines_by_polygons(lines_gdf_min_z, polygons_gdf)
+    
+    # Convert geometries to LineString (no more MultiLineString)
+    mask = geoms_gdf_min_z_clip.geometry.geom_type.isin(['LineString', 'MultiLineString'])
+    lines_gdf_min_z_clip = geoms_gdf_min_z_clip.loc[mask].explode(index_parts=False).reset_index(drop=True)
 
     lines_gdf_min_z_clip.to_file(output_geometry, driver="GeoJSON")
 
