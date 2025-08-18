@@ -32,7 +32,7 @@ jobs:
         shell: micromamba-shell {0}
         run: >
           python -m pytest -s
-          --log-cli-level=DEBUG
+          --log-cli-level=DEBUG -m "not pdal_custom"
           --log-format="%(asctime)s %(levelname)s %(message)s"
           --log-date-format="%Y-%m-%d %H:%M:%S"
 
