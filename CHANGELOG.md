@@ -1,3 +1,6 @@
+# v2.1.1
+fix sur le déploiement de l'image Docker
+
 # v2.1.0
 Custom PDAL: in the docker image, compile custom PDAL (waiting for PDAL 2.9)
 fix run_extract_z_virtual_lines_from_raster: output geometries are only LineString (no more MultiLineString) 
