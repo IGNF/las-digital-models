@@ -32,12 +32,23 @@ def setup_module():
     os.mkdir(TMP_PATH)
 
 
-def test_extract_z_virtual_lines_from_raster_default():
-    input_raster_dir = INPUT_RASTER_DIR
-    input_geometry_dir = INPUT_GEOMETRY_DIR
-    input_clip_geometry_dir = INPUT_CLIP_GEOMETRY_DIR
-    input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.geojson"
-    input_clip_geometry_filename = "NUALHD_1-0_DF_tabliers_pont.geojson"
+@pytest.mark.parametrize(
+    "input_raster_dir, input_geometry_dir, input_clip_geometry_dir, input_geometry_filename, input_clip_geometry_filename",
+    [
+        (  # Standard values
+            INPUT_RASTER_DIR, INPUT_GEOMETRY_DIR, INPUT_CLIP_GEOMETRY_DIR, 
+            "NUALHD_1-0_DF_lignes_contrainte.geojson", "NUALHD_1-0_DF_tabliers_pont.geojson",
+        ),
+        (
+            # Values where we multiLineString in past version
+            TEST_PATH / "data" / "data_test_linestring", TEST_PATH / "data" / "data_test_linestring/", 
+            TEST_PATH / "data" / "data_test_linestring/", 
+            "lignes_contraintes.geojson", "ponts.geojson"
+        ),
+    ],
+)
+def test_extract_z_virtual_lines_from_raster_default(input_raster_dir, input_geometry_dir, input_clip_geometry_dir, 
+                                                     input_geometry_filename, input_clip_geometry_filename):
     output_vrt_filename = OUTPUT_VRT_FILENAME
     output_dir = OUTPUT_DIR
     output_geometry_filename = "constraint_lines.GeoJSON"

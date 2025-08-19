@@ -1,0 +1,11 @@
+{
+"type": "FeatureCollection",
+"name": "lignes_contraintes",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::2154" } },
+"features": [
+{ "type": "Feature", "properties": { }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 732587.425383701687679, 6245789.76651216018945 ], [ 732583.040088322362863, 6245813.83215753454715 ] ] ] } },
+{ "type": "Feature", "properties": { }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 732569.45636848884169, 6245823.244498836807907 ], [ 732573.092954900930636, 6245816.078284436836839 ], [ 732581.542670387891121, 6245790.408262703567743 ] ] ] } },
+{ "type": "Feature", "properties": { }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 732574.376455987570807, 6245782.386380911804736 ], [ 732570.953786423197016, 6245799.39277030993253 ], [ 732565.178031533374451, 6245822.281873022206128 ] ] ] } },
+{ "type": "Feature", "properties": { }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 732561.969278816715814, 6245822.281873022206128 ], [ 732567.638075282680802, 6245800.141479277051985 ], [ 732571.488578542601317, 6245781.423755097202957 ] ] ] } }
+]
+}
