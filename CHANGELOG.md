@@ -1,6 +1,6 @@
 # v2.1.0
 Custom PDAL: in the docker image, compile custom PDAL (waiting for PDAL 2.9)
-fix run_extract_z_virtual_lines_from_raster: ouput geometries are only LineString (no more MultiLineString) 
+fix run_extract_z_virtual_lines_from_raster: output geometries are only LineString (no more MultiLineString) 
 
 # v2.0.0
 Rename produit_derive_lidar to las_digital_models
