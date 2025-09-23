@@ -14,8 +14,8 @@ dependencies:
   - fiona
   - rasterio
   - pyproj
-  - pdal>=2.6
-  - python-pdal>=3.2.1
+  - pdal>=2.9.0
+  - python-pdal>=3.4.0
   - geopandas
   - parallel
     # --------- hydra configs --------- #

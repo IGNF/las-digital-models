@@ -1,3 +1,6 @@
+# dev
+use pdal>=2.9 and deactivate the Dockerfile.pdal from CI
+
 # v2.1.1
 fix sur le déploiement de l'image Docker
 
