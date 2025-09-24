@@ -1,3 +1,7 @@
+"""
+test some PDAL features
+"""
+
 import os
 
 import pdal
@@ -5,8 +9,6 @@ import pytest
 
 TEST_PATH = os.path.dirname(os.path.abspath(__file__))
 
-#this test files concatenate somes tests on PDAL features
-#it allows us to test the PDAL version used in the library is modern enough
 
 def test_pdal_read_severals_extra_dims():
 # test that we can read a las file with several extra dims
