@@ -31,5 +31,4 @@ dependencies:
   - pip:
       - ign-pdal-tools
       - rasterstats
-      # - rasterio # moved here since pdal>=2.9.0 force modern libs to be used and make dependancy graph non resolved
-
+      - rasterio # moved here since pdal>=2.9.0 force modern libs to be used and make dependancy graph non resolved
