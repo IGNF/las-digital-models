@@ -6,15 +6,19 @@
 # learn more here: https://hydra.cc/docs/next/tutorials/basic/running_your_app/working_directory
 work_dir: ${hydra:runtime.cwd}
 
+tasks:
+  dtm: true
+  dsm: true
+  dhm: true
+
 # specify here default training configuration
 defaults:
   - _self_  # for hydra legacy reasons
-
   - buffer: default.yaml
-  - filter: dtm.yaml
+  - interpolation: default.yaml
+  - dhm: default.yaml
   - io: default.yaml
   - tile_geometry: default.yaml  # describes input features and classes
-  - dhm: default.yaml
   - extract_stat: default.yaml
 
   # disable hydra logging

@@ -7,3 +7,10 @@ forced_intermediate_ext: null
 spatial_reference: EPSG:2154
 
 output_dir: ./test/tmp/hydra_ip
+
+# To be used only when using dhm_one_tile directly (standalone mode) to run
+# dhm from any input dtm and dsm
+# DSM and DTM are associated to the tile by their names, which should be like:
+#  f"{input filename without_extension}_{pixel_size with unit}"
+input_dsm_dir: ./test/data/DSM
+input_dtm_dir: ./test/data/DTM
