@@ -1,1 +1,3 @@
 size: 10
+
+output_subdir: null  # subdirectory of oi.output_dir in which to save files with buffer, for debug only

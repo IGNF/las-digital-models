@@ -31,6 +31,7 @@ def setup_module(module):
 
 
 @pytest.mark.functional_test
+@pytest.mark.xfail(reason="run_script is being replaced by main.py")
 def test_run_script():
     cmd = ["./run.sh", "-i", input_dir, "-o", output_dir, "-p", str(pixel_size), "-c", "test"]
     print(cmd)
