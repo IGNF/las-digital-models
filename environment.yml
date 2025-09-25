@@ -12,7 +12,6 @@ dependencies:
   - numpy
   - scipy
   - fiona
-  - rasterio
   - pyproj
   - pdal>=2.9.0
   - python-pdal>=3.4.0
@@ -32,4 +31,5 @@ dependencies:
   - pip:
       - ign-pdal-tools
       - rasterstats
+      # - rasterio # moved here since pdal>=2.9.0 force modern libs to be used and make dependancy graph non resolved
 
