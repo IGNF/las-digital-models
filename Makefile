@@ -54,21 +54,20 @@ testing:
 REGISTRY=ghcr.io
 NAMESPACE=ignf
 IMAGE_NAME=las-digital-models
+CUSTOM_PDAL_SHA=master_28_05_25
+CUSTOM_PDAL_REPOSITORY=alavenant/PDAL
 VERSION=`python -m las_digital_models.version`
 FULL_IMAGE_NAME=${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:${VERSION}
 
 docker-build:
 	docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile .
 
-docker-build-pdal: clean
-	docker build --build-arg GITHUB_REPOSITORY=alavenant/PDAL --build-arg GITHUB_SHA=master_28_05_25 -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.pdal .
+docker-build-custum-pdal: clean
+	docker build --build-arg GITHUB_REPOSITORY=${CUSTOM_PDAL_REPOSITORY} --build-arg GITHUB_SHA=${CUSTOM_PDAL_SHA} -t ${IMAGE_NAME}:${VERSION} -f Dockerfile.pdal .
 
 docker-test-pdal-version: clean
 	docker run --rm  -t ${IMAGE_NAME}:${VERSION} pdal --version
 
-docker-test-pdal-custom: clean
-	docker run --rm  -t ${IMAGE_NAME}:${VERSION} python -m pytest -s -m "pdal_custom"
-	
 docker-test:
 	docker run --rm ${IMAGE_NAME}:${VERSION} python -m pytest -s -m "not functional_test"
 

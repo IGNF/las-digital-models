@@ -12,10 +12,9 @@ dependencies:
   - numpy
   - scipy
   - fiona
-  - rasterio
   - pyproj
-  - pdal>=2.6
-  - python-pdal>=3.2.1
+  - pdal>=2.9.0
+  - python-pdal>=3.4.0
   - geopandas
   - parallel
     # --------- hydra configs --------- #
@@ -32,4 +31,5 @@ dependencies:
   - pip:
       - ign-pdal-tools
       - rasterstats
+      # - rasterio # moved here since pdal>=2.9.0 force modern libs to be used and make dependancy graph non resolved
 
