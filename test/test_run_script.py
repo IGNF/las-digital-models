@@ -8,9 +8,9 @@ import pytest
 from las_digital_models.commons import commons
 
 test_path = os.path.dirname(os.path.abspath(__file__))
-tmp_path = os.path.join(test_path, "tmp")
+tmp_path = os.path.join(test_path, "tmp", "run_script")
 input_dir = os.path.join(test_path, "data")
-output_dir = os.path.join(tmp_path, "output_run_script")
+output_dir = tmp_path
 file_ext = "laz"
 pixel_size = 0.5
 
@@ -27,11 +27,10 @@ def setup_module(module):
 
     except FileNotFoundError:
         pass
-    os.mkdir(tmp_path)
+    os.makedirs(tmp_path)
 
 
 @pytest.mark.functional_test
-@pytest.mark.xfail(reason="run_script is being replaced by main.py")
 def test_run_script():
     cmd = ["./run.sh", "-i", input_dir, "-o", output_dir, "-p", str(pixel_size), "-c", "test"]
     print(cmd)

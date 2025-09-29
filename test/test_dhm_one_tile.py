@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 import test.utils.raster_utils as ru
@@ -33,7 +32,7 @@ def setup_module(module):
     os.mkdir(tmp_path)
 
 
-def test_mnh_one_tile():
+def test_dhm_one_tile():
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
         cfg = compose(
@@ -41,18 +40,13 @@ def test_mnh_one_tile():
             overrides=[
                 "io=test",
                 "tile_geometry=test",
-                f"io.output_dir={output_dir}",
                 "dhm=test",
+                f"io.output_dir={output_dir}",
             ],
         )
 
-    dhm_one_tile.run_dhm_on_tile(cfg)
+    dhm_one_tile.main(cfg)
     assert os.path.isfile(expected_output_file)
 
     raster_bounds = ru.get_tif_extent(expected_output_file)
     assert ru.allclose_mm(raster_bounds, expected_raster_bounds)
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    test_mnh_one_tile()

@@ -52,6 +52,7 @@ def test_main_intermediate_files():
     output_buffer_dir = output_dir / "buffer"
     output_dtm_dir = output_dir / "DTM"
     output_dsm_dir = output_dir / "DSM"
+    output_dhm_dir = output_dir / "DHM"
 
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
@@ -90,6 +91,12 @@ def test_main_intermediate_files():
 
     assert dsm_bounds == EXPECTED_RASTER_BOUNDS
 
+    output_dhm_path = output_dhm_dir / OUTPUT_TIF_NAME
+    assert os.path.isfile(output_dhm_path)
+    dhm_bounds = ru.get_tif_extent(output_dhm_path)
+
+    assert dhm_bounds == EXPECTED_RASTER_BOUNDS
+
 
 def test_main_without_intermediate_files():
     """Compute only dhm, and check buffer / dsm / dtm files are only temporary files"""
@@ -98,6 +105,7 @@ def test_main_without_intermediate_files():
     output_buffer_dir = output_dir / "buffer"
     output_dtm_dir = output_dir / "DTM"
     output_dsm_dir = output_dir / "DSM"
+    output_dhm_dir = output_dir / "DHM"
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
         cfg = compose(
@@ -120,3 +128,4 @@ def test_main_without_intermediate_files():
     assert not os.path.exists(output_buffer_dir)
     assert not os.path.exists(output_dtm_dir)
     assert not os.path.exists(output_dsm_dir)
+    assert os.path.exists(output_dhm_dir / OUTPUT_TIF_NAME)

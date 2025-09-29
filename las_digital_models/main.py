@@ -10,6 +10,7 @@ from omegaconf import DictConfig
 from pdaltools.las_add_buffer import create_las_with_buffer
 from pdaltools.las_info import get_tile_origin_using_header_info
 
+from las_digital_models.dhm_one_tile import run_dhm_on_tile
 from las_digital_models.ip_one_tile import run_ip_on_tile
 
 
@@ -119,6 +120,19 @@ def main_las_digital_models(config: DictConfig):
                 no_data_mask_shapefile=config.io.no_data_mask_shapefile,
                 filter_dimension=config.interpolation.dsm.filter.dimension,
                 filter_keep_values=config.interpolation.dsm.filter.keep_values,
+            )
+
+        # Compute DHM
+        if config.tasks.dhm:
+            log.info("Create DHM")
+            dhm_output_dir = os.path.join(out_dir, config.dhm.output_subfolder)
+            run_dhm_on_tile(
+                input_las_filename=initial_las_filename,
+                input_dtm_dir=dtm_output_dir,
+                input_dsm_dir=dsm_output_dir,
+                output_dir=dhm_output_dir,
+                pixel_size=config.tile_geometry.pixel_size,
+                no_data_value=config.tile_geometry.no_data_value,
             )
 
 
