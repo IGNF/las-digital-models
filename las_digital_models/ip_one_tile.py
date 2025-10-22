@@ -77,7 +77,9 @@ def run_ip_on_tile(
 @hydra.main(config_path="../configs/", config_name="config.yaml", version_base="1.2")
 def main(config: DictConfig):
     logging.basicConfig(level=logging.INFO)
-    """Use filename to get the tile coordinates (to cope with buffered tiles)"""
+
+    # Use filename to get the tile coordinates.
+    # Coordinates are needed to define neighboring tiles, in order to create the buffered tile.
     input_path = os.path.join(config.io.input_dir, config.io.input_filename)
     _, coordX, coordY, _ = parse_filename(input_path)
     origin = [

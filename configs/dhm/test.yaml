@@ -1,9 +1,9 @@
 output_subfolder: "DHM"
 
 # To be used only when using dhm_one_tile directly (standalone mode) to run
-# dhm from any input dtm and dsm
+# DHM from any input DTM and DSM
 # DSM and DTM are associated to the tile by their names, which should be like:
-#  f"{input filename without_extension}_{pixel_size with unit}"
+#  f"{input filename without extension}_{pixel size with unit}"
 input_dtm_dir: ./test/data/DTM
 input_dsm_dir: ./test/data/DSM
 
