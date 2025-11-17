@@ -1,0 +1,19 @@
+dsm:
+  filter:
+    dimension: Classification
+    keep_values: [2, 3, 4, 5, 6, 9, 17]   # Classes to keep when running DSM
+  output_subfolder: "DSM"
+
+dtm:
+  filter:
+    dimension: Classification
+    keep_values: [2, 9, 66]   # Classes to keep when running DTM
+  output_subfolder: "DTM"
+
+
+# To be used only when using ip_one_tile directly (standalone mode) to run
+# interpolation on any kind of filtered data
+custom:
+  filter:
+    dimension: Classification
+    keep_values: [2, 66]   # ground + virtual points

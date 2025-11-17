@@ -18,9 +18,10 @@ GROUND_TRUTH_FOLDER = TEST_PATH / "data" / "interpolation"
 
 COORD_X = 77055
 COORD_Y = 627760
-EXPECTED_XMIN = COORD_X * TILE_COORD_SCALE - PIXEL_SIZE / 2
-EXPECTED_XMAX = COORD_Y * TILE_COORD_SCALE + PIXEL_SIZE / 2
-EXPECTED_RASTER_BOUNDS = (EXPECTED_XMIN, EXPECTED_XMAX - TILE_WIDTH), (EXPECTED_XMIN + TILE_WIDTH, EXPECTED_XMAX)
+ORIGIN = [COORD_X * TILE_COORD_SCALE, COORD_Y * TILE_COORD_SCALE]
+EXPECTED_XMIN = ORIGIN[0] - PIXEL_SIZE / 2
+EXPECTED_YMAX = ORIGIN[1] + PIXEL_SIZE / 2
+EXPECTED_RASTER_BOUNDS = (EXPECTED_XMIN, EXPECTED_YMAX - TILE_WIDTH), (EXPECTED_XMIN + TILE_WIDTH, EXPECTED_YMAX)
 
 
 def setup_module():
@@ -62,9 +63,9 @@ def test_interpolate(filter_dimension, filter_values, output_file, ground_truth_
     interpolate(
         INPUT_FILE,
         output_file,
+        tile_origin=ORIGIN,
         pixel_size=PIXEL_SIZE,
         tile_width=TILE_WIDTH,
-        tile_coord_scale=TILE_COORD_SCALE,
         spatial_ref="EPSG:2154",
         no_data_value=-9999,
         filter_dimension=filter_dimension,

@@ -1,12 +1,13 @@
 # dev
-use pdal>=2.9 and deactivate the Dockerfile.pdal from CI
+- use pdal>=2.9 and deactivate the Dockerfile.pdal from CI
+- [BREAKING CHANGE] Add a [main.py](las_digital_models/main.py) to run the whole pipeline at once (buffer, DTM, DSM, DHM). Use temporary folders for intermediate values. Refactor config files.
 
 # v2.1.1
-fix sur le déploiement de l'image Docker
+fix CI to deploy docker image
 
 # v2.1.0
 Custom PDAL: in the docker image, compile custom PDAL (waiting for PDAL 2.9)
-fix run_extract_z_virtual_lines_from_raster: output geometries are only LineString (no more MultiLineString) 
+fix run_extract_z_virtual_lines_from_raster: output geometries are only LineString (no more MultiLineString)
 
 # v2.0.0
 Rename produit_derive_lidar to las_digital_models

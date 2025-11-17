@@ -6,13 +6,14 @@ input_filename: filename.las
 # Shapefile used to burn no-data value (inside its polygons)
 no_data_mask_shapefile: null  # /path/to/mask.shp
 
-# Force input/output files extension to .las or .laz. If None or not set, use original extension
-# Used for output for filter
-# Used for input + output in buffer
-# Use for input in interpolation
-forced_intermediate_ext: null  # can be "las", "laz" or null. (intermediate results extension)
-
 # Spatial reference to use to override the one from input las.
 spatial_reference: EPSG:2154
 
 output_dir: /path/to/output/folder  # Directory folder for saving the outputs
+
+# To be used only when using dhm_one_tile directly (standalone mode) to run
+# DHM from any input DTM and DSM
+# DSM and DTM are associated to the tile by their names, which should be like:
+#  f"{input filename without extension}_{pixel size with unit}"
+input_dtm_dir: /path/to/input/dtm/folder
+input_dsm_dir: /path/to/input/dsm/folder

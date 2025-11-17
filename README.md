@@ -124,7 +124,7 @@ the `configs` folder.
 > * `tile_geometry.tile_width` must contain the tile size in meters
 > * `tile_geometry.tile_coord_scale` must contain the `coord_x` and `coord_y` scale so that `coord_{x or y} * tile_geometry.tile_coord_scale` are the coordinates of the top-left corner in meters
 
-### Whole pipeline
+### Whole pipeline on a folder
 
 To run the whole pipeline (DSM + DTM + DHM) on all the LAS files in a folder, use `run.sh`.
 
@@ -147,6 +147,24 @@ It will generate:
   * ${OUTPUT_DIR}/DSM
   * ${OUTPUT_DIR}/DHM
 
+### Whole pipeline on a single file
+
+To run the whole pipeline (buffer + DTM + DSM + DHM) on a single file:
+
+```bash
+python -m las_digital_models.main \
+  io.input_dir=INPUT_DIR \
+  io.input_filename=INPUT_FILENAME \
+  io.output_dir=OUTPUT_DIR \
+  tile_geometry.pixel_size=${PIXEL_SIZE}
+  buffer.size=10
+```
+Any of DTM, DSM or DHM computation can be deactivated using `tasks.dtm=false`, `tasks.dsm=false`
+or `tasks.dhm=false`.
+
+Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
+[hydra](https://hydra.cc/) for more details on usage)
+
 ### Buffer
 
 To add a buffer to a point cloud using `ign-pdal-tools`:
@@ -155,8 +173,7 @@ To add a buffer to a point cloud using `ign-pdal-tools`:
 python -m las_digital_models.filter_one_tile \
   io.input_dir=INPUT_DIR \
   io.input_filename=INPUT_FILENAME \
-  io.output_dir=OUTPUT_DIR \
-  buffer.size=10
+  io.output_dir=OUTPUT_DIR
 ```
 
 Any other parameter in the `./configs` tree can be overriden in the command (see the doc of
@@ -172,8 +189,8 @@ python -m las_digital_models.ip_one_tile \
     io.input_filename={} \
     io.output_dir=${DXM_DIR} \
     tile_geometry.pixel_size=${PIXEL_SIZE} \
-    filter.dimension="Classification" \
-    filter.keep_values=[2,66]
+    interpolation.custom.filter.dimension="Classification" \
+    interpolation.custom.filter.keep_values=[2,66]
 ```
 
 `filter.keep_values` must be a list inside `[]`, separated by `,` without spaces.
