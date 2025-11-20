@@ -4,6 +4,7 @@ __pycache__
 test/tmp/
 
 *.log
+*.copc.laz
 
 # Library deployment
 *.egg-info

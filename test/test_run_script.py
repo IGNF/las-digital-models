@@ -8,9 +8,9 @@ import pytest
 from las_digital_models.commons import commons
 
 test_path = os.path.dirname(os.path.abspath(__file__))
-tmp_path = os.path.join(test_path, "tmp")
+tmp_path = os.path.join(test_path, "tmp", "run_script")
 input_dir = os.path.join(test_path, "data")
-output_dir = os.path.join(tmp_path, "output_run_script")
+output_dir = tmp_path
 file_ext = "laz"
 pixel_size = 0.5
 
@@ -27,7 +27,7 @@ def setup_module(module):
 
     except FileNotFoundError:
         pass
-    os.mkdir(tmp_path)
+    os.makedirs(tmp_path)
 
 
 @pytest.mark.functional_test
