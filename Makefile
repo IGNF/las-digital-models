@@ -8,10 +8,14 @@
 # --------------------
 # Environment creation
 # --------------------
+create:
+	mamba env create -n las_digital_models
 
-# mamba env update also works when environment does not exist yet
 install:
 	mamba env update -n las_digital_models -f environment.yml
+
+install-debug:
+	mamba env update -n las_digital_models -f environment.yml --dry-run -v
 
 install-precommit:
 	pre-commit install

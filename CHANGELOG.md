@@ -1,5 +1,8 @@
 # dev
 
+# v3.0.1
+- lib: use latest ign-pdal-tools (v1.15.8): las buffer: handle different prefix to handle millesime.
+
 # v3.0.0
 - use pdal>=2.9 and deactivate the Dockerfile.pdal from CI
 - [BREAKING CHANGE] Add a [main.py](las_digital_models/main.py) to run the whole pipeline at once (buffer, DTM, DSM, DHM). Use temporary folders for intermediate values. Refactor config files.
