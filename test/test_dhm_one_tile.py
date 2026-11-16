@@ -1,38 +1,19 @@
 import os
-import shutil
 import test.utils.raster_utils as ru
 
+import pytest
 from hydra import compose, initialize
 
 from las_digital_models import dhm_one_tile
 
-coordX = 77055
-coordY = 627760
-tile_coord_scale = 10
-tile_width = 50
-pixel_size = 0.5
 
-test_path = os.path.dirname(os.path.abspath(__file__))
-tmp_path = os.path.join(test_path, "tmp")
-
-output_dir = os.path.join(tmp_path, "DHM")
-expected_output_file = os.path.join(output_dir, f"test_data_{coordX}_{coordY}_LA93_IGN69_50CM.tif")
-
-expected_xmin = coordX * tile_coord_scale - pixel_size / 2
-expected_ymax = coordY * tile_coord_scale + pixel_size / 2
-expected_raster_bounds = (expected_xmin, expected_ymax - tile_width), (expected_xmin + tile_width, expected_ymax)
+@pytest.fixture(scope="module")
+def tmp_path(base_tmp_path):
+    return base_tmp_path / "dhm_one_tile"
 
 
-def setup_module(module):
-    try:
-        shutil.rmtree(tmp_path)
-
-    except FileNotFoundError:
-        pass
-    os.mkdir(tmp_path)
-
-
-def test_dhm_one_tile():
+def test_dhm_one_tile(tmp_path, test_tile):
+    output_dir = tmp_path / "test_dhm_one_tile"
     with initialize(version_base="1.2", config_path="../configs"):
         # config is relative to a module
         cfg = compose(
@@ -46,7 +27,8 @@ def test_dhm_one_tile():
         )
 
     dhm_one_tile.main(cfg)
-    assert os.path.isfile(expected_output_file)
+    output_file = output_dir / test_tile.output_filename
+    assert os.path.isfile(output_file)
 
-    raster_bounds = ru.get_tif_extent(expected_output_file)
-    assert ru.allclose_mm(raster_bounds, expected_raster_bounds)
+    raster_bounds = ru.get_tif_extent(output_file)
+    assert ru.allclose_mm(raster_bounds, test_tile.expected_raster_bounds)

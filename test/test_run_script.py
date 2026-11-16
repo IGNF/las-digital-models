@@ -1,38 +1,31 @@
 import logging
 import os
-import shutil
 import subprocess as sp
 
 import pytest
 
 from las_digital_models.commons import commons
 
-test_path = os.path.dirname(os.path.abspath(__file__))
-tmp_path = os.path.join(test_path, "tmp", "run_script")
-input_dir = os.path.join(test_path, "data")
-output_dir = tmp_path
-file_ext = "laz"
 pixel_size = 0.5
 
-expected_output_dirs = {
-    "dtm": os.path.join(output_dir, "DTM"),
-    "dsm": os.path.join(output_dir, "DSM"),
-    "dhm": os.path.join(output_dir, "DHM"),
-}
+
+@pytest.fixture(scope="module")
+def tmp_path(base_tmp_path):
+    return base_tmp_path / "run_script"
 
 
-def setup_module(module):
-    try:
-        shutil.rmtree(tmp_path)
-
-    except FileNotFoundError:
-        pass
-    os.makedirs(tmp_path)
+@pytest.fixture(scope="module")
+def expected_output_dirs(tmp_path):
+    return {
+        "dtm": os.path.join(tmp_path, "DTM"),
+        "dsm": os.path.join(tmp_path, "DSM"),
+        "dhm": os.path.join(tmp_path, "DHM"),
+    }
 
 
 @pytest.mark.functional_test
-def test_run_script():
-    cmd = ["./run.sh", "-i", input_dir, "-o", output_dir, "-p", str(pixel_size), "-c", "test"]
+def test_run_script(tmp_path, base_data_path, expected_output_dirs):
+    cmd = ["./run.sh", "-i", base_data_path, "-o", tmp_path, "-p", str(pixel_size), "-c", "test"]
     print(cmd)
     r = sp.run(cmd, capture_output=True)
     logging.debug(f"Stdout is: {r.stdout.decode()}")
@@ -44,7 +37,7 @@ def test_run_script():
 
     # Check that all files are created (for all methods)
 
-    for input_file in os.listdir(input_dir):
+    for input_file in os.listdir(base_data_path):
         if input_file.endswith(("las", "laz")):
             tilename = os.path.splitext(input_file)[0]
             for od in expected_output_dirs.keys():

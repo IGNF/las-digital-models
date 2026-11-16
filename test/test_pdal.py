@@ -5,14 +5,11 @@ test some PDAL features
 import os
 
 import pdal
-import pytest
-
-TEST_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
-def test_pdal_read_severals_extra_dims():
-# test that we can read a las file with several extra dims
-    test_file = os.path.join(TEST_PATH, "data/las_test_pdal/las_with_several_extra_byte_bloc.laz")
+def test_pdal_read_several_extra_dims(base_data_path):
+    # test that we can read a las file with several extra dims
+    test_file = os.path.join(base_data_path, "las_test_pdal/las_with_several_extra_byte_bloc.laz")
 
     pipeline = pdal.Reader.las(filename=test_file).pipeline()
     metadata = pipeline.quickinfo["readers.las"]

@@ -1,71 +1,52 @@
 import os
-import shutil
 import test.utils.raster_utils as ru
-from pathlib import Path
 
 import pytest
 
 from las_digital_models.tasks.las_interpolation import interpolate
 
-TILE_COORD_SCALE = 10
-TILE_WIDTH = 50
-PIXEL_SIZE = 0.5
 
-TEST_PATH = Path(__file__).resolve().parent.parent
-TMP_PATH = TEST_PATH / "tmp" / "tasks" / "las_interpolation"
-INPUT_FILE = TEST_PATH / "data" / "test_data_77055_627760_LA93_IGN69.laz"
-GROUND_TRUTH_FOLDER = TEST_PATH / "data" / "interpolation"
-
-COORD_X = 77055
-COORD_Y = 627760
-ORIGIN = [COORD_X * TILE_COORD_SCALE, COORD_Y * TILE_COORD_SCALE]
-EXPECTED_XMIN = ORIGIN[0] - PIXEL_SIZE / 2
-EXPECTED_YMAX = ORIGIN[1] + PIXEL_SIZE / 2
-EXPECTED_RASTER_BOUNDS = (EXPECTED_XMIN, EXPECTED_YMAX - TILE_WIDTH), (EXPECTED_XMIN + TILE_WIDTH, EXPECTED_YMAX)
-
-
-def setup_module():
-    try:
-        shutil.rmtree(TMP_PATH)
-
-    except FileNotFoundError:
-        pass
-    os.makedirs(TMP_PATH)
+@pytest.fixture(scope="module")
+def tmp_path(base_tmp_path):
+    p = base_tmp_path / "tasks" / "las_interpolation"
+    p.mkdir(parents=True)
+    return p
 
 
 @pytest.mark.parametrize(
-    "filter_dimension, filter_values, output_file, ground_truth_file",
+    "filter_dimension, filter_values, output_filename, ground_truth_file_suffix",
     [
         # default with no pre-filtering
         (
             "",
             [],
-            TMP_PATH / "interpolate_default.tif",
-            os.path.join(GROUND_TRUTH_FOLDER, "test_data_77055_627760_LA93_IGN69_50CM.tif"),
+            "interpolate_default.tif",
+            "",
         ),
         # Filter by class (ground only)
         (
             "Classification",
             [2, 9, 66],
-            TMP_PATH / "interpolate_classif.tif",
-            os.path.join(GROUND_TRUTH_FOLDER, "test_data_77055_627760_LA93_IGN69_50CM_dtm_classes.tif"),
+            "interpolate_classif.tif",
+            "_dtm_classes",
         ),
         # Filter by return number (check that other dimensions are ok)
         (
             "ReturnNumber",
             [2, 3, 4, 5],
-            TMP_PATH / "interpolate_returnnumber.tif",
-            os.path.join(GROUND_TRUTH_FOLDER, "test_data_77055_627760_LA93_IGN69_50CM_filter_returnnumber.tif"),
+            "interpolate_returnnumber.tif",
+            "_filter_returnnumber",
         ),
     ],
 )
-def test_interpolate(filter_dimension, filter_values, output_file, ground_truth_file):
+def test_interpolate(tmp_path, filter_dimension, filter_values, output_filename, ground_truth_file_suffix, test_tile):
+    output_file = tmp_path / output_filename
     interpolate(
-        INPUT_FILE,
+        test_tile.input_path,
         output_file,
-        tile_origin=ORIGIN,
-        pixel_size=PIXEL_SIZE,
-        tile_width=TILE_WIDTH,
+        tile_origin=test_tile.origin,
+        pixel_size=0.5,
+        tile_width=50,
         spatial_ref="EPSG:2154",
         no_data_value=-9999,
         filter_dimension=filter_dimension,
@@ -75,6 +56,6 @@ def test_interpolate(filter_dimension, filter_values, output_file, ground_truth_
     assert os.path.isfile(output_file)
 
     raster_bounds = ru.get_tif_extent(output_file)
-    assert ru.allclose_mm(raster_bounds, EXPECTED_RASTER_BOUNDS)
+    assert ru.allclose_mm(raster_bounds, test_tile.expected_raster_bounds)
 
-    assert ru.tif_values_all_close(output_file, ground_truth_file)
+    assert ru.tif_values_all_close(output_file, test_tile.expected_interpolation(ground_truth_file_suffix))
