@@ -1,6 +1,5 @@
-from pathlib import Path
-
 import geopandas as gpd
+import pytest
 from pyproj import CRS
 from shapely.geometry import LineString
 
@@ -8,22 +7,38 @@ from las_digital_models.extract_stat_from_raster.vectors.clip_geometry import (
     clip_lines_by_polygons,
 )
 
-TEST_PATH = Path(__file__).resolve().parent.parent
 
-TMP_PATH = TEST_PATH / "tmp"
-
-DATA_DIR = TEST_PATH / "data" / "bridge" / "input_operators"
-DATA_LINES = DATA_DIR / "lignes_contraintes/test_constraint_lines_3D_OE.geojson"
-DATA_LINES_OUTSIDE = DATA_DIR / "lignes_contraintes/test_constraint_lines_3D_OE_outside.geojson"
-DATA_BRIDGES = DATA_DIR / "tabliers/test_tabliers_pont_OE.geojson"
+@pytest.fixture(scope="module")
+def tmp_path(base_tmp_path):
+    return base_tmp_path / "extract_stat_from_raster" / "clip_geometry"
 
 
-def test_create_hydro_vector_mask_default():
+@pytest.fixture(scope="module")
+def data_operators(base_data_path):
+    return base_data_path / "bridge" / "input_operators"
+
+
+@pytest.fixture(scope="module")
+def lines_gdf(data_operators):
+    data_lines = data_operators / "lignes_contraintes/test_constraint_lines_3D_OE.geojson"
+    return gpd.read_file(data_lines)
+
+
+@pytest.fixture(scope="module")
+def lines_outside_gdf(data_operators):
+    data_lines = data_operators / "lignes_contraintes/test_constraint_lines_3D_OE_outside.geojson"
+    return gpd.read_file(data_lines)
+
+
+@pytest.fixture(scope="module")
+def bridges_gdf(data_operators):
+    data_lines = data_operators / "tabliers/test_tabliers_pont_OE.geojson"
+    return gpd.read_file(data_lines)
+
+
+def test_create_hydro_vector_mask_default(lines_gdf, bridges_gdf):
     # Parameters
     crs = CRS.from_epsg(2154)
-    lines_gdf = gpd.read_file(DATA_LINES)
-    bridges_gdf = gpd.read_file(DATA_BRIDGES)
-
     gdf = clip_lines_by_polygons(lines_gdf, bridges_gdf)
 
     assert not gdf.empty  # GeoDataFrame shouldn't empty
@@ -55,11 +70,8 @@ def test_create_hydro_vector_mask_default():
         ), f"Expected geometry not found: {expected_geom.wkt}"
 
 
-def test_create_hydro_vector_mask_outside():
+def test_create_hydro_vector_mask_outside(lines_outside_gdf, bridges_gdf):
     # Parameters
-    lines_outsides_gdf = gpd.read_file(DATA_LINES_OUTSIDE)
-    bridges_gdf = gpd.read_file(DATA_BRIDGES)
-
-    gdf = clip_lines_by_polygons(lines_outsides_gdf, bridges_gdf)
+    gdf = clip_lines_by_polygons(lines_outside_gdf, bridges_gdf)
 
     assert gdf.empty  # GeoDataFrame should empty

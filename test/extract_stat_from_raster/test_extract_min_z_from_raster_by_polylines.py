@@ -1,6 +1,3 @@
-import os
-from pathlib import Path
-
 import geopandas as gpd
 import pytest
 import rasterio
@@ -11,19 +8,25 @@ from las_digital_models.extract_stat_from_raster.rasters.extract_z_min_from_rast
     extract_polylines_min_z_from_dsm,
 )
 
-TEST_PATH = Path(__file__).resolve().parent.parent
-DATA_RASTER_PATH = os.path.join(TEST_PATH, "data/bridge/mns_hydro_postfiltre")
-INPUT_RASTER = os.path.join(DATA_RASTER_PATH, "test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif")
+
+@pytest.fixture(scope="module")
+def tmp_path(base_tmp_path):
+    return base_tmp_path / "extract_stat_from_raster" / "extract_min_z_from_raster_by_polylines"
 
 
-def test_extract_polylines_min_z_from_dsm():
+@pytest.fixture(scope="module")
+def input_raster(base_data_path):
+    return base_data_path / "bridge/mns_hydro_postfiltre/test_mns_hydro_2023_0299_6802_LA93_IGN69_5m.tif"
+
+
+def test_extract_polylines_min_z_from_dsm(input_raster):
     lines = [
         LineString([(299934.06, 6801817.96), (300007.48, 6801822.18)]),
         LineString([(299922.47, 6801805.18), (299993.08, 6801808.32)]),  # Line outside from raster
     ]
     lines_gdf = gpd.GeoDataFrame(geometry=lines, crs="EPSG:2154")
 
-    result = extract_polylines_min_z_from_dsm(lines_gdf, INPUT_RASTER)
+    result = extract_polylines_min_z_from_dsm(lines_gdf, input_raster)
 
     # # Check that all resulting geometries are LineStrings
     assert all(isinstance(geom, LineString) for geom in result.geometry)
@@ -41,18 +44,18 @@ def test_extract_polylines_min_z_from_dsm():
         assert all(z == expected_z for z in zs), f"Expected all Z = {expected_z}, got {zs}"
 
 
-def test_line_outside_raster():
+def test_line_outside_raster(input_raster):
     line = LineString([(0, 0), (1, 1)])  # no intersection with raster footprint
     lines_gdf = gpd.GeoDataFrame(geometry=[line], crs="EPSG:2154")
 
-    result = extract_polylines_min_z_from_dsm(lines_gdf, INPUT_RASTER)
+    result = extract_polylines_min_z_from_dsm(lines_gdf, input_raster)
 
     assert len(result) == 0
 
 
 @pytest.fixture(scope="module")
-def raster_bounds():
-    with rasterio.open(INPUT_RASTER) as src:
+def raster_bounds(input_raster):
+    with rasterio.open(input_raster) as src:
         return src.bounds  # left, bottom, right, top
 
 
@@ -74,11 +77,11 @@ def raster_bounds():
         ),
     ],
 )
-def test_clip_lines_parametrized(raster_bounds, line_type, line_geom, should_be_retained):
+def test_clip_lines_parametrized(raster_bounds, line_type, line_geom, should_be_retained, input_raster):
     line = line_geom(raster_bounds)
     lines_gdf = gpd.GeoDataFrame(geometry=[line], crs="EPSG:2154")
 
-    clipped = clip_lines_by_raster(lines_gdf, INPUT_RASTER)
+    clipped = clip_lines_by_raster(lines_gdf, input_raster)
 
     if should_be_retained:
         assert not clipped.empty, f"{line_type} should have been retained"

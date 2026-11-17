@@ -1,6 +1,4 @@
-import logging
 import os
-import shutil
 from pathlib import Path
 
 import geopandas as gpd
@@ -12,45 +10,45 @@ from las_digital_models.extract_stat_from_raster import (
     extract_z_virtual_lines_from_raster,
 )
 
-TEST_PATH = Path(__file__).resolve().parent.parent
-TMP_PATH = TEST_PATH / "tmp"
 
-DATA_DIR = TEST_PATH / "data" / "bridge"
-INPUT_RASTER_DIR = DATA_DIR / "mns_hydro_postfiltre"
-INPUT_GEOMETRY_DIR = DATA_DIR / "input_operators/lignes_contraintes"
-INPUT_CLIP_GEOMETRY_DIR = DATA_DIR / "input_operators/tabliers"
-OUTPUT_DIR = TMP_PATH / "main_extract_z_virtual_lines_from_raster"
-OUTPUT_VRT_FILENAME = "MNS_HYDRO.vrt"
+@pytest.fixture(scope="module")
+def output_vrt_filename():
+    return "MNS_HYDRO.vrt"
 
 
-def setup_module():
-    try:
-        shutil.rmtree(TMP_PATH)
-
-    except FileNotFoundError:
-        pass
-    os.mkdir(TMP_PATH)
+@pytest.fixture(scope="module")
+def tmp_path(base_tmp_path):
+    return base_tmp_path / "extract_stat_from_raster" / "extract_z_virtual_lines_from_raster"
 
 
-@pytest.mark.parametrize(
-    "input_raster_dir, input_geometry_dir, input_clip_geometry_dir, input_geometry_filename, input_clip_geometry_filename",
-    [
-        (  # Standard values
-            INPUT_RASTER_DIR, INPUT_GEOMETRY_DIR, INPUT_CLIP_GEOMETRY_DIR, 
-            "NUALHD_1-0_DF_lignes_contrainte.geojson", "NUALHD_1-0_DF_tabliers_pont.geojson",
-        ),
-        (
-            # Values where we multiLineString in past version
-            TEST_PATH / "data" / "data_test_linestring", TEST_PATH / "data" / "data_test_linestring/", 
-            TEST_PATH / "data" / "data_test_linestring/", 
-            "lignes_contraintes.geojson", "ponts.geojson"
-        ),
-    ],
-)
-def test_extract_z_virtual_lines_from_raster_default(input_raster_dir, input_geometry_dir, input_clip_geometry_dir, 
-                                                     input_geometry_filename, input_clip_geometry_filename):
-    output_vrt_filename = OUTPUT_VRT_FILENAME
-    output_dir = OUTPUT_DIR
+@pytest.fixture(scope="module")
+def test_data(base_data_path):
+    return {
+        "default": {
+            "input_raster_dir": base_data_path / "bridge" / "mns_hydro_postfiltre",
+            "input_geometry_dir": base_data_path / "bridge" / "input_operators/lignes_contraintes",
+            "input_clip_geometry_dir": base_data_path / "bridge" / "input_operators/tabliers",
+            "input_geometry_filename": "NUALHD_1-0_DF_lignes_contrainte.geojson",
+            "input_clip_geometry_filename": "NUALHD_1-0_DF_tabliers_pont.geojson",
+        },
+        "multilineString": {  # Values where we multiLineString in past version
+            "input_raster_dir": base_data_path / "data_test_linestring",
+            "input_geometry_dir": base_data_path / "data_test_linestring",
+            "input_clip_geometry_dir": base_data_path / "data_test_linestring",
+            "input_geometry_filename": "lignes_contraintes.geojson",
+            "input_clip_geometry_filename": "ponts.geojson",
+        },
+    }
+
+
+@pytest.mark.parametrize("test_case", ["default", "multilineString"])
+def test_extract_z_virtual_lines_from_raster_default(test_data, test_case, output_vrt_filename, tmp_path):
+    input_raster_dir = test_data[test_case]["input_raster_dir"]
+    input_geometry_dir = test_data[test_case]["input_geometry_dir"]
+    input_clip_geometry_dir = test_data[test_case]["input_clip_geometry_dir"]
+    input_geometry_filename = test_data[test_case]["input_geometry_filename"]
+    input_clip_geometry_filename = test_data[test_case]["input_clip_geometry_filename"]
+    output_dir = tmp_path / "test_extract_z_virtual_lines_from_raster_default"
     output_geometry_filename = "constraint_lines.GeoJSON"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -73,7 +71,7 @@ def test_extract_z_virtual_lines_from_raster_default(input_raster_dir, input_geo
     assert (Path(output_dir) / "constraint_lines.GeoJSON").is_file()
 
     # Check geometry and Z value from output
-    output_geometry_path = OUTPUT_DIR / output_geometry_filename
+    output_geometry_path = output_dir / output_geometry_filename
     gdf = gpd.read_file(output_geometry_path)
     assert not gdf.empty
 
@@ -89,12 +87,11 @@ def test_extract_z_virtual_lines_from_raster_default(input_raster_dir, input_geo
         assert all_z_coords_equal(geom)  # this lines have the same Z value"
 
 
-def test_extract_z_virtual_lines_from_raster_no_input_raster():
-    input_geometry_dir = INPUT_GEOMETRY_DIR
-    input_clip_geometry_dir = INPUT_CLIP_GEOMETRY_DIR
+def test_extract_z_virtual_lines_from_raster_no_input_raster(tmp_path, test_data, output_vrt_filename):
+    input_geometry_dir = test_data["default"]["input_geometry_dir"]
+    input_clip_geometry_dir = test_data["default"]["input_clip_geometry_dir"]
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
-    output_vrt_filename = OUTPUT_VRT_FILENAME
-    output_dir = OUTPUT_DIR
+    output_dir = tmp_path / "test_extract_z_virtual_lines_from_raster_no_input_raster"
     output_geometry_filename = "constraint_lines.GeoJSON"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -115,10 +112,9 @@ def test_extract_z_virtual_lines_from_raster_no_input_raster():
         extract_z_virtual_lines_from_raster.run_extract_z_virtual_lines_from_raster(cfg)
 
 
-def test_extract_z_virtual_lines_from_raster_no_input_geometry():
-    input_raster_dir = INPUT_RASTER_DIR
-    output_vrt_filename = OUTPUT_VRT_FILENAME
-    output_dir = OUTPUT_DIR
+def test_extract_z_virtual_lines_from_raster_no_input_geometry(tmp_path, test_data, output_vrt_filename):
+    input_raster_dir = test_data["default"]["input_raster_dir"]
+    output_dir = tmp_path / "test_extract_z_virtual_lines_from_raster_no_input_geometry"
     output_geometry_filename = "constraint_lines.GeoJSON"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -137,12 +133,11 @@ def test_extract_z_virtual_lines_from_raster_no_input_geometry():
         extract_z_virtual_lines_from_raster.run_extract_z_virtual_lines_from_raster(cfg)
 
 
-def test_extract_z_virtual_lines_from_raster_no_output():
-    input_raster_dir = INPUT_RASTER_DIR
-    input_geometry_dir = INPUT_GEOMETRY_DIR
-    input_clip_geometry_dir = INPUT_CLIP_GEOMETRY_DIR
+def test_extract_z_virtual_lines_from_raster_no_output(test_data, output_vrt_filename):
+    input_raster_dir = test_data["default"]["input_raster_dir"]
+    input_geometry_dir = test_data["default"]["input_geometry_dir"]
+    input_clip_geometry_dir = test_data["default"]["input_clip_geometry_dir"]
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte.shp"
-    output_vrt_filename = OUTPUT_VRT_FILENAME
 
     with initialize(version_base="1.2", config_path="../../configs"):
         # config is relative to a module
@@ -162,14 +157,13 @@ def test_extract_z_virtual_lines_from_raster_no_output():
             extract_z_virtual_lines_from_raster.run_extract_z_virtual_lines_from_raster(cfg)
 
 
-def test_extract_z_virtual_lines_from_raster_outside():
-    input_raster_dir = INPUT_RASTER_DIR
-    input_geometry_dir = INPUT_GEOMETRY_DIR
-    input_clip_geometry_dir = INPUT_CLIP_GEOMETRY_DIR
+def test_extract_z_virtual_lines_from_raster_outside(tmp_path, test_data, output_vrt_filename):
+    input_raster_dir = test_data["default"]["input_raster_dir"]
+    input_geometry_dir = test_data["default"]["input_geometry_dir"]
+    input_clip_geometry_dir = test_data["default"]["input_clip_geometry_dir"]
     input_geometry_filename = "NUALHD_1-0_DF_lignes_contrainte_outside_MNS.geojson"
     input_clip_geometry_filename = "NUALHD_1-0_DF_tabliers_pont.geojson"
-    output_vrt_filename = OUTPUT_VRT_FILENAME
-    output_dir = TMP_PATH / "main_extract_z_virtual_lines_from_raster_outside"
+    output_dir = tmp_path / "test_extract_z_virtual_lines_from_raster_outside"
     output_geometry_filename = "constraint_lines.GeoJSON"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -192,11 +186,3 @@ def test_extract_z_virtual_lines_from_raster_outside():
         extract_z_virtual_lines_from_raster.run_extract_z_virtual_lines_from_raster(cfg)
 
     assert not (Path(output_dir) / "constraint_lines.GeoJSON").is_file()
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    test_extract_z_virtual_lines_from_raster_default()
-    test_extract_z_virtual_lines_from_raster_no_input_geometry()
-    test_extract_z_virtual_lines_from_raster_no_input_raster()
-    test_extract_z_virtual_lines_from_raster_no_output()
