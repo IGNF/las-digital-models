@@ -1,4 +1,3 @@
-import logging
 import os
 from pathlib import Path
 
@@ -187,11 +186,3 @@ def test_extract_z_virtual_lines_from_raster_outside(tmp_path, test_data, output
         extract_z_virtual_lines_from_raster.run_extract_z_virtual_lines_from_raster(cfg)
 
     assert not (Path(output_dir) / "constraint_lines.GeoJSON").is_file()
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    test_extract_z_virtual_lines_from_raster_default()
-    test_extract_z_virtual_lines_from_raster_no_input_geometry()
-    test_extract_z_virtual_lines_from_raster_no_input_raster()
-    test_extract_z_virtual_lines_from_raster_no_output()

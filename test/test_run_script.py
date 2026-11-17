@@ -45,8 +45,3 @@ def test_run_script(tmp_path, base_data_path, expected_output_dirs):
                 out_filename = f"{tilename}{_size}.tif"
                 out_path = os.path.join(expected_output_dirs[od], out_filename)
                 assert os.path.isfile(out_path), f"Output for {od} was not generated"
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    test_run_script()
